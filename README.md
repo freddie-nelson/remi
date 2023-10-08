@@ -1,6 +1,6 @@
-# Started C++ GUI Project
+# Started C++ Graphics Project
 
-A simple C++ GUI project using SDL2, or SFML.
+A simple C++ Graphics project using SDL2, or SFML.
 
 ## Table of Contents 📰
 
@@ -15,12 +15,12 @@ A simple C++ GUI project using SDL2, or SFML.
 
 ```bash
 # with git
-git clone https://github.com/freddie-nelson/cpp-starter-gui
+git clone https://github.com/freddie-nelson/cpp-starter-graphics
 
 # with degit
-degit github:freddie-nelson/cpp-starter-gui
+degit github:freddie-nelson/cpp-starter-graphics
 
-cd cpp-starter-gui
+cd cpp-starter-graphics
 ```
 
 ## Contributing
@@ -36,11 +36,11 @@ cd cpp-starter-gui
 
 ```bash
 # clone repo
-git clone https://github.com/freddie-nelson/cpp-verlet-physics
-cd cpp-verlet-physics
+git clone https://github.com/freddie-nelson/cpp-starter-graphics
+cd cpp-starter-graphics
 
 # run the project
-./dev.bat
+./dev.bat sfml
 ```
 
 ## License
