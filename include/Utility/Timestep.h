@@ -1,3 +1,5 @@
+#pragma once
+
 #include <chrono>
 
 inline uint64_t timeSinceEpochMillisec()

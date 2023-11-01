@@ -1,6 +1,5 @@
 #include "../include/Application.h"
-// #include "../include/Rendering/SDLRenderer.h"
-#include "../include/Rendering/SFMLRenderer.h"
+#include "../include/Rendering/Renderer.h"
 #include "../include/Globals.h"
 #include "../include/Utility/Timestep.h"
 
@@ -71,7 +70,7 @@ int Application::run()
 int Application::init()
 {
     // init renderer
-    renderer = new Rendering::SFMLRenderer(windowTitle, windowWidth, windowHeight);
+    renderer = new Rendering::Renderer(windowTitle, windowWidth, windowHeight);
     if (renderer->init() != 0)
     {
         std::cout << "Failed to initialize renderer." << std::endl;
