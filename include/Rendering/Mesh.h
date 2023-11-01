@@ -9,6 +9,8 @@ namespace Rendering
      * This mesh must be ready to be rendered by OpenGL.
      *
      * A Mesh2D should be rendered using the GL_TRIANGLES primitive.
+     *
+     * A Mesh2D must represent a simple polygon.
      */
     struct Mesh2D
     {
@@ -21,6 +23,8 @@ namespace Rendering
      *
      * The vertices must be in counter-clockwise order.
      *
+     * The vertices must represent a simple polygon.
+     *
      * @param vertices The vertices to triangulate, must be in counter-clockwise order.
      */
     Mesh2D triangulate(const std::vector<glm::vec2> &vertices);
@@ -29,6 +33,8 @@ namespace Rendering
      * Creates a polygon with the given vertices.
      *
      * The vertices must be in counter-clockwise order.
+     *
+     * The vertices must represent a simple polygon.
      *
      * @param vertices The vertices of the polygon, in counter-clockwise order.
      */
