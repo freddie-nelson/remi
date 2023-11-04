@@ -26,8 +26,18 @@ namespace Rendering
      * The vertices must represent a simple polygon.
      *
      * @param vertices The vertices to triangulate, must be in counter-clockwise order.
+     *
+     * @returns A Mesh2D representing the triangulated polygon.
      */
     Mesh2D triangulate(const std::vector<glm::vec2> &vertices);
+
+    /**
+     * Transforms the given vertices into indexed vertices.
+     *
+     * @param vertices The vertices to create indices for, must be in counter-clockwise order.
+     * @param indices The indices to add to.
+     */
+    void createIndexedVertices(std::vector<glm::vec2> &vertices, std::vector<unsigned int> &indices);
 
     /**
      * Creates a polygon with the given vertices.
@@ -37,6 +47,8 @@ namespace Rendering
      * The vertices must represent a simple polygon.
      *
      * @param vertices The vertices of the polygon, in counter-clockwise order.
+     *
+     * @returns A Mesh2D representing the polygon.
      */
     Mesh2D createPolygon(const std::vector<glm::vec2> &vertices);
 
@@ -48,6 +60,8 @@ namespace Rendering
      * @param centre The centre of the polygon.
      * @param radius The radius of the polygon.
      * @param sides The number of sides of the polygon, must be at least 3.
+     *
+     * @returns A Mesh2D representing the polygon.
      */
     Mesh2D createRegularPolygon(glm::vec2 centre, float radius, int sides);
 
@@ -57,6 +71,8 @@ namespace Rendering
      * @param topLeft The top-left corner of the rectangle.
      * @param w The width of the rectangle.
      * @param h The height of the rectangle.
+     *
+     * @returns A Mesh2D representing the rectangle.
      */
     Mesh2D createRect(glm::vec2 topLeft, float w, float h);
 }
