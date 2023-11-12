@@ -1,7 +1,7 @@
 #include "../include/Application.h"
-#include "../include/Rendering/Renderer.h"
 #include "../include/Globals.h"
-#include "../include/Utility/Timestep.h"
+#include "../include/Rendering/Mesh/Polygons.h"
+#include "../include/Rendering/Mesh/Transforms.h"
 
 #include <math.h>
 #include <random>
@@ -27,53 +27,16 @@ int Application::run()
         return initCode;
     }
 
-    const int desiredFps = 60;
-    const int desiredFrameTime = 1000 / desiredFps;
-
-    auto lastUpdateTime = timeSinceEpochMillisec() - desiredFrameTime;
-
-    while (state == ApplicationState::RUNNING)
-    {
-        // update timestep
-        const auto now = timeSinceEpochMillisec();
-        const auto diff = now - lastUpdateTime;
-        lastUpdateTime = now;
-
-        // dt in seconds
-        const float dt = (float)diff / 1000.0f;
-
-        // wait for renderer events to be processed
-        const bool shouldExit = renderer->pollEvents();
-        if (shouldExit)
-        {
-            state = ApplicationState::EXIT;
-            break;
-        }
-
-        // clear renderer first so that update functions can draw to the screen
-        // renderer->clear();
-
-        update(dt);
-        render();
-
-        // wait until frame time is reached
-        const auto frameEndTime = now + desiredFrameTime;
-        while (timeSinceEpochMillisec() < frameEndTime)
-        {
-            std::this_thread::sleep_for(std::chrono::microseconds(500));
-        }
-    }
-
-    return 0;
+    return window->run(std::bind(&Application::update, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 int Application::init()
 {
-    // init renderer
-    renderer = new Rendering::Renderer(windowTitle, windowWidth, windowHeight);
-    if (renderer->init() != 0)
+    // init window
+    window = new Rendering::Window(windowTitle, windowWidth, windowHeight);
+    if (window->init() != 0)
     {
-        std::cout << "Failed to initialize renderer." << std::endl;
+        std::cout << "Failed to initialize window." << std::endl;
         return 1;
     }
 
@@ -82,26 +45,22 @@ int Application::init()
 
 void Application::destroy()
 {
-    delete renderer;
+    delete window;
     delete this;
 }
 
-void Application::update(float dt)
+void Application::update(float dt, Rendering::Renderer *renderer)
 {
     // print timestep info
     std::cout << "\rdt: " << dt << "          ";
+
+    render(renderer);
 }
 
-void Application::render(bool clear)
+void Application::render(Rendering::Renderer *renderer)
 {
-    // clear last frame
-    if (clear)
-        renderer->clear();
+    Rendering::Mesh2D shape = Rendering::createRegularPolygon(100, 50);
+    Rendering::translateMesh(shape, glm::vec2{windowWidth / 2, windowHeight / 2});
 
-    // draw a circle
-    renderer->circle(Rendering::Circle{glm::vec2(windowWidth / 2, windowHeight / 2), 100}, Rendering::Color{
-                                                                                               255, 255, 255, 255});
-
-    // render
-    renderer->present();
+    renderer->mesh(shape, Rendering::Color(255, 255, 255, 255));
 }

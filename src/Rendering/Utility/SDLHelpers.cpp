@@ -1,4 +1,4 @@
-#include "../../include/Utility/SDLHelpers.h"
+#include "../../../include/Rendering/Utility/SDLHelpers.h"
 
 SDL_Rect drawText(SDL_Renderer *renderer, int x, int y, std::string text, TTF_Font *font, SDL_Color color)
 {

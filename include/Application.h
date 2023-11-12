@@ -1,14 +1,9 @@
 #pragma once
 
-#include "../include/Rendering/Renderer.h"
+#include "./Rendering/Renderer.h"
+#include "./Rendering/Window.h"
 
 #include <string>
-
-enum ApplicationState
-{
-    RUNNING,
-    EXIT
-};
 
 class Application
 {
@@ -23,13 +18,11 @@ private:
     int windowWidth;
     int windowHeight;
 
-    ApplicationState state = ApplicationState::RUNNING;
+    Rendering::Window *window;
 
     int init();
     void destroy();
 
-    Rendering::Renderer *renderer;
-
-    void update(float dt);
-    void render(bool clear = true);
+    void update(float dt, Rendering::Renderer *renderer);
+    void render(Rendering::Renderer *renderer);
 };
