@@ -219,7 +219,7 @@ namespace Rendering
          * @param l The lightness of the color.
          * @param a The alpha value of the color.
          */
-        void fromHSLA(float h, float s, float l, float a);
+        void fromHSLA(float h, float s, float l, float a = 1.0f);
 
         /**
          * Returns the red component of the color.
