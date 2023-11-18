@@ -2,7 +2,9 @@
 
 #include "Renderer.h"
 
-#include <SDL2/SDL.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 #include <string>
 #include <functional>
 
@@ -63,8 +65,7 @@ namespace Rendering
 
         int fps = 60;
 
-        SDL_Renderer *sdlRenderer;
-        SDL_Window *sdlWindow;
+        GLFWwindow *glfwWindow;
         Rendering::Renderer *renderer;
 
         bool running = false;

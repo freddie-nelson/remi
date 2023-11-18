@@ -3,7 +3,7 @@
 #include <iostream>
 #include <math.h>
 
-Rendering::Renderer::Renderer(SDL_Renderer *sdlRenderer, int windowWidth, int windowHeight) : sdlRenderer(sdlRenderer), windowWidth(windowWidth), windowHeight(windowHeight)
+Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int windowWidth, int windowHeight) : glfwWindow(glfwWindow), windowWidth(windowWidth), windowHeight(windowHeight)
 {
 }
 
@@ -12,20 +12,24 @@ Rendering::Renderer::~Renderer()
     delete this;
 }
 
+void Rendering::Renderer::init()
+{
+}
+
 void Rendering::Renderer::clear()
 {
-    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-    SDL_RenderClear(sdlRenderer);
+    // SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+    // SDL_RenderClear(sdlRenderer);
 }
 
 void Rendering::Renderer::present()
 {
-    SDL_RenderPresent(sdlRenderer);
+    // SDL_RenderPresent(sdlRenderer);
 }
 
 void Rendering::Renderer::mesh(const Mesh2D &mesh, const Color &color)
 {
-    SDL_SetRenderDrawColor(sdlRenderer, color.r, color.g, color.b, color.a);
+    // SDL_SetRenderDrawColor(sdlRenderer, color.r, color.g, color.b, color.a);
 
     const std::vector<unsigned int> &indices = mesh.indices;
     std::vector<glm::vec2> transformedVertices;
@@ -48,8 +52,8 @@ void Rendering::Renderer::mesh(const Mesh2D &mesh, const Color &color)
         glm::vec2 v2 = transformedVertices[indices[j]];
         glm::vec2 v3 = transformedVertices[indices[k]];
 
-        SDL_RenderDrawLine(sdlRenderer, v1.x, v1.y, v2.x, v2.y);
-        SDL_RenderDrawLine(sdlRenderer, v2.x, v2.y, v3.x, v3.y);
-        SDL_RenderDrawLine(sdlRenderer, v3.x, v3.y, v1.x, v1.y);
+        // SDL_RenderDrawLine(sdlRenderer, v1.x, v1.y, v2.x, v2.y);
+        // SDL_RenderDrawLine(sdlRenderer, v2.x, v2.y, v3.x, v3.y);
+        // SDL_RenderDrawLine(sdlRenderer, v3.x, v3.y, v1.x, v1.y);
     }
 };

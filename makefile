@@ -2,7 +2,7 @@ CPP_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*/*/*.
 
 # sdl2
 output: 
-	g++ -std=c++20 main.cpp $(CPP_FILES) -o main.exe -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf 
+	g++ -std=c++20 main.cpp $(CPP_FILES) -o main.exe -lmingw32 -lglfw3 -lgdi32
 
 clean:
 	rm main.exe

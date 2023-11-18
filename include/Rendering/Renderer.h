@@ -3,7 +3,9 @@
 #include "Color.h"
 #include "./Mesh/Mesh.h"
 
-#include <SDL2/SDL.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
 #include <glm/vec2.hpp>
 #include <string>
 #include <vector>
@@ -14,8 +16,10 @@ namespace Rendering
     class Renderer
     {
     public:
-        Renderer(SDL_Renderer *sdlRenderer, int windowWidth, int windowHeight);
+        Renderer(GLFWwindow *glfwWindow, int windowWidth, int windowHeight);
         ~Renderer();
+
+        void init();
 
         void clear();
         void present();
@@ -26,6 +30,6 @@ namespace Rendering
         int windowWidth;
         int windowHeight;
 
-        SDL_Renderer *sdlRenderer;
+        GLFWwindow *glfwWindow;
     };
 }

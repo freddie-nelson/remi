@@ -1,6 +1,7 @@
 #include "../../include/Rendering/Window.h"
 #include "../../include/Rendering/Utility/Timestep.h"
 
+#include "../../include/externals/glad/glad.h"
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -18,16 +19,29 @@ Rendering::Window::~Window()
 int Rendering::Window::init()
 {
     // init sdl
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    if (!glfwInit())
     {
-        std::cout << "Failed to initialize SDL." << std::endl;
+        std::cout << "Failed to initialize GLFW." << std::endl;
         return 1;
     }
 
-    sdlWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, 0);
-    sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 
-    renderer = new Rendering::Renderer(sdlRenderer, windowWidth, windowHeight);
+    glfwWindow = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(), NULL, NULL);
+    if (!glfwWindow)
+    {
+        glfwTerminate();
+        std::cout << "Failed to create glfw window." << std::endl;
+        return 1;
+    }
+
+    glfwMakeContextCurrent(glfwWindow);
+    gladLoadGL();
+    glfwSwapInterval(1);
+
+    renderer = new Rendering::Renderer(glfwWindow, windowWidth, windowHeight);
+    renderer->init();
 
     return 0;
 }
@@ -38,9 +52,8 @@ void Rendering::Window::destroy()
 
     delete renderer;
 
-    SDL_DestroyRenderer(sdlRenderer);
-    SDL_DestroyWindow(sdlWindow);
-    SDL_Quit();
+    glfwDestroyWindow(glfwWindow);
+    glfwTerminate();
 }
 
 int Rendering::Window::run(WindowFrameCallback frameCallback)
@@ -60,9 +73,6 @@ int Rendering::Window::run(WindowFrameCallback frameCallback)
         // calculate dt in seconds
         const float dt = (float)diff / 1000.0f;
 
-        // wait for renderer events to be processed
-        pollEvents();
-
         // clear renderer
         renderer->clear();
 
@@ -71,6 +81,9 @@ int Rendering::Window::run(WindowFrameCallback frameCallback)
 
         // render
         renderer->present();
+
+        // wait for renderer events to be processed
+        pollEvents();
 
         // wait until frame time is reached
         const auto frameEndTime = now + desiredFrameTime;
@@ -110,13 +123,10 @@ int Rendering::Window::getFrameTime() const
 
 void Rendering::Window::pollEvents()
 {
-    SDL_Event event;
+    glfwPollEvents();
 
-    while (SDL_PollEvent(&event))
+    if (glfwWindowShouldClose(glfwWindow))
     {
-        if (event.type == SDL_QUIT)
-        {
-            destroy();
-        }
+        destroy();
     }
 }
