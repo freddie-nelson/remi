@@ -210,6 +210,18 @@ namespace Rendering
         void setColor(float rgb, float a = 1.0f);
 
         /**
+         * Sets the color from a HSLA color value.
+         *
+         * Component values are between 0 and 1 inclusive.
+         *
+         * @param h The hue of the color.
+         * @param s The saturation of the color.
+         * @param l The lightness of the color.
+         * @param a The alpha value of the color.
+         */
+        void fromHSLA(float h, float s, float l, float a);
+
+        /**
          * Returns the red component of the color.
          *
          * @returns The red component of the color.
@@ -294,5 +306,12 @@ namespace Rendering
          * @throws std::invalid_argument when min and are invalid
          */
         void validateClampMinMax(float min, float max);
+
+        /**
+         * Convert a hue to r, b or g.
+         *
+         * @returns float between 0 and 1 inclusive.
+         */
+        float hueToRgb(float p, float q, float t);
     };
 }
