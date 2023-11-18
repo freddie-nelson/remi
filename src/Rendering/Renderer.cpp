@@ -1,10 +1,12 @@
 #include "../../include/Rendering/Renderer.h"
 
+#include "../../include/externals/glad/glad.h"
 #include <iostream>
 #include <math.h>
 
-Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int windowWidth, int windowHeight) : glfwWindow(glfwWindow), windowWidth(windowWidth), windowHeight(windowHeight)
+Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height)
 {
+    resize(width, height);
 }
 
 Rendering::Renderer::~Renderer()
@@ -18,13 +20,13 @@ void Rendering::Renderer::init()
 
 void Rendering::Renderer::clear()
 {
-    // SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-    // SDL_RenderClear(sdlRenderer);
+    glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Rendering::Renderer::present()
 {
-    // SDL_RenderPresent(sdlRenderer);
+    glfwSwapBuffers(glfwWindow);
 }
 
 void Rendering::Renderer::mesh(const Mesh2D &mesh, const Color &color)
@@ -57,3 +59,34 @@ void Rendering::Renderer::mesh(const Mesh2D &mesh, const Color &color)
         // SDL_RenderDrawLine(sdlRenderer, v3.x, v3.y, v1.x, v1.y);
     }
 };
+
+void Rendering::Renderer::setClearColor(const glm::vec4 &color)
+{
+    clearColor = color;
+}
+
+glm::vec4 Rendering::Renderer::getClearColor() const
+{
+    return clearColor;
+}
+
+void Rendering::Renderer::resize(int w, int h)
+{
+    width = w;
+    height = h;
+
+    glViewport(0, 0, width, height);
+}
+
+std::pair<int, int> Rendering::Renderer::getSize() const
+{
+    return std::make_pair(width, height);
+}
+
+std::pair<int, int> Rendering::Renderer::getWindowSize() const
+{
+    int width, height;
+    glfwGetFramebufferSize(glfwWindow, &width, &height);
+
+    return std::make_pair(width, height);
+}

@@ -10,7 +10,7 @@
 #include <chrono>
 #include <thread>
 
-Application::Application(std::string windowTitle, int windowWidth, int windowHeight) : windowTitle(windowTitle), windowWidth(windowWidth), windowHeight(windowHeight)
+Application::Application(std::string windowTitle, int windowWidth, int windowHeight) : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight)
 {
 }
 
@@ -33,7 +33,7 @@ int Application::run()
 int Application::init()
 {
     // init window
-    window = new Rendering::Window(windowTitle, windowWidth, windowHeight);
+    window = new Rendering::Window(windowTitle, initialWindowWidth, initialWindowHeight);
     if (window->init() != 0)
     {
         std::cout << "Failed to initialize window." << std::endl;
@@ -60,7 +60,7 @@ void Application::update(float dt, Rendering::Renderer *renderer)
 void Application::render(Rendering::Renderer *renderer)
 {
     Rendering::Mesh2D shape = Rendering::createPolygon({glm::vec2(0, 0), glm::vec2(100, 0), glm::vec2(20, 20), glm::vec2(0, 100)});
-    Rendering::translateMesh(shape, glm::vec2{windowWidth / 2, windowHeight / 2});
+    Rendering::translateMesh(shape, glm::vec2{initialWindowWidth / 2, initialWindowHeight / 2});
 
     renderer->mesh(shape, Rendering::Color(255, 255, 255, 255));
 }

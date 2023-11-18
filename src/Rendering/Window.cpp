@@ -7,7 +7,7 @@
 #include <thread>
 
 Rendering::Window::Window(std::string windowTitle, int windowWidth, int windowHeight)
-    : windowTitle(windowTitle), windowWidth(windowWidth), windowHeight(windowHeight)
+    : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight)
 {
 }
 
@@ -28,7 +28,7 @@ int Rendering::Window::init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 
-    glfwWindow = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(), NULL, NULL);
+    glfwWindow = glfwCreateWindow(initialWindowWidth, initialWindowHeight, windowTitle.c_str(), NULL, NULL);
     if (!glfwWindow)
     {
         glfwTerminate();
@@ -40,7 +40,7 @@ int Rendering::Window::init()
     gladLoadGL();
     glfwSwapInterval(1);
 
-    renderer = new Rendering::Renderer(glfwWindow, windowWidth, windowHeight);
+    renderer = new Rendering::Renderer(glfwWindow, initialWindowWidth, initialWindowHeight);
     renderer->init();
 
     return 0;
@@ -63,8 +63,22 @@ int Rendering::Window::run(WindowFrameCallback frameCallback)
 
     running = true;
 
-    while (running)
+    while (true)
     {
+        if (syncRendererSizeWithWindow)
+        {
+            auto size = getSize();
+            renderer->resize(size.first, size.second);
+        }
+
+        // when not running, just poll events
+        // this is to prevent the window from freezing
+        if (!running)
+        {
+            pollEvents();
+            continue;
+        }
+
         // update timestep
         const auto now = timeSinceEpochMillisec();
         const auto diff = now - lastUpdateTime;
@@ -89,7 +103,7 @@ int Rendering::Window::run(WindowFrameCallback frameCallback)
         const auto frameEndTime = now + desiredFrameTime;
         while (timeSinceEpochMillisec() < frameEndTime)
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(500));
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
     }
 
@@ -119,6 +133,24 @@ void Rendering::Window::setFps(int fps)
 int Rendering::Window::getFrameTime() const
 {
     return 1000 / fps;
+}
+
+std::pair<int, int> Rendering::Window::getSize() const
+{
+    int width, height;
+    glfwGetFramebufferSize(glfwWindow, &width, &height);
+
+    return std::make_pair(width, height);
+}
+
+void Rendering::Window::syncRendererSize(bool sync)
+{
+    syncRendererSizeWithWindow = sync;
+}
+
+bool Rendering::Window::getSyncRendererSize() const
+{
+    return syncRendererSizeWithWindow;
 }
 
 void Rendering::Window::pollEvents()

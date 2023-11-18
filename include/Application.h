@@ -15,8 +15,8 @@ public:
 
 private:
     std::string windowTitle;
-    int windowWidth;
-    int windowHeight;
+    int initialWindowWidth;
+    int initialWindowHeight;
 
     Rendering::Window *window;
 

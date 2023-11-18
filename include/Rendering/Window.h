@@ -12,6 +12,13 @@ namespace Rendering
 {
     using WindowFrameCallback = std::function<void(float, Renderer *)>;
 
+    /**
+     * The window is responsible for creating and managing the window.
+     *
+     * It is also responsible for polling events and running the main loop.
+     *
+     * The window will also create and manage the Renderer.
+     */
     class Window
     {
     public:
@@ -40,6 +47,10 @@ namespace Rendering
 
         /**
          * Stops the `run` loop if it is running.
+         *
+         * This will not close the window.
+         *
+         * When stopped the window will only poll events, to prevent the window from freezing. This **will** call event listeners.
          */
         void stop();
 
@@ -58,12 +69,28 @@ namespace Rendering
          */
         int getFrameTime() const;
 
+        /**
+         * Returns the width and height of the window.
+         */
+        std::pair<int, int> getSize() const;
+
+        /**
+         * Sets whether the renderer should be resized when the window is resized.
+         */
+        void syncRendererSize(bool sync);
+
+        /**
+         * Returns whether the renderer is resized when the window is resized.
+         */
+        bool getSyncRendererSize() const;
+
     private:
         std::string windowTitle;
-        int windowWidth;
-        int windowHeight;
+        int initialWindowWidth;
+        int initialWindowHeight;
 
         int fps = 60;
+        bool syncRendererSizeWithWindow = true;
 
         GLFWwindow *glfwWindow;
         Rendering::Renderer *renderer;
