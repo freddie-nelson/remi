@@ -153,6 +153,11 @@ bool Rendering::Window::getSyncRendererSize() const
     return syncRendererSizeWithWindow;
 }
 
+Rendering::Renderer *Rendering::Window::getRenderer() const
+{
+    return renderer;
+}
+
 void Rendering::Window::pollEvents()
 {
     glfwPollEvents();

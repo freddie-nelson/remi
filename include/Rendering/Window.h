@@ -88,6 +88,8 @@ namespace Rendering
          */
         bool getSyncRendererSize() const;
 
+        Renderer *getRenderer() const;
+
     private:
         std::string windowTitle;
         int initialWindowWidth;

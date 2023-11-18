@@ -54,13 +54,18 @@ namespace Rendering
 
         /**
          * Renders the given mesh with the given color.
+         *
+         * @param mesh The mesh to render.
+         * @param color The color to render the mesh.
          */
         void mesh(const Mesh2D &mesh, const Color &color);
 
         /**
          * Sets the clear color.
+         *
+         * @param color The new clear color.
          */
-        void setClearColor(const glm::vec4 &color);
+        void setClearColor(const Color &color);
 
         /**
          * Returns the current clear color.
@@ -73,6 +78,9 @@ namespace Rendering
          * Sets the width and height of the renderer.
          *
          * This will also set the glViewport.
+         *
+         * @param w The width of the renderer
+         * @param h The height of the renderer
          */
         void resize(int w, int h);
 

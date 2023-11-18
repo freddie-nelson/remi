@@ -40,6 +40,12 @@ int Application::init()
         return 1;
     }
 
+    Rendering::Color clearColor(0.0f);
+    clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
+
+    auto renderer = window->getRenderer();
+    renderer->setClearColor(clearColor);
+
     return 0;
 }
 

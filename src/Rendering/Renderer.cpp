@@ -60,7 +60,7 @@ void Rendering::Renderer::mesh(const Mesh2D &mesh, const Color &color)
     }
 };
 
-void Rendering::Renderer::setClearColor(const glm::vec4 &color)
+void Rendering::Renderer::setClearColor(const Color &color)
 {
     clearColor = color;
 }
