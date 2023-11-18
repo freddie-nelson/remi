@@ -62,5 +62,5 @@ void Application::render(Rendering::Renderer *renderer)
     Rendering::Mesh2D shape = Rendering::createPolygon({glm::vec2(0, 0), glm::vec2(100, 0), glm::vec2(20, 20), glm::vec2(0, 100)});
     Rendering::translateMesh(shape, glm::vec2{initialWindowWidth / 2, initialWindowHeight / 2});
 
-    renderer->mesh(shape, Rendering::Color(255, 255, 255, 255));
+    renderer->mesh(shape, Rendering::Color(1.0f));
 }

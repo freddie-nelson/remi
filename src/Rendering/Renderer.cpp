@@ -20,7 +20,7 @@ void Rendering::Renderer::init()
 
 void Rendering::Renderer::clear()
 {
-    glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+    glClearColor(clearColor.r(), clearColor.g(), clearColor.b(), clearColor.a());
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
@@ -65,7 +65,7 @@ void Rendering::Renderer::setClearColor(const glm::vec4 &color)
     clearColor = color;
 }
 
-glm::vec4 Rendering::Renderer::getClearColor() const
+Rendering::Color Rendering::Renderer::getClearColor() const
 {
     return clearColor;
 }

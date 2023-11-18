@@ -26,6 +26,10 @@ namespace Rendering
          * Creates a new window with the given title and dimensions.
          */
         Window(std::string windowTitle, int windowWidth, int windowHeight);
+
+        /**
+         * Destroys the window.
+         */
         ~Window();
 
         /**

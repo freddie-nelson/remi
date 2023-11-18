@@ -23,7 +23,18 @@ namespace Rendering
     class Renderer
     {
     public:
+        /**
+         * Creates a new renderer attached to the given GLFWwindow.
+         *
+         * @param glfwWindow The GLFWwindow to attach to.
+         * @param width The width of the renderer viewport.
+         * @param height The height of the renderer viewport.
+         */
         Renderer(GLFWwindow *glfwWindow, int width, int height);
+
+        /**
+         * Destroys the renderer.
+         */
         ~Renderer();
 
         /**
@@ -53,8 +64,10 @@ namespace Rendering
 
         /**
          * Returns the current clear color.
+         *
+         * @returns The clear color.
          */
-        glm::vec4 getClearColor() const;
+        Color getClearColor() const;
 
         /**
          * Sets the width and height of the renderer.
@@ -65,11 +78,15 @@ namespace Rendering
 
         /**
          * Returns the width and height of the renderer.
+         *
+         * @returns The width and height of the renderer.
          */
         std::pair<int, int> getSize() const;
 
         /**
          * Returns the width and height of the attached GLFWwindow.
+         *
+         * @returns The width and height of the attached GLFWwindow.
          */
         std::pair<int, int> getWindowSize() const;
 
@@ -77,7 +94,7 @@ namespace Rendering
         int width;
         int height;
 
-        glm::vec4 clearColor = {0, 0, 0, 1};
+        Color clearColor = Color(0.0f);
 
         GLFWwindow *glfwWindow;
     };
