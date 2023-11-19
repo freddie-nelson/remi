@@ -93,11 +93,11 @@ int Rendering::Window::run(WindowFrameCallback frameCallback)
         // call user frame callback
         frameCallback(dt, renderer);
 
-        // render
-        renderer->present();
-
         // wait for renderer events to be processed
         pollEvents();
+
+        // present rendered image
+        renderer->present();
 
         // wait until frame time is reached
         const auto frameEndTime = now + desiredFrameTime;
