@@ -18,10 +18,25 @@ void Rendering::Renderer::init()
 {
 }
 
-void Rendering::Renderer::clear()
+void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer)
 {
     glClearColor(clearColor.r(), clearColor.g(), clearColor.b(), clearColor.a());
-    glClear(GL_COLOR_BUFFER_BIT);
+
+    int clearBits = 0;
+    if (clearColorBuffer)
+    {
+        clearBits |= GL_COLOR_BUFFER_BIT;
+    }
+    if (clearDepthBuffer)
+    {
+        clearBits |= GL_DEPTH_BUFFER_BIT;
+    }
+    if (clearStencilBuffer)
+    {
+        clearBits |= GL_STENCIL_BUFFER_BIT;
+    }
+
+    glClear(clearBits);
 }
 
 void Rendering::Renderer::present()

@@ -43,9 +43,9 @@ namespace Rendering
         void init();
 
         /**
-         * Clears the render back buffer.
+         * Clears the render buffers.
          */
-        void clear();
+        void clear(bool clearColorBuffer = true, bool clearDepthBuffer = true, bool clearStencilBuffer = true);
 
         /**
          * Swaps the front and back buffers, presenting the rendered image to the screen.
