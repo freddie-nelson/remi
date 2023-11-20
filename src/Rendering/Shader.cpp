@@ -22,7 +22,7 @@ Rendering::Shader::~Shader()
     }
 }
 
-bool Rendering::Shader::loadFromFile(std::string vertex, std::string fragment)
+bool Rendering::Shader::loadFromFile(const std::string &vertex, const std::string &fragment)
 {
     try
     {
@@ -38,7 +38,7 @@ bool Rendering::Shader::loadFromFile(std::string vertex, std::string fragment)
     }
 }
 
-bool Rendering::Shader::loadFromSource(std::string vertex, std::string fragment)
+bool Rendering::Shader::loadFromSource(const std::string &vertex, const std::string &fragment)
 {
     if (loaded)
     {
@@ -92,23 +92,200 @@ void Rendering::Shader::use()
         throw std::runtime_error("Shader must be loaded before it can be used.");
     }
 
+    updateUniforms = true;
+    updateUniformArrays = true;
+    updateAttributes = true;
+    updateAttributesAndUniforms();
+
     glUseProgram(programId);
+    glBindVertexArray(VAO);
 }
 
 void Rendering::Shader::unbind()
 {
     if (inUse())
     {
+        glBindVertexArray(0);
         glUseProgram(0);
     }
 }
 
-void Rendering::Shader::setUniform(std::string name, void *value)
+void Rendering::Shader::draw()
+{
+    if (!inUse())
+    {
+        throw std::runtime_error("Shader must be in use before it can be drawn.");
+    }
+
+    if (hasIndices)
+    {
+        glDrawElements(drawMode, attribValues["indices"].indices->length, GL_UNSIGNED_INT, 0);
+    }
+    else
+    {
+        glDrawArrays(drawMode, 0, attribValues["vertices"].componentSize);
+    }
+}
+
+void Rendering::Shader::setDrawMode(unsigned int drawMode)
+{
+    if (drawMode != GL_POINTS && drawMode != GL_LINE_STRIP && drawMode != GL_LINE_LOOP && drawMode != GL_LINES && drawMode != GL_LINE_STRIP_ADJACENCY && drawMode != GL_LINES_ADJACENCY && drawMode != GL_TRIANGLE_STRIP && drawMode != GL_TRIANGLE_FAN && drawMode != GL_TRIANGLES && drawMode != GL_TRIANGLE_STRIP_ADJACENCY && drawMode != GL_TRIANGLES_ADJACENCY && drawMode != GL_PATCHES)
+    {
+        throw std::invalid_argument("drawMode must be one of the following: GL_POINTS, GL_LINE_STRIP, GL_LINE_LOOP, GL_LINES, GL_LINE_STRIP_ADJACENCY, GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_TRIANGLES, GL_TRIANGLE_STRIP_ADJACENCY, GL_TRIANGLES_ADJACENCY, GL_PATCHES");
+    }
+
+    this->drawMode = drawMode;
+}
+
+unsigned int Rendering::Shader::getDrawMode()
+{
+    return drawMode;
+}
+
+void Rendering::Shader::setUniform(const std::string &name, void *value)
 {
     checkUniformSetRules(name);
 
+    uniformValues[name] = value;
+
+    updateUniforms = true;
+}
+
+void Rendering::Shader::setUniformArray(const std::string &name, void *value, size_t length)
+{
+    checkUniformSetRules(name);
+
+    uniformArrayValues[name] = std::make_pair(value, length);
+
+    updateUniformArrays = true;
+}
+
+template <typename T>
+void Rendering::Shader::setAttrib(const std::string &name, T *value, size_t componentSize, unsigned int glType, bool normalize, unsigned int offset, unsigned int drawType)
+{
+    if (!loaded)
+    {
+        throw std::runtime_error("Shader must be loaded before attributes can be set.");
+    }
+
+    if (type != GL_ARRAY_BUFFER && type != GL_ELEMENT_ARRAY_BUFFER)
+    {
+        throw std::invalid_argument("type must be either GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER.");
+    }
+
+    if (drawType != GL_STATIC_DRAW && drawType != GL_DYNAMIC_DRAW && drawType != GL_STREAM_DRAW)
+    {
+        throw std::invalid_argument("drawType must be either GL_STATIC_DRAW, GL_DYNAMIC_DRAW or GL_STREAM_DRAW.");
+    }
+
+    int location = getAttribLocation(name);
+    attribValues[name] = {value, componentSize, glType, normalize, componentSize * sizeof(T), offset, drawType, nullptr, 0, 0};
+
+    updateAttributes = true;
+}
+
+void Rendering::Shader::setIndices(const std::string &name, unsigned int *indices, size_t length, unsigned int drawType)
+{
+    if (!loaded)
+    {
+        throw std::runtime_error("Shader must be loaded before indices can be set.");
+    }
+
+    if (!attribValues.contains(name))
+    {
+        throw std::runtime_error("Attribute " + name + " has not been set.");
+    }
+
+    if (drawType != GL_STATIC_DRAW && drawType != GL_DYNAMIC_DRAW && drawType != GL_STREAM_DRAW)
+    {
+        throw std::invalid_argument("drawType must be either GL_STATIC_DRAW, GL_DYNAMIC_DRAW or GL_STREAM_DRAW.");
+    }
+
+    attribValues[name].indices = new AttribIndices{indices, length, drawType};
+    hasIndices = true;
+}
+
+bool Rendering::Shader::inUse()
+{
+    if (!loaded)
+        return false;
+
+    int currentProgramId;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgramId);
+
+    return currentProgramId == programId;
+}
+
+bool Rendering::Shader::compileShaderSource(const std::string &source, unsigned int shaderType, unsigned int &shader)
+{
+    if (shaderType != GL_VERTEX_SHADER && shaderType != GL_FRAGMENT_SHADER)
+    {
+        throw std::invalid_argument("shaderType must be either GL_VERTEX_SHADER or GL_FRAGMENT_SHADER.");
+    }
+
+    const char *sourceStr = source.c_str();
+
+    unsigned int shaderId = glCreateShader(shaderType);
+    glShaderSource(shaderId, 1, &sourceStr, NULL);
+    glCompileShader(shaderId);
+
+    // handle compile errors
+    int success;
+    char infoLog[512];
+
+    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(shaderId, 512, NULL, infoLog);
+        std::cerr << "Failed to compile vertex shader. Info: " << infoLog << std::endl;
+        return false;
+    }
+
+    shader = shaderId;
+    return true;
+}
+
+void Rendering::Shader::updateAttributesAndUniforms()
+{
+    if (updateAttributes)
+    {
+        createVAO();
+    }
+
+    if (updateUniforms)
+    {
+        for (auto &[name, value] : uniformValues)
+        {
+            useUniform(name);
+        }
+    }
+
+    if (updateUniformArrays)
+    {
+        for (auto &[name, value] : uniformArrayValues)
+        {
+            useUniformArray(name);
+        }
+    }
+}
+
+void Rendering::Shader::useUniform(const std::string &name)
+{
+    checkUniformSetRules(name);
+
+    if (!inUse())
+    {
+        throw std::runtime_error("Shader must be in use before uniforms can be used.");
+    }
+
+    if (!uniformValues.contains(name))
+    {
+        throw std::runtime_error("Uniform " + name + " has not been set.");
+    }
+
     int location = getUniformLocation(name);
     unsigned int type = getUniformType(name);
+    void *value = uniformValues[name];
 
     switch (type)
     {
@@ -217,12 +394,26 @@ void Rendering::Shader::setUniform(std::string name, void *value)
     }
 }
 
-void Rendering::Shader::setUniformArray(std::string name, void *value, size_t length)
+void Rendering::Shader::useUniformArray(const std::string &name)
 {
     checkUniformSetRules(name);
 
+    if (!inUse())
+    {
+        throw std::runtime_error("Shader must be in use before uniforms can be used.");
+    }
+
+    if (!uniformValues.contains(name))
+    {
+        throw std::runtime_error("Uniform " + name + " has not been set.");
+    }
+
     int location = getUniformLocation(name);
     unsigned int type = getUniformType(name);
+
+    auto pair = uniformArrayValues[name];
+    void *value = pair.first;
+    size_t length = pair.second;
 
     switch (type)
     {
@@ -343,57 +534,51 @@ void Rendering::Shader::setUniformArray(std::string name, void *value, size_t le
     }
 }
 
-void Rendering::Shader::setAttrib(std::string name, void *value)
+unsigned int Rendering::Shader::createVAO()
 {
     if (!loaded)
     {
-        throw std::runtime_error("Shader must be loaded before attributes can be set.");
+        throw std::runtime_error("Shader must be loaded before attributes can be used.");
     }
 
-    int location = getAttribLocation(name);
-}
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
 
-bool Rendering::Shader::inUse()
-{
-    if (!loaded)
-        return false;
-
-    int currentProgramId;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgramId);
-
-    return currentProgramId == programId;
-}
-
-bool Rendering::Shader::compileShaderSource(std::string source, unsigned int shaderType, unsigned int &shader)
-{
-    if (shaderType != GL_VERTEX_SHADER && shaderType != GL_FRAGMENT_SHADER)
+    for (auto &[name, attrib] : attribValues)
     {
-        throw std::invalid_argument("shaderType must be either GL_VERTEX_SHADER or GL_FRAGMENT_SHADER.");
+        const auto &[value, componentSize, glType, normalize, stride, offset, drawType, indices, VBO, EBO] = attrib;
+
+        int location = getAttribLocation(name);
+
+        if (VBO == 0)
+        {
+            glGenBuffers(1, &attrib.VBO);
+        }
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(value), value, drawType);
+
+        if (indices != nullptr)
+        {
+            if (EBO == 0)
+            {
+                glGenBuffers(1, &attrib.EBO);
+            }
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, drawType);
+        }
+
+        glVertexAttribPointer(location, componentSize, glType, normalize ? GL_TRUE : GL_FALSE, stride, (void *)offset);
+        glEnableVertexAttribArray(location);
     }
 
-    const char *sourceStr = source.c_str();
+    glBindVertexArray(0);
 
-    unsigned int shaderId = glCreateShader(shaderType);
-    glShaderSource(shaderId, 1, &sourceStr, NULL);
-    glCompileShader(shaderId);
-
-    // handle compile errors
-    int success;
-    char infoLog[512];
-
-    glGetShaderiv(shaderId, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(shaderId, 512, NULL, infoLog);
-        std::cerr << "Failed to compile vertex shader. Info: " << infoLog << std::endl;
-        return false;
-    }
-
-    shader = shaderId;
-    return true;
+    updateAttributes = false;
 }
 
-int Rendering::Shader::getUniformLocation(std::string name)
+int Rendering::Shader::getUniformLocation(const std::string &name)
 {
     if (!loaded)
     {
@@ -409,7 +594,7 @@ int Rendering::Shader::getUniformLocation(std::string name)
     return location;
 }
 
-int Rendering::Shader::getAttribLocation(std::string name)
+int Rendering::Shader::getAttribLocation(const std::string &name)
 {
     if (!loaded)
     {
@@ -425,7 +610,7 @@ int Rendering::Shader::getAttribLocation(std::string name)
     return location;
 }
 
-unsigned int Rendering::Shader::getUniformType(std::string name)
+unsigned int Rendering::Shader::getUniformType(const std::string &name)
 {
     if (!loaded)
     {
@@ -440,7 +625,7 @@ unsigned int Rendering::Shader::getUniformType(std::string name)
     return type;
 }
 
-unsigned int Rendering::Shader::getAttribType(std::string name)
+unsigned int Rendering::Shader::getAttribType(const std::string &name)
 {
     if (!loaded)
     {
@@ -455,7 +640,7 @@ unsigned int Rendering::Shader::getAttribType(std::string name)
     return type;
 }
 
-void Rendering::Shader::checkUniformSetRules(std::string name)
+void Rendering::Shader::checkUniformSetRules(const std::string &name)
 {
     if (!loaded)
     {
