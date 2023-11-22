@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Color.h"
+
 #include <glm/vec2.hpp>
 #include <glm/mat2x2.hpp>
 #include <vector>
@@ -20,6 +22,8 @@ namespace Rendering
      * The mesh is transformed by multiplying each vertex by the transform matrix and then adding the translation vector.
      *
      * The transform matrix is the combined rotation and scale matrix. See [here](https://en.wikipedia.org/wiki/Transformation_matrix#Examples_in_2_dimensions) for an explanation.
+     *
+     * The default color given to the mesh is (1.0, 1.0, 1.0, 1.0) or fully opaque white.
      */
     struct Mesh2D
     {
@@ -27,6 +31,7 @@ namespace Rendering
         std::vector<unsigned int> indices;
 
         glm::vec2 translation = glm::vec2{0, 0};
-        glm::mat2x2 transform = glm::mat2x2{1, 0, 0, 1};
+        glm::mat2 transform = glm::mat2{1, 0, 0, 1};
+        Color color = Color(1.0f);
     };
 }

@@ -55,10 +55,15 @@ void Rendering::Renderer::present()
     glfwSwapBuffers(glfwWindow);
 }
 
-void Rendering::Renderer::mesh(const Mesh2D &mesh, const Color &color)
+void Rendering::Renderer::mesh(const Mesh2D &m)
 {
-    float *vertices = (float *)glm::value_ptr(mesh.vertices[0]);
-    const std::vector<unsigned int> &indices = mesh.indices;
+    mesh(m, m.color);
+}
+
+void Rendering::Renderer::mesh(const Mesh2D &m, const Color &color)
+{
+    float *vertices = (float *)glm::value_ptr(m.vertices[0]);
+    const std::vector<unsigned int> &indices = m.indices;
 
     // for (int i = 0; i < mesh.vertices.size(); i++)
     // {
@@ -74,16 +79,16 @@ void Rendering::Renderer::mesh(const Mesh2D &mesh, const Color &color)
     glm::vec2 resolution(width, height);
     meshShader.setUniform("uResolution", &resolution);
 
-    glm::vec2 translation = mesh.translation;
-    glm::mat2 transform = mesh.transform;
+    glm::vec2 translation = m.translation;
+    glm::mat2 transform = m.transform;
 
     meshShader.setUniform("uMeshTranslation", &translation);
     meshShader.setUniform("uMeshTransform", &transform);
 
-    meshShader.setAttrib("aPos", vertices, mesh.vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    meshShader.setIndices("aPos", &mesh.indices[0], mesh.indices.size(), GL_DYNAMIC_DRAW);
+    meshShader.setAttrib("aPos", vertices, m.vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    meshShader.setIndices("aPos", &m.indices[0], m.indices.size(), GL_DYNAMIC_DRAW);
 
-    meshShader.draw(GL_TRIANGLES, mesh.indices.size());
+    meshShader.draw(GL_TRIANGLES, m.indices.size());
     meshShader.unbind();
 };
 

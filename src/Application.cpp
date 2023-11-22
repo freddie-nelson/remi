@@ -49,9 +49,14 @@ int Application::init()
 
     // window->syncRendererSize(false);
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 1000; i++)
     {
         meshs.push_back(Rendering::createRect(rand() % 100 + 50, rand() % 100 + 50));
+
+        auto r = (rand() % 255) / 255.0f;
+        auto g = (rand() % 255) / 255.0f;
+        auto b = (rand() % 255) / 255.0f;
+        meshs[i].color.setColor(r, g, b, 1.0f);
 
         Rendering::translateMesh(meshs[i], glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
                                                      (rand() % initialWindowHeight) - initialWindowHeight / 2});
@@ -94,10 +99,6 @@ void Application::render(Rendering::Renderer *renderer)
 
     for (auto &m : meshs)
     {
-        const auto r = std::sin(now) / 2.0f + 0.5f;
-        const auto g = std::sin(now * 1023 - 897) / 2.0f + 0.5f;
-        const auto b = std::sin(now % 3958) / 2.0f + 0.5f;
-
-        renderer->mesh(m, Rendering::Color(r, g, b, 1.0f));
+        renderer->mesh(m);
     }
 }

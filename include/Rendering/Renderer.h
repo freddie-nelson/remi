@@ -54,12 +54,19 @@ namespace Rendering
         void present();
 
         /**
+         * Renders the given mesh with the `mesh.color`.
+         *
+         * @param m The mesh to render.
+         */
+        void mesh(const Mesh2D &m);
+
+        /**
          * Renders the given mesh with the given color.
          *
-         * @param mesh The mesh to render.
-         * @param color The color to render the mesh.
+         * @param m The mesh to render.
+         * @param color The color to render the mesh, overwrites the color set on the mesh.
          */
-        void mesh(const Mesh2D &mesh, const Color &color);
+        void mesh(const Mesh2D &m, const Color &color);
 
         /**
          * Sets the clear color.
