@@ -27,6 +27,8 @@ int Rendering::Window::init()
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
     glfwWindow = glfwCreateWindow(initialWindowWidth, initialWindowHeight, windowTitle.c_str(), NULL, NULL);
     if (!glfwWindow)
@@ -39,6 +41,10 @@ int Rendering::Window::init()
     glfwMakeContextCurrent(glfwWindow);
     gladLoadGL();
     glfwSwapInterval(1);
+
+    // Output the opengl version
+    std::cout << "Window created." << std::endl;
+    std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 
     renderer = new Rendering::Renderer(glfwWindow, initialWindowWidth, initialWindowHeight);
     renderer->init();
@@ -58,6 +64,7 @@ void Rendering::Window::destroy()
 
 int Rendering::Window::run(WindowFrameCallback frameCallback)
 {
+    // TODO change dt to timestep struct or class
     const int desiredFrameTime = getFrameTime();
     auto lastUpdateTime = timeSinceEpochMillisec() - desiredFrameTime;
 

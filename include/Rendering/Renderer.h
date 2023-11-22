@@ -2,6 +2,7 @@
 
 #include "Color.h"
 #include "./Mesh/Mesh.h"
+#include "./Shader/Shader.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -101,6 +102,8 @@ namespace Rendering
     private:
         int width;
         int height;
+
+        Shader meshShader;
 
         Color clearColor = Color(0.0f);
 

@@ -15,7 +15,23 @@ namespace Rendering
      * @returns The flattened vecs
      */
     template <glm::length_t L, class T, enum glm::qualifier Q>
-    T *flattenGlmVecArray(glm::vec<L, T, Q> *v, size_t length);
+    T *flattenGlmVecArray(const glm::vec<L, T, Q> *v, size_t length)
+    {
+        const size_t flattenedLen = L * length;
+        T *flattened = new T[flattenedLen];
+
+        for (size_t i = 0; i < length; i++)
+        {
+            glm::vec<L, T, Q> vec = v[i];
+
+            for (size_t j = 0; j < L; j++)
+            {
+                flattened[i * L + j] = vec[j];
+            }
+        }
+
+        return flattened;
+    }
 
     /**
      * Flatten an array of glm::mats into a flat array.
@@ -28,5 +44,25 @@ namespace Rendering
      * @returns The flattened mats
      */
     template <glm::length_t C, glm::length_t R, class T, enum glm::qualifier Q>
-    T *flattenGlmMatArray(glm::mat<C, R, T, Q> *v, size_t length);
+    T *flattenGlmMatArray(const glm::mat<C, R, T, Q> *v, size_t length)
+    {
+        const size_t matLen = C * R;
+        const size_t flattenedLen = matLen * length;
+        T *flattened = new T[flattenedLen];
+
+        for (size_t i = 0; i < length; i++)
+        {
+            glm::mat<C, R, T, Q> mat = v[i];
+
+            for (size_t j = 0; j < C; j++)
+            {
+                for (size_t k = 0; k < R; k++)
+                {
+                    flattened[i * matLen + j] = mat[j][k];
+                }
+            }
+        }
+
+        return flattened;
+    }
 }

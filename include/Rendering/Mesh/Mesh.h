@@ -17,7 +17,7 @@ namespace Rendering
      *
      * A Mesh2D's vertices must be in counter-clockwise order.
      *
-     * The translation will be applied before the transform to the vertices.
+     * The mesh is transformed by multiplying each vertex by the transform matrix and then adding the translation vector.
      *
      * The transform matrix is the combined rotation and scale matrix. See [here](https://en.wikipedia.org/wiki/Transformation_matrix#Examples_in_2_dimensions) for an explanation.
      */

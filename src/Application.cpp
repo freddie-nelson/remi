@@ -2,6 +2,7 @@
 #include "../include/Globals.h"
 #include "../include/Rendering/Mesh/Polygons.h"
 #include "../include/Rendering/Mesh/Transforms.h"
+#include "../include/Rendering/Utility/Timestep.h"
 
 #include <math.h>
 #include <random>
@@ -40,11 +41,15 @@ int Application::init()
         return 1;
     }
 
-    Rendering::Color clearColor(0.0f);
-    clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
+    // Rendering::Color clearColor(0.0f);
+    // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
 
-    auto renderer = window->getRenderer();
-    renderer->setClearColor(clearColor);
+    // auto renderer = window->getRenderer();
+    // renderer->setClearColor(clearColor);
+
+    // window->syncRendererSize(false);
+
+    shape = Rendering::createRect(200, 200);
 
     return 0;
 }
@@ -60,13 +65,26 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     // print timestep info
     std::cout << "\rdt: " << dt << "          ";
 
+    Rendering::rotateMesh(shape, std::numbers::pi * 1.0f * dt);
+
     render(renderer);
 }
 
 void Application::render(Rendering::Renderer *renderer)
 {
-    Rendering::Mesh2D shape = Rendering::createPolygon({glm::vec2(0, 0), glm::vec2(100, 0), glm::vec2(20, 20), glm::vec2(0, 100)});
-    Rendering::translateMesh(shape, glm::vec2{initialWindowWidth / 2, initialWindowHeight / 2});
+    auto resolution = window->getSize();
 
-    renderer->mesh(shape, Rendering::Color(1.0f));
+    // Rendering::Mesh2D shape = Rendering::createPolygon({glm::vec2(0, 0), glm::vec2(100, 0), glm::vec2(20, 20), glm::vec2(0, 100)});
+
+    // Rendering::Mesh2D shape = Rendering::createPolygon({glm::vec2(0, 0.5), glm::vec2(0.5, -0.5), glm::vec2(-0.5, -0.5)});
+
+    // Rendering::Mesh2D shape = Rendering::createRect(1, 1);
+    // Rendering::translateMesh(shape, glm::vec2(-0.5, -0.5));
+
+    const auto now = Rendering::timeSinceEpochMillisec() / 200;
+    const auto r = std::sin(now) / 2.0f + 0.5f;
+    const auto g = std::sin(now * 1023 - 897) / 2.0f + 0.5f;
+    const auto b = std::sin(now % 3958) / 2.0f + 0.5f;
+
+    renderer->mesh(shape, Rendering::Color(r, g, b, 1.0f));
 }

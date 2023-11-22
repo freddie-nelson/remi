@@ -28,14 +28,28 @@ Rendering::Mesh2D Rendering::createRegularPolygon(float radius, int sides)
     return createPolygon(vertices);
 }
 
-Rendering::Mesh2D Rendering::createRect(float w, float h)
+Rendering::Mesh2D Rendering::createRect(float w, float h, bool centered)
 {
-    std::vector<glm::vec2> vertices{
-        glm::vec2{0, 0},
-        glm::vec2{w, 0},
-        glm::vec2{w, -h},
-        glm::vec2{0, -h},
-    };
+    std::vector<glm::vec2> vertices;
+
+    if (centered)
+    {
+        vertices = {
+            glm::vec2{-w / 2, h / 2},
+            glm::vec2{w / 2, h / 2},
+            glm::vec2{w / 2, -h / 2},
+            glm::vec2{-w / 2, -h / 2},
+        };
+    }
+    else
+    {
+        vertices = {
+            glm::vec2{0, 0},
+            glm::vec2{w, 0},
+            glm::vec2{w, -h},
+            glm::vec2{0, -h},
+        };
+    }
 
     return createPolygon(vertices);
 }

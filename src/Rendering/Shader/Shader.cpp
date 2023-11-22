@@ -1,8 +1,8 @@
-#include "../../include/Rendering/Shader.h"
-#include "../../include/Rendering/Utility/FileHandling.h"
-#include "../../include/Rendering/Utility/GlmHelpers.h"
+#include "../../../include/Rendering/Shader/Shader.h"
+#include "../../../include/Rendering/Utility/FileHandling.h"
+#include "../../../include/Rendering/Utility/GlmHelpers.h"
 
-#include "../../include/externals/glad/glad.h"
+#include "../../../include/externals/glad/glad.h"
 #include <stdexcept>
 #include <iostream>
 #include <glm/glm.hpp>
@@ -54,7 +54,7 @@ bool Rendering::Shader::loadFromSource(const std::string &vertex, const std::str
 
     // fragment shader
     unsigned int fragmentShader;
-    if (!compileShaderSource(vertex, GL_FRAGMENT_SHADER, fragmentShader))
+    if (!compileShaderSource(fragment, GL_FRAGMENT_SHADER, fragmentShader))
     {
         return false;
     }
@@ -79,7 +79,7 @@ bool Rendering::Shader::loadFromSource(const std::string &vertex, const std::str
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    shaderProgram = programId;
+    programId = shaderProgram;
     loaded = true;
 
     return true;
@@ -92,17 +92,27 @@ void Rendering::Shader::use()
         throw std::runtime_error("Shader must be loaded before it can be used.");
     }
 
+    glUseProgram(programId);
+
     updateUniforms = true;
     updateUniformArrays = true;
-    updateAttributes = true;
     updateAttributesAndUniforms();
 
-    glUseProgram(programId);
     glBindVertexArray(VAO);
 }
 
 void Rendering::Shader::unbind()
 {
+    for (auto &[name, u] : uniformValues)
+    {
+        u.stale = true;
+    }
+
+    for (auto &[name, u] : uniformArrayValues)
+    {
+        u.stale = true;
+    }
+
     if (inUse())
     {
         glBindVertexArray(0);
@@ -110,43 +120,36 @@ void Rendering::Shader::unbind()
     }
 }
 
-void Rendering::Shader::draw()
-{
-    if (!inUse())
-    {
-        throw std::runtime_error("Shader must be in use before it can be drawn.");
-    }
-
-    if (hasIndices)
-    {
-        glDrawElements(drawMode, attribValues["indices"].indices->length, GL_UNSIGNED_INT, 0);
-    }
-    else
-    {
-        glDrawArrays(drawMode, 0, attribValues["vertices"].componentSize);
-    }
-}
-
-void Rendering::Shader::setDrawMode(unsigned int drawMode)
+void Rendering::Shader::draw(unsigned int drawMode, unsigned int drawCount, unsigned int offset)
 {
     if (drawMode != GL_POINTS && drawMode != GL_LINE_STRIP && drawMode != GL_LINE_LOOP && drawMode != GL_LINES && drawMode != GL_LINE_STRIP_ADJACENCY && drawMode != GL_LINES_ADJACENCY && drawMode != GL_TRIANGLE_STRIP && drawMode != GL_TRIANGLE_FAN && drawMode != GL_TRIANGLES && drawMode != GL_TRIANGLE_STRIP_ADJACENCY && drawMode != GL_TRIANGLES_ADJACENCY && drawMode != GL_PATCHES)
     {
         throw std::invalid_argument("drawMode must be one of the following: GL_POINTS, GL_LINE_STRIP, GL_LINE_LOOP, GL_LINES, GL_LINE_STRIP_ADJACENCY, GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_TRIANGLES, GL_TRIANGLE_STRIP_ADJACENCY, GL_TRIANGLES_ADJACENCY, GL_PATCHES");
     }
 
-    this->drawMode = drawMode;
-}
+    if (!inUse())
+    {
+        throw std::runtime_error("Shader must be in use before it can be drawn.");
+    }
 
-unsigned int Rendering::Shader::getDrawMode()
-{
-    return drawMode;
+    updateAttributesAndUniforms();
+    glBindVertexArray(VAO);
+
+    if (hasIndices)
+    {
+        glDrawElements(drawMode, drawCount, GL_UNSIGNED_INT, (void *)offset);
+    }
+    else
+    {
+        glDrawArrays(drawMode, offset, drawCount);
+    }
 }
 
 void Rendering::Shader::setUniform(const std::string &name, void *value)
 {
     checkUniformSetRules(name);
 
-    uniformValues[name] = value;
+    uniformValues[name] = {true, value};
 
     updateUniforms = true;
 }
@@ -155,36 +158,12 @@ void Rendering::Shader::setUniformArray(const std::string &name, void *value, si
 {
     checkUniformSetRules(name);
 
-    uniformArrayValues[name] = std::make_pair(value, length);
+    uniformArrayValues[name] = UniformArray{true, value, length};
 
     updateUniformArrays = true;
 }
 
-template <typename T>
-void Rendering::Shader::setAttrib(const std::string &name, T *value, size_t componentSize, unsigned int glType, bool normalize, unsigned int offset, unsigned int drawType)
-{
-    if (!loaded)
-    {
-        throw std::runtime_error("Shader must be loaded before attributes can be set.");
-    }
-
-    if (type != GL_ARRAY_BUFFER && type != GL_ELEMENT_ARRAY_BUFFER)
-    {
-        throw std::invalid_argument("type must be either GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER.");
-    }
-
-    if (drawType != GL_STATIC_DRAW && drawType != GL_DYNAMIC_DRAW && drawType != GL_STREAM_DRAW)
-    {
-        throw std::invalid_argument("drawType must be either GL_STATIC_DRAW, GL_DYNAMIC_DRAW or GL_STREAM_DRAW.");
-    }
-
-    int location = getAttribLocation(name);
-    attribValues[name] = {value, componentSize, glType, normalize, componentSize * sizeof(T), offset, drawType, nullptr, 0, 0};
-
-    updateAttributes = true;
-}
-
-void Rendering::Shader::setIndices(const std::string &name, unsigned int *indices, size_t length, unsigned int drawType)
+void Rendering::Shader::setIndices(const std::string &name, const unsigned int *indices, size_t length, unsigned int drawType)
 {
     if (!loaded)
     {
@@ -247,25 +226,33 @@ bool Rendering::Shader::compileShaderSource(const std::string &source, unsigned 
 
 void Rendering::Shader::updateAttributesAndUniforms()
 {
-    if (updateAttributes)
-    {
-        createVAO();
-    }
-
     if (updateUniforms)
     {
-        for (auto &[name, value] : uniformValues)
+        for (auto &[name, u] : uniformValues)
         {
+            if (!u.stale)
+                continue;
+
             useUniform(name);
+            u.stale = false;
         }
     }
 
     if (updateUniformArrays)
     {
-        for (auto &[name, value] : uniformArrayValues)
+        for (auto &[name, u] : uniformArrayValues)
         {
+            if (!u.stale)
+                continue;
+
             useUniformArray(name);
+            u.stale = false;
         }
+    }
+
+    if (updateAttributes)
+    {
+        createVAO();
     }
 }
 
@@ -285,11 +272,12 @@ void Rendering::Shader::useUniform(const std::string &name)
 
     int location = getUniformLocation(name);
     unsigned int type = getUniformType(name);
-    void *value = uniformValues[name];
+    void *value = uniformValues[name].value;
 
+    //! TODO cleanup switch statement into functions
     switch (type)
     {
-    // INTS
+    // FLOATS
     case GL_FLOAT:
     {
         auto v = *static_cast<float *>(value);
@@ -311,7 +299,7 @@ void Rendering::Shader::useUniform(const std::string &name)
     case GL_FLOAT_VEC4:
     {
         auto v = *static_cast<glm::vec4 *>(value);
-        glUniform4i(location, v[0], v[1], v[2], v[3]);
+        glUniform4f(location, v[0], v[1], v[2], v[3]);
         break;
     }
 
@@ -411,9 +399,9 @@ void Rendering::Shader::useUniformArray(const std::string &name)
     int location = getUniformLocation(name);
     unsigned int type = getUniformType(name);
 
-    auto pair = uniformArrayValues[name];
-    void *value = pair.first;
-    size_t length = pair.second;
+    auto u = uniformArrayValues[name];
+    void *value = u.value;
+    size_t length = u.length;
 
     switch (type)
     {
@@ -426,23 +414,20 @@ void Rendering::Shader::useUniformArray(const std::string &name)
     }
     case GL_FLOAT_VEC2:
     {
-        auto v = static_cast<glm::vec2 *>(value);
-        auto flattened = flattenGlmVecArray(v, length);
-        glUniform2fv(location, length, flattened);
+        auto v = *static_cast<glm::vec2 *>(value);
+        glUniform2fv(location, length, glm::value_ptr(v));
         break;
     }
     case GL_FLOAT_VEC3:
     {
-        auto v = static_cast<glm::vec3 *>(value);
-        auto flattened = flattenGlmVecArray(v, length);
-        glUniform3fv(location, length, flattened);
+        auto v = *static_cast<glm::vec3 *>(value);
+        glUniform3fv(location, length, glm::value_ptr(v));
         break;
     }
     case GL_FLOAT_VEC4:
     {
-        auto v = static_cast<glm::vec4 *>(value);
-        auto flattened = flattenGlmVecArray(v, length);
-        glUniform4fv(location, length, flattened);
+        auto v = *static_cast<glm::vec4 *>(value);
+        glUniform4fv(location, length, glm::value_ptr(v));
         break;
     }
 
@@ -455,23 +440,20 @@ void Rendering::Shader::useUniformArray(const std::string &name)
     }
     case GL_INT_VEC2:
     {
-        auto v = static_cast<glm::ivec2 *>(value);
-        auto flattened = flattenGlmVecArray(v, length);
-        glUniform2iv(location, length, flattened);
+        auto v = *static_cast<glm::ivec2 *>(value);
+        glUniform2iv(location, length, glm::value_ptr(v));
         break;
     }
     case GL_INT_VEC3:
     {
-        auto v = static_cast<glm::ivec3 *>(value);
-        auto flattened = flattenGlmVecArray(v, length);
-        glUniform3iv(location, length, flattened);
+        auto v = *static_cast<glm::ivec3 *>(value);
+        glUniform3iv(location, length, glm::value_ptr(v));
         break;
     }
     case GL_INT_VEC4:
     {
-        auto v = static_cast<glm::ivec4 *>(value);
-        auto flattened = flattenGlmVecArray(v, length);
-        glUniform4iv(location, length, flattened);
+        auto v = *static_cast<glm::ivec4 *>(value);
+        glUniform4iv(location, length, glm::value_ptr(v));
         break;
     }
 
@@ -484,46 +466,40 @@ void Rendering::Shader::useUniformArray(const std::string &name)
     }
     case GL_UNSIGNED_INT_VEC2:
     {
-        auto v = static_cast<glm::uvec2 *>(value);
-        auto flattened = flattenGlmVecArray(v, length);
-        glUniform2uiv(location, length, flattened);
+        auto v = *static_cast<glm::uvec2 *>(value);
+        glUniform2uiv(location, length, glm::value_ptr(v));
         break;
     }
     case GL_UNSIGNED_INT_VEC3:
     {
-        auto v = static_cast<glm::uvec3 *>(value);
-        auto flattened = flattenGlmVecArray(v, length);
-        glUniform3uiv(location, length, flattened);
+        auto v = *static_cast<glm::uvec3 *>(value);
+        glUniform3uiv(location, length, glm::value_ptr(v));
         break;
     }
     case GL_UNSIGNED_INT_VEC4:
     {
-        auto v = static_cast<glm::uvec4 *>(value);
-        auto flattened = flattenGlmVecArray(v, length);
-        glUniform4uiv(location, length, flattened);
+        auto v = *static_cast<glm::uvec4 *>(value);
+        glUniform4uiv(location, length, glm::value_ptr(v));
         break;
     }
 
     // SQUARE MATRICES
     case GL_FLOAT_MAT2:
     {
-        auto v = static_cast<glm::mat2 *>(value);
-        auto flattened = flattenGlmMatArray(v, length);
-        glUniformMatrix2fv(location, 1, GL_FALSE, flattened);
+        auto v = *static_cast<glm::mat2 *>(value);
+        glUniformMatrix2fv(location, length, GL_FALSE, glm::value_ptr(v));
         break;
     }
     case GL_FLOAT_MAT3:
     {
-        auto v = static_cast<glm::mat3 *>(value);
-        auto flattened = flattenGlmMatArray(v, length);
-        glUniformMatrix3fv(location, 1, GL_FALSE, flattened);
+        auto v = *static_cast<glm::mat3 *>(value);
+        glUniformMatrix3fv(location, length, GL_FALSE, glm::value_ptr(v));
         break;
     }
     case GL_FLOAT_MAT4:
     {
-        auto v = static_cast<glm::mat4 *>(value);
-        auto flattened = flattenGlmMatArray(v, length);
-        glUniformMatrix4fv(location, 1, GL_FALSE, flattened);
+        auto v = *static_cast<glm::mat4 *>(value);
+        glUniformMatrix4fv(location, length, GL_FALSE, glm::value_ptr(v));
         break;
     }
 
@@ -534,11 +510,16 @@ void Rendering::Shader::useUniformArray(const std::string &name)
     }
 }
 
-unsigned int Rendering::Shader::createVAO()
+void Rendering::Shader::createVAO()
 {
     if (!loaded)
     {
         throw std::runtime_error("Shader must be loaded before attributes can be used.");
+    }
+
+    if (VAO != 0)
+    {
+        glDeleteVertexArrays(1, &VAO);
     }
 
     glGenVertexArrays(1, &VAO);
@@ -546,7 +527,13 @@ unsigned int Rendering::Shader::createVAO()
 
     for (auto &[name, attrib] : attribValues)
     {
-        const auto &[value, componentSize, glType, normalize, stride, offset, drawType, indices, VBO, EBO] = attrib;
+        const auto &[stale, value, size, componentSize, glType, normalize, stride, offset, drawType, indices, VBO, EBO] = attrib;
+
+        // if attribute does not need updated, skip
+        if (!stale)
+        {
+            continue;
+        }
 
         int location = getAttribLocation(name);
 
@@ -556,7 +543,14 @@ unsigned int Rendering::Shader::createVAO()
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(value), value, drawType);
+        glBufferData(GL_ARRAY_BUFFER, size, value, drawType);
+
+        // float *floatVal = static_cast<float *>(value);
+        // for (int i = 0; i < size / sizeof(float); i++)
+        // {
+        //     std::cout << i << ": ";
+        //     std::cout << floatVal[i] << std::endl;
+        // }
 
         if (indices != nullptr)
         {
@@ -565,15 +559,31 @@ unsigned int Rendering::Shader::createVAO()
                 glGenBuffers(1, &attrib.EBO);
             }
 
+            // for (int i = 0; i < indices->length; i++)
+            // {
+            //     std::cout << indices->indices[i] << std::endl;
+            // }
+
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, drawType);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices->length, indices->indices, drawType);
         }
+
+        // std::cout << "location: " << location << std::endl;
+        // std::cout << "componentSize: " << componentSize << std::endl;
+        // std::cout << "glType: " << glType << std::endl;
+        // std::cout << "normalize: " << normalize << std::endl;
+        // std::cout << "stride: " << stride << std::endl;
+        // std::cout << "offset: " << offset << std::endl;
 
         glVertexAttribPointer(location, componentSize, glType, normalize ? GL_TRUE : GL_FALSE, stride, (void *)offset);
         glEnableVertexAttribArray(location);
+
+        attrib.stale = false;
     }
 
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     updateAttributes = false;
 }
@@ -591,6 +601,14 @@ int Rendering::Shader::getUniformLocation(const std::string &name)
         throw std::runtime_error("Uniform " + name + " does not exist.");
     }
 
+    //? workaround weird opengl bug? TODO: fix - was driver related?
+    //? keeping anyway just in case, robustness is good
+    std::string uniformAtLocation = getUniformName(location);
+    if (uniformAtLocation != name)
+    {
+        location = findUniformLocation(name);
+    }
+
     return location;
 }
 
@@ -604,7 +622,7 @@ int Rendering::Shader::getAttribLocation(const std::string &name)
     int location = glGetAttribLocation(programId, name.c_str());
     if (location == -1)
     {
-        throw std::runtime_error("Attribute " + name + " does not exist.");
+        throw std::runtime_error("getAttribLocation: Attribute " + name + " does not exist.");
     }
 
     return location;
@@ -620,9 +638,46 @@ unsigned int Rendering::Shader::getUniformType(const std::string &name)
     int location = getUniformLocation(name);
 
     unsigned int type;
-    glGetActiveUniform(programId, location, NULL, NULL, NULL, &type, NULL);
+    glGetActiveUniform(programId, location, 0, NULL, NULL, &type, NULL);
 
     return type;
+}
+
+std::string Rendering::Shader::getUniformName(unsigned int location)
+{
+    GLint bufsize;
+    glGetProgramiv(programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &bufsize);
+
+    char *name = new char[bufsize];
+    GLsizei nameLength;
+
+    glGetActiveUniform(programId, location, bufsize, &nameLength, NULL, NULL, name);
+
+    const auto nameStr = std::string(name);
+    if (nameStr.length() == 0)
+    {
+        throw std::runtime_error("Failed to get uniform name at location " + std::to_string(location) + ".");
+    }
+
+    return nameStr;
+}
+
+int Rendering::Shader::findUniformLocation(const std::string &name)
+{
+    GLint numOfUniforms;
+    glGetProgramiv(programId, GL_ACTIVE_UNIFORMS, &numOfUniforms);
+
+    // we can just loop through as uniform locations are assigned in order
+    for (GLint location = 0; location < numOfUniforms; location++)
+    {
+        auto nameAtLocation = getUniformName(location);
+        if (nameAtLocation == name)
+        {
+            return location;
+        }
+    }
+
+    throw std::runtime_error("Could not find uniform location, '" + name + "'.");
 }
 
 unsigned int Rendering::Shader::getAttribType(const std::string &name)
@@ -635,7 +690,7 @@ unsigned int Rendering::Shader::getAttribType(const std::string &name)
     int location = getAttribLocation(name);
 
     unsigned int type;
-    glGetActiveAttrib(programId, location, NULL, NULL, NULL, &type, NULL);
+    glGetActiveAttrib(programId, location, sizeof(unsigned int), NULL, NULL, &type, NULL);
 
     return type;
 }

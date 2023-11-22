@@ -161,13 +161,6 @@ namespace Rendering
         void clampA(float min, float max);
 
         /**
-         * Returns the color as a glm::vec4.
-         *
-         * @returns The color as a glm::vec4.
-         */
-        glm::vec4 getColor() const;
-
-        /**
          * Sets the color.
          *
          * @param r The red component of the color.
@@ -208,6 +201,13 @@ namespace Rendering
          * @throws std::invalid_argument If the color is not valid.
          */
         void setColor(float rgb, float a = 1.0f);
+
+        /**
+         * Returns the color as a glm::vec4.
+         *
+         * @returns The color as a glm::vec4.
+         */
+        glm::vec4 getColor() const;
 
         /**
          * Sets the color from a HSLA color value.

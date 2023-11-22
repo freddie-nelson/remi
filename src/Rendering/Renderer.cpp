@@ -1,8 +1,11 @@
 #include "../../include/Rendering/Renderer.h"
+#include "../../include/Rendering/Shader/MeshShader.h"
+#include "../../include/Rendering/Utility/OpenGLHelpers.h"
 
 #include "../../include/externals/glad/glad.h"
 #include <iostream>
 #include <math.h>
+#include <glm/gtc/type_ptr.hpp>
 
 Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height)
 {
@@ -16,6 +19,14 @@ Rendering::Renderer::~Renderer()
 
 void Rendering::Renderer::init()
 {
+    meshShader = Shader();
+    if (!meshShader.loadFromSource(meshVertexShader, meshFragShader))
+    {
+        throw std::runtime_error("Failed to load mesh shader.");
+    }
+
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(openGlMessageCallback, 0);
 }
 
 void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer)
@@ -46,33 +57,34 @@ void Rendering::Renderer::present()
 
 void Rendering::Renderer::mesh(const Mesh2D &mesh, const Color &color)
 {
-    // SDL_SetRenderDrawColor(sdlRenderer, color.r, color.g, color.b, color.a);
-
+    float *vertices = (float *)glm::value_ptr(mesh.vertices[0]);
     const std::vector<unsigned int> &indices = mesh.indices;
-    std::vector<glm::vec2> transformedVertices;
 
-    for (auto &v : mesh.vertices)
-    {
-        glm::vec2 transformedVertex = v;
-        transformedVertex += mesh.translation;
-        // transformedVertex *= mesh.transform;
+    // for (int i = 0; i < mesh.vertices.size(); i++)
+    // {
+    //     std::cout << vertices[i * 2] << ", " << vertices[i * 2 + 1] << std::endl;
+    //     std::cout << mesh.vertices[i].x << ", " << mesh.vertices[i].y << std::endl;
+    // }
 
-        transformedVertices.push_back(transformedVertex);
-    }
+    meshShader.use();
 
-    for (int i = 0; i < indices.size(); i += 3)
-    {
-        int j = (i + 1) % indices.size();
-        int k = (i + 2) % indices.size();
+    auto colorVec = color.getColor();
+    meshShader.setUniform("uColor", &colorVec);
 
-        glm::vec2 v1 = transformedVertices[indices[i]];
-        glm::vec2 v2 = transformedVertices[indices[j]];
-        glm::vec2 v3 = transformedVertices[indices[k]];
+    glm::vec2 resolution(width, height);
+    meshShader.setUniform("uResolution", &resolution);
 
-        // SDL_RenderDrawLine(sdlRenderer, v1.x, v1.y, v2.x, v2.y);
-        // SDL_RenderDrawLine(sdlRenderer, v2.x, v2.y, v3.x, v3.y);
-        // SDL_RenderDrawLine(sdlRenderer, v3.x, v3.y, v1.x, v1.y);
-    }
+    glm::vec2 translation = mesh.translation;
+    glm::mat2 transform = mesh.transform;
+
+    meshShader.setUniform("uMeshTranslation", &translation);
+    meshShader.setUniform("uMeshTransform", &transform);
+
+    meshShader.setAttrib("aPos", vertices, mesh.vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    meshShader.setIndices("aPos", &mesh.indices[0], mesh.indices.size(), GL_DYNAMIC_DRAW);
+
+    meshShader.draw(GL_TRIANGLES, mesh.indices.size());
+    meshShader.unbind();
 };
 
 void Rendering::Renderer::setClearColor(const Color &color)

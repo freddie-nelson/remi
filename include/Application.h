@@ -23,6 +23,8 @@ private:
     int init();
     void destroy();
 
+    Rendering::Mesh2D shape;
+
     void update(float dt, Rendering::Renderer *renderer);
     void render(Rendering::Renderer *renderer);
 };

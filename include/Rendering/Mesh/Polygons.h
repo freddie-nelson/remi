@@ -33,12 +33,13 @@ namespace Rendering
     Mesh2D createRegularPolygon(float radius, int sides);
 
     /**
-     * Creates a rectangle with the top left corner at (0, 0), and the given width and height.
+     * Creates a rectangle with the top left corner or centre at (0, 0), and the given width and height.
      *
      * @param w The width of the rectangle.
      * @param h The height of the rectangle.
+     * @param centered Whether or not to centre the rectangle at (0, 0).
      *
      * @returns A Mesh2D representing the rectangle.
      */
-    Mesh2D createRect(float w, float h);
+    Mesh2D createRect(float w, float h, bool centered = true);
 }

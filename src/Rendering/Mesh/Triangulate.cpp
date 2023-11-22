@@ -1,4 +1,5 @@
 #include "../../../include/Rendering/Mesh/Triangulate.h"
+#include "../../../include/Rendering/Utility/GLMHelpers.h"
 
 #include <stdexcept>
 #include <list>

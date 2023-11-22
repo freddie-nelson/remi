@@ -1,7 +1,10 @@
 #pragma once
 
+#include "../../../include/externals/glad/glad.h"
 #include <string>
 #include <unordered_map>
+#include <stdexcept>
+#include <iostream>
 
 namespace Rendering
 {
@@ -54,6 +57,8 @@ namespace Rendering
 
         /**
          * Sets OpenGL to use this shader.
+         *
+         * Will bind the current VAO.
          */
         void use();
 
@@ -66,22 +71,14 @@ namespace Rendering
 
         /**
          * Draws the shader.
-         */
-        void draw();
-
-        /**
-         * Sets the draw mode of the shader.
          *
-         * @param drawMode The draw mode.
-         */
-        void setDrawMode(unsigned int drawMode);
-
-        /**
-         * Gets the draw mode of the shader.
+         * Will bind the current VAO before drawing.
          *
-         * @returns The draw mode.
+         * @param drawMode The draw mode to use, i.e. GL_TRIANGLES, GL_POINTS, GL_LINES, etc.
+         * @param drawCount The number of vertices to draw.
+         * @param offset The offset in the arrays or indices to start drawing from.
          */
-        unsigned int getDrawMode();
+        void draw(unsigned int drawMode, unsigned int drawCount, unsigned int offset = 0);
 
         /**
          * Sets the value of the uniform with the given name to the given value.
@@ -89,6 +86,8 @@ namespace Rendering
          * This function does not check that the value provided matches the uniform type. The user must make sure of this themselves.
          *
          * For vecs and matrices types `value` should be the glm equivalent.
+         *
+         * It is a good idea to make the passed value pointer a heap allocated value so that it does not get deleted while still in use by the shader..
          *
          * @param name The name of the uniform.
          * @param value The value to set the uniform to.
@@ -104,6 +103,8 @@ namespace Rendering
          *
          * For vecs and matrices types `value` should be an array of the glm equivalent.
          *
+         * It is a good idea to make the passed value pointer a heap allocated value so that it does not get deleted while still in use by the shader..
+         *
          * @param name The name of the uniform.
          * @param value The value to set the uniform to.
          * @param length The length of the array.
@@ -115,8 +116,11 @@ namespace Rendering
          *
          * This will bind an ARRAY_BUFFER to the attribute.
          *
+         * If the attribute had indices attached then this will reset them to `nullptr`.
+         *
          * @param name The name of the attribute.
          * @param value The value to set the attribute to.
+         * @param length The length of the given array.
          * @param componentSize The number of components in the attribute i.e. 3 for vec3.
          * @param glType The OpenGL type of the attribute i.e. GL_FLOAT, GL_INT_VEC2, etc.
          * @param normalize Whether or not to normalize the attribute.
@@ -124,7 +128,26 @@ namespace Rendering
          * @param drawType The type of draw to use i.e. GL_STATIC_DRAW, GL_DYNAMIC_DRAW, etc.
          */
         template <typename T>
-        void setAttrib(const std::string &name, T *value, size_t componentSize, unsigned int glType, bool normalize, unsigned int offset, unsigned int drawType);
+        void setAttrib(const std::string &name, T *value, size_t length, size_t componentSize, unsigned int glType, bool normalize, unsigned int offset, unsigned int drawType)
+        {
+            if (!loaded)
+            {
+                throw std::runtime_error("Shader must be loaded before attributes can be set.");
+            }
+
+            if (drawType != GL_STATIC_DRAW && drawType != GL_DYNAMIC_DRAW && drawType != GL_STREAM_DRAW)
+            {
+                throw std::invalid_argument("drawType must be either GL_STATIC_DRAW, GL_DYNAMIC_DRAW or GL_STREAM_DRAW.");
+            }
+
+            int location = getAttribLocation(name);
+            unsigned int VBO = attribValues.contains(name) ? attribValues[name].VBO : 0;
+            unsigned int EBO = attribValues.contains(name) ? attribValues[name].EBO : 0;
+
+            attribValues[name] = {true, value, length * sizeof(T), componentSize, glType, normalize, componentSize * sizeof(T), offset, drawType, nullptr, VBO, EBO};
+
+            updateAttributes = true;
+        }
 
         /**
          * Sets the indices of the given attribute's VBO.
@@ -134,7 +157,7 @@ namespace Rendering
          * @param length The length of the indices array.
          * @param drawType The type of draw to use i.e. GL_STATIC_DRAW, GL_DYNAMIC_DRAW, etc.
          */
-        void setIndices(const std::string &name, unsigned int *indices, size_t length, unsigned int drawType);
+        void setIndices(const std::string &name, const unsigned int *indices, size_t length, unsigned int drawType);
 
         /**
          * Gets wether or not this shader program is currently in use.
@@ -150,25 +173,27 @@ namespace Rendering
         bool updateAttributes = true;
         bool hasIndices = false;
 
-        unsigned int programId;
-        unsigned int VAO;
-        unsigned int drawMode = GL_TRIANGLES;
+        unsigned int programId = 0;
+        unsigned int VAO = 0;
 
         struct AttribIndices
         {
-            unsigned int *indices;
+            const unsigned int *indices;
             size_t length;
             unsigned int drawType;
         };
 
         struct VertexAttrib
         {
+            bool stale;
+
             void *value;
+            size_t size;
             size_t componentSize;
             unsigned int glType;
             bool normalize;
-            unsigned int stride;
-            unsigned int offset;
+            size_t stride;
+            size_t offset;
             unsigned int drawType;
 
             AttribIndices *indices;
@@ -176,9 +201,24 @@ namespace Rendering
             unsigned int EBO;
         };
 
+        struct Uniform
+        {
+            bool stale;
+
+            void *value;
+        };
+
+        struct UniformArray
+        {
+            bool stale;
+
+            void *value;
+            size_t length;
+        };
+
         std::unordered_map<std::string, VertexAttrib> attribValues;
-        std::unordered_map<std::string, void *> uniformValues;
-        std::unordered_map<std::string, std::pair<void *, size_t>> uniformArrayValues;
+        std::unordered_map<std::string, Uniform> uniformValues;
+        std::unordered_map<std::string, UniformArray> uniformArrayValues;
 
         /**
          * Compiles the given shader source.
@@ -212,10 +252,8 @@ namespace Rendering
 
         /**
          * Binds all the attributes in the attribValues map and creates a VAO for them.
-         *
-         * @returns The id of the VAO that was bound.
          */
-        unsigned int createVAO();
+        void createVAO();
 
         /**
          * Gets the location of the given uniform.
@@ -243,6 +281,24 @@ namespace Rendering
          * @returns The type of the uniform.
          */
         unsigned int getUniformType(const std::string &name);
+
+        /**
+         * Gets the name of the uniform stored at the given location.
+         *
+         * @param location The location of the uniform.
+         *
+         * @returns The name of the uniform stored at the specified location.
+         */
+        std::string getUniformName(unsigned int location);
+
+        /**
+         * Gets the name of every uniform location to find the correct location for the given name.
+         *
+         * @param name The name of the uniform to find.
+         *
+         * @returns The location of the uniform.
+         */
+        int findUniformLocation(const std::string &name);
 
         /**
          * Gets the type of the attrib with the given name.

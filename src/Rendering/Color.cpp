@@ -144,11 +144,6 @@ void Rendering::Color::clampA(float min, float max)
     rgba.a = std::clamp(rgba.a, min, max);
 }
 
-glm::vec4 Rendering::Color::getColor() const
-{
-    return rgba;
-}
-
 void Rendering::Color::setColor(float r, float g, float b, float a)
 {
     rgba = glm::vec4(r, g, b, a);
@@ -171,6 +166,11 @@ void Rendering::Color::setColor(float rgb, float a)
 {
     rgba = glm::vec4(rgb, rgb, rgb, a);
     Color::isColorValid(rgba);
+}
+
+glm::vec4 Rendering::Color::getColor() const
+{
+    return rgba;
 }
 
 void Rendering::Color::fromHSLA(float h, float s, float l, float a)
