@@ -49,7 +49,13 @@ int Application::init()
 
     // window->syncRendererSize(false);
 
-    shape = Rendering::createRect(200, 200);
+    for (int i = 0; i < 100; i++)
+    {
+        meshs.push_back(Rendering::createRect(rand() % 100 + 50, rand() % 100 + 50));
+
+        Rendering::translateMesh(meshs[i], glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
+                                                     (rand() % initialWindowHeight) - initialWindowHeight / 2});
+    }
 
     return 0;
 }
@@ -65,7 +71,10 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     // print timestep info
     std::cout << "\rdt: " << dt << "          ";
 
-    Rendering::rotateMesh(shape, std::numbers::pi * 1.0f * dt);
+    for (auto &m : meshs)
+    {
+        Rendering::rotateMesh(m, std::numbers::pi * (rand() % 100) * 0.01f * dt);
+    }
 
     render(renderer);
 }
@@ -81,10 +90,14 @@ void Application::render(Rendering::Renderer *renderer)
     // Rendering::Mesh2D shape = Rendering::createRect(1, 1);
     // Rendering::translateMesh(shape, glm::vec2(-0.5, -0.5));
 
-    const auto now = Rendering::timeSinceEpochMillisec() / 200;
-    const auto r = std::sin(now) / 2.0f + 0.5f;
-    const auto g = std::sin(now * 1023 - 897) / 2.0f + 0.5f;
-    const auto b = std::sin(now % 3958) / 2.0f + 0.5f;
+    auto now = Rendering::timeSinceEpochMillisec() / 200;
 
-    renderer->mesh(shape, Rendering::Color(r, g, b, 1.0f));
+    for (auto &m : meshs)
+    {
+        const auto r = std::sin(now) / 2.0f + 0.5f;
+        const auto g = std::sin(now * 1023 - 897) / 2.0f + 0.5f;
+        const auto b = std::sin(now % 3958) / 2.0f + 0.5f;
+
+        renderer->mesh(m, Rendering::Color(r, g, b, 1.0f));
+    }
 }

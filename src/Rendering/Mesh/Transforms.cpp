@@ -8,7 +8,7 @@ Rendering::Mesh2D Rendering::translateMesh(Mesh2D &mesh, const glm::vec2 &transl
 
 Rendering::Mesh2D Rendering::rotateMesh(Mesh2D &mesh, float angle)
 {
-    glm::mat2x2 rotationMatrix{
+    glm::mat2 rotationMatrix{
         std::cos(angle),
         -std::sin(angle),
         std::sin(angle),
@@ -21,7 +21,7 @@ Rendering::Mesh2D Rendering::rotateMesh(Mesh2D &mesh, float angle)
 
 Rendering::Mesh2D Rendering::scaleMesh(Mesh2D &mesh, const glm::vec2 &scale)
 {
-    glm::mat2x2 scaleMatrix{
+    glm::mat2 scaleMatrix{
         scale.x,
         0,
         0,

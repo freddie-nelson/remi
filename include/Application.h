@@ -23,7 +23,7 @@ private:
     int init();
     void destroy();
 
-    Rendering::Mesh2D shape;
+    std::vector<Rendering::Mesh2D> meshs;
 
     void update(float dt, Rendering::Renderer *renderer);
     void render(Rendering::Renderer *renderer);
