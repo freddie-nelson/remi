@@ -24,9 +24,6 @@ void Rendering::Renderer::init()
     {
         throw std::runtime_error("Failed to load mesh shader.");
     }
-
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(openGlMessageCallback, 0);
 }
 
 void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer)

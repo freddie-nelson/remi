@@ -645,12 +645,14 @@ unsigned int Rendering::Shader::getUniformType(const std::string &name)
 
 std::string Rendering::Shader::getUniformName(unsigned int location)
 {
+
     GLint bufsize;
     glGetProgramiv(programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &bufsize);
 
-    char *name = new char[bufsize];
+    char name[bufsize];
     GLsizei nameLength;
 
+    //! error on this line? program crashing only on nvidia gpu?
     glGetActiveUniform(programId, location, bufsize, &nameLength, NULL, NULL, name);
 
     const auto nameStr = std::string(name);

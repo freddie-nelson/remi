@@ -1,5 +1,6 @@
 #include "../../include/Rendering/Window.h"
 #include "../../include/Rendering/Utility/Timestep.h"
+#include "../../include/Rendering/Utility/OpenGLHelpers.h"
 
 #include "../../include/externals/glad/glad.h"
 #include <iostream>
@@ -28,7 +29,8 @@ int Rendering::Window::init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
     glfwWindow = glfwCreateWindow(initialWindowWidth, initialWindowHeight, windowTitle.c_str(), NULL, NULL);
     if (!glfwWindow)
@@ -42,8 +44,23 @@ int Rendering::Window::init()
     gladLoadGL();
     glfwSwapInterval(1);
 
+    int flags;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(glDebugOutput, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    }
+    else
+    {
+        std::cout << "No debug context." << std::endl;
+    }
+
     // Output the opengl version
-    std::cout << "Window created." << std::endl;
+    std::cout
+        << "Window created." << std::endl;
     std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 
     renderer = new Rendering::Renderer(glfwWindow, initialWindowWidth, initialWindowHeight);
