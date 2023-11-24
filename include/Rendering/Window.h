@@ -37,7 +37,7 @@ namespace Rendering
          *
          * @return The error code, 0 if no error.
          */
-        int init();
+        int init(unsigned int openglMajorVersion = 4, unsigned int openglMinorVersion = 6);
 
         /**
          * Destroys the window, freeing all resources and closing the window.

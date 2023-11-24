@@ -5,7 +5,7 @@
 namespace Rendering
 {
     const std::string meshVertexShader =
-        "#version 460 core\n"
+        "#version 330 core\n"
         "\n"
         "uniform vec2 uResolution;\n"
         "uniform vec2 uMeshTranslation;\n"
@@ -26,7 +26,7 @@ namespace Rendering
         "}\n";
 
     const std::string meshFragShader =
-        "#version 460 core\n"
+        "#version 330 core\n"
         "\n"
         "uniform vec4 uColor;\n"
         "\n"

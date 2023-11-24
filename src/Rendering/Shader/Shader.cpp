@@ -653,6 +653,9 @@ std::string Rendering::Shader::getUniformName(unsigned int location)
     GLsizei nameLength;
 
     //! error on this line? program crashing only on nvidia gpu?
+    //! investigated and definitely a driver bug, but not sure how to fix
+    //! code works fine on intel integrated graphics, not tested on amd
+    //! only tested on my (freddie) 1060 so not sure if it's just this card or what
     glGetActiveUniform(programId, location, bufsize, &nameLength, NULL, NULL, name);
 
     const auto nameStr = std::string(name);

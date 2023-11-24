@@ -35,7 +35,7 @@ int Application::init()
 {
     // init window
     window = new Rendering::Window(windowTitle, initialWindowWidth, initialWindowHeight);
-    if (window->init() != 0)
+    if (window->init(4, 1) != 0)
     {
         std::cout << "Failed to initialize window." << std::endl;
         return 1;
@@ -49,7 +49,7 @@ int Application::init()
 
     // window->syncRendererSize(false);
 
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 100; i++)
     {
         meshs.push_back(Rendering::createRect(rand() % 100 + 50, rand() % 100 + 50));
 
@@ -76,10 +76,10 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     // print timestep info
     std::cout << "\rdt: " << dt << "          ";
 
-    // for (auto &m : meshs)
-    // {
-    //     Rendering::rotateMesh(m, std::numbers::pi * (rand() % 100) * 0.01f * dt);
-    // }
+    for (auto &m : meshs)
+    {
+        Rendering::rotateMesh(m, std::numbers::pi * (rand() % 100) * 0.01f * dt);
+    }
 
     render(renderer);
 }
@@ -94,10 +94,6 @@ void Application::render(Rendering::Renderer *renderer)
 
     // Rendering::Mesh2D shape = Rendering::createRect(1, 1);
     // Rendering::translateMesh(shape, glm::vec2(-0.5, -0.5));
-
-    Rendering::Mesh2D shape = Rendering::createRegularPolygon(80, 8);
-    std::cout << "rendering shape" << std::endl;
-    renderer->mesh(shape, Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f));
 
     for (auto &m : meshs)
     {

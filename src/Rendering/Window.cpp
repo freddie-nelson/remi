@@ -17,7 +17,7 @@ Rendering::Window::~Window()
     destroy();
 }
 
-int Rendering::Window::init()
+int Rendering::Window::init(unsigned int openglMajorVersion, unsigned int openglMinorVersion)
 {
     // init sdl
     if (!glfwInit())
@@ -26,20 +26,40 @@ int Rendering::Window::init()
         return 1;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    if (openglMajorVersion < 3)
+    {
+        std::cout << "OpenGL major version must be greater than or equal to 3." << std::endl;
+        return 1;
+    }
+    else if (openglMajorVersion == 3 && openglMinorVersion < 3)
+    {
+        std::cout << "OpenGL minor version must be greater than or equal to 3.3." << std::endl;
+        return 1;
+    }
+    else if (openglMajorVersion == 4 && openglMinorVersion > 6)
+    {
+        std::cout << "OpenGL minor version must be less than or equal to 4.6." << std::endl;
+        return 1;
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, openglMajorVersion);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, openglMinorVersion);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
     glfwWindow = glfwCreateWindow(initialWindowWidth, initialWindowHeight, windowTitle.c_str(), NULL, NULL);
     if (!glfwWindow)
     {
+        const char **error;
+        glfwGetError(error);
+        std::cout << "Failed to create glfw window. Error: " << *error << std::endl;
+
         glfwTerminate();
-        std::cout << "Failed to create glfw window." << std::endl;
         return 1;
     }
 
+    // glfwSetWindowPos(glfwWindow, 4200, 1200);
     glfwMakeContextCurrent(glfwWindow);
 
     int version = gladLoadGL(glfwGetProcAddress);
@@ -48,6 +68,8 @@ int Rendering::Window::init()
         std::cout << "Failed to initialize OpenGL context." << std::endl;
         return 1;
     }
+
+    std::cout << "OpenGL version loaded: " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
 
     glfwSwapInterval(1);
 
