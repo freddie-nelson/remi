@@ -2,7 +2,7 @@
 #include "../../../include/Rendering/Utility/FileHandling.h"
 #include "../../../include/Rendering/Utility/GlmHelpers.h"
 
-#include "../../../include/externals/glad/glad.h"
+#include "../../../include/externals/glad/gl.h"
 #include <stdexcept>
 #include <iostream>
 #include <glm/glm.hpp>

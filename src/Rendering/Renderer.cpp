@@ -2,7 +2,7 @@
 #include "../../include/Rendering/Shader/MeshShader.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 
-#include "../../include/externals/glad/glad.h"
+#include "../../include/externals/glad/gl.h"
 #include <iostream>
 #include <math.h>
 #include <glm/gtc/type_ptr.hpp>

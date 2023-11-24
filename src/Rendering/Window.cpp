@@ -2,7 +2,7 @@
 #include "../../include/Rendering/Utility/Timestep.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 
-#include "../../include/externals/glad/glad.h"
+#include "../../include/externals/glad/gl.h"
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -41,7 +41,14 @@ int Rendering::Window::init()
     }
 
     glfwMakeContextCurrent(glfwWindow);
-    gladLoadGL();
+
+    int version = gladLoadGL(glfwGetProcAddress);
+    if (version == 0)
+    {
+        std::cout << "Failed to initialize OpenGL context." << std::endl;
+        return 1;
+    }
+
     glfwSwapInterval(1);
 
     int flags;

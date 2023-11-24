@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../include/externals/glad/glad.h"
+#include "../../../include/externals/glad/gl.h"
 #include <string>
 #include <unordered_map>
 #include <stdexcept>
