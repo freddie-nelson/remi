@@ -46,7 +46,11 @@ int Rendering::Window::init(unsigned int openglMajorVersion, unsigned int opengl
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, openglMinorVersion);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    // enable debug context if opengl version is greater than or equal to 4.3
+    if (openglMajorVersion >= 4 && openglMinorVersion >= 3)
+    {
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    }
 
     glfwWindow = glfwCreateWindow(initialWindowWidth, initialWindowHeight, windowTitle.c_str(), NULL, NULL);
     if (!glfwWindow)
@@ -59,7 +63,7 @@ int Rendering::Window::init(unsigned int openglMajorVersion, unsigned int opengl
         return 1;
     }
 
-    // glfwSetWindowPos(glfwWindow, 4200, 1200);
+    glfwSetWindowPos(glfwWindow, 4000, 200);
     glfwMakeContextCurrent(glfwWindow);
 
     int version = gladLoadGL(glfwGetProcAddress);
@@ -168,6 +172,22 @@ void Rendering::Window::stop()
     running = false;
 }
 
+void Rendering::Window::show()
+{
+    showWindow = true;
+
+    if (glfwWindow)
+        glfwShowWindow(glfwWindow);
+}
+
+void Rendering::Window::hide()
+{
+    showWindow = false;
+
+    if (glfwWindow)
+        glfwHideWindow(glfwWindow);
+}
+
 int Rendering::Window::getFps() const
 {
     return fps;
@@ -194,6 +214,34 @@ std::pair<int, int> Rendering::Window::getSize() const
     glfwGetFramebufferSize(glfwWindow, &width, &height);
 
     return std::make_pair(width, height);
+}
+
+void Rendering::Window::setSize(int width, int height)
+{
+    if (width <= 0 || height <= 0)
+    {
+        throw std::invalid_argument("width and height must be greater than 0.");
+    }
+
+    glfwSetWindowSize(glfwWindow, width, height);
+}
+
+std::pair<int, int> Rendering::Window::getPosition() const
+{
+    int x, y;
+    glfwGetWindowPos(glfwWindow, &x, &y);
+
+    return std::make_pair(x, y);
+}
+
+void Rendering::Window::setPosition(int x, int y)
+{
+    if (x < 0 || y < 0)
+    {
+        throw std::invalid_argument("x and y must be greater than or equal to 0.");
+    }
+
+    glfwSetWindowPos(glfwWindow, x, y);
 }
 
 void Rendering::Window::syncRendererSize(bool sync)

@@ -35,11 +35,13 @@ int Application::init()
 {
     // init window
     window = new Rendering::Window(windowTitle, initialWindowWidth, initialWindowHeight);
-    if (window->init(4, 1) != 0)
+    if (window->init(3, 3) != 0)
     {
         std::cout << "Failed to initialize window." << std::endl;
         return 1;
     }
+
+    window->setPosition(4000, 100);
 
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
