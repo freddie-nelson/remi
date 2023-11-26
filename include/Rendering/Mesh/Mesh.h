@@ -30,8 +30,11 @@ namespace Rendering
         std::vector<glm::vec2> vertices;
         std::vector<unsigned int> indices;
 
-        glm::vec2 translation = glm::vec2{0, 0};
-        glm::mat2 transform = glm::mat2{1, 0, 0, 1};
+        glm::vec2 translation = glm::vec2(0.0f);
+        glm::mat2 scale = glm::mat2(1.0f);
+        glm::mat2 rotation = glm::mat2(1.0f);
+        glm::mat2 sheer = glm::mat2(1.0f);
+
         Color color = Color(1.0f);
     };
 }

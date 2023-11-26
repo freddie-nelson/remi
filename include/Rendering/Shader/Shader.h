@@ -81,6 +81,18 @@ namespace Rendering
         void draw(unsigned int drawMode, unsigned int drawCount, unsigned int offset = 0);
 
         /**
+         * Draws the shader.
+         *
+         * Will bind the current VAO before drawing.
+         *
+         * @param instanceCount The number of instances to draw.
+         * @param drawMode The draw mode to use, i.e. GL_TRIANGLES, GL_POINTS, GL_LINES, etc.
+         * @param drawCount The number of vertices to draw.
+         * @param offset The offset in the arrays or indices to start drawing from.
+         */
+        void drawInstanced(unsigned int instanceCount, unsigned int drawMode, unsigned int drawCount, unsigned int offset = 0);
+
+        /**
          * Sets the value of the uniform with the given name to the given value.
          *
          * This function does not check that the value provided matches the uniform type. The user must make sure of this themselves.
@@ -118,17 +130,21 @@ namespace Rendering
          *
          * If the attribute had indices attached then this will reset them to `nullptr`.
          *
+         * For matrices stride and componentSize will be calculated within the shader using `matrixSize`.
+         *
          * @param name The name of the attribute.
          * @param value The value to set the attribute to.
          * @param length The length of the given array.
-         * @param componentSize The number of components in the attribute i.e. 3 for vec3.
+         * @param componentSize The number of components in the attribute i.e. 3 for vec3, 4 for mat2 (2 vec2s), etc.
          * @param glType The OpenGL type of the attribute i.e. GL_FLOAT, GL_INT_VEC2, etc.
          * @param normalize Whether or not to normalize the attribute.
-         * @param offset The offset of the attribute in the array.
+         * @param offset The offset of the attribute in the array in bytes.
          * @param drawType The type of draw to use i.e. GL_STATIC_DRAW, GL_DYNAMIC_DRAW, etc.
+         * @param divisor The divisor to use for instanced rendering.
+         * @param matrixSize The size of the matrix if the attribute is a matrix.
          */
         template <typename T>
-        void setAttrib(const std::string &name, T *value, size_t length, size_t componentSize, unsigned int glType, bool normalize, unsigned int offset, unsigned int drawType)
+        void setAttrib(const std::string &name, T *value, size_t length, size_t componentSize, unsigned int glType, bool normalize, unsigned int offset, unsigned int drawType, int divisor = -1, int matrixSize = -1)
         {
             if (!loaded)
             {
@@ -144,7 +160,10 @@ namespace Rendering
             unsigned int VBO = attribValues.contains(name) ? attribValues[name].VBO : 0;
             unsigned int EBO = attribValues.contains(name) ? attribValues[name].EBO : 0;
 
-            attribValues[name] = {true, value, length * sizeof(T), componentSize, glType, normalize, componentSize * sizeof(T), offset, drawType, nullptr, VBO, EBO};
+            size_t size = length * sizeof(T);
+            size_t stride = componentSize * sizeof(T);
+
+            attribValues[name] = {true, sizeof(T), value, size, componentSize, glType, normalize, stride, offset, drawType, divisor, matrixSize, nullptr, VBO, EBO};
 
             updateAttributes = true;
         }
@@ -187,6 +206,7 @@ namespace Rendering
         {
             bool stale;
 
+            size_t typeSize;
             void *value;
             size_t size;
             size_t componentSize;
@@ -195,6 +215,8 @@ namespace Rendering
             size_t stride;
             size_t offset;
             unsigned int drawType;
+            int divisor;
+            int matrixSize;
 
             AttribIndices *indices;
             unsigned int VBO;
@@ -294,11 +316,14 @@ namespace Rendering
         /**
          * Gets the name of every uniform location to find the correct location for the given name.
          *
+         * If `isUniformArray` is true then the name to find will be suffixed with `[0]`.
+         *
          * @param name The name of the uniform to find.
+         * @param isUniformArray Whether or not the uniform is an array.
          *
          * @returns The location of the uniform.
          */
-        int findUniformLocation(const std::string &name);
+        int findUniformLocation(const std::string &name, bool isUniformArray = false);
 
         /**
          * Gets the type of the attrib with the given name.
@@ -315,5 +340,14 @@ namespace Rendering
          * @param name The name of the uniform.
          */
         void checkUniformSetRules(const std::string &name);
+
+        /**
+         * Checks if the given draw mode is valid.
+         *
+         * @param drawMode The draw mode to check.
+         *
+         * @throws std::invalid_argument If the draw mode is not valid.
+         */
+        void checkDrawModeValid(unsigned int drawMode);
     };
 }

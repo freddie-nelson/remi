@@ -1,9 +1,12 @@
 #include "../../include/Rendering/Renderer.h"
 #include "../../include/Rendering/Shader/MeshShader.h"
+#include "../../include/Rendering/Shader/InstancedMeshShader.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
+#include "../../include/Rendering/Mesh/Transforms.h"
 
 #include "../../include/externals/glad/gl.h"
 #include <iostream>
+#include <memory>
 #include <math.h>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -23,6 +26,12 @@ void Rendering::Renderer::init()
     if (!meshShader.loadFromSource(meshVertexShader, meshFragShader))
     {
         throw std::runtime_error("Failed to load mesh shader.");
+    }
+
+    instancedMeshShader = Shader();
+    if (!instancedMeshShader.loadFromSource(instancedMeshVertexShader, instancedMeshFragShader))
+    {
+        throw std::runtime_error("Failed to load instanced mesh shader.");
     }
 }
 
@@ -77,7 +86,7 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Color &color)
     meshShader.setUniform("uResolution", &resolution);
 
     glm::vec2 translation = m.translation;
-    glm::mat2 transform = m.transform;
+    glm::mat2 transform = getTransformationMatrix(m);
 
     meshShader.setUniform("uMeshTranslation", &translation);
     meshShader.setUniform("uMeshTransform", &transform);
@@ -87,6 +96,41 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Color &color)
 
     meshShader.draw(GL_TRIANGLES, m.indices.size());
     meshShader.unbind();
+};
+
+void Rendering::Renderer::instancedMesh(const Mesh2D &m, std::vector<glm::vec2> &translations, std::vector<glm::mat2> &transforms, std::vector<glm::vec4> &colors)
+{
+    if (translations.size() != transforms.size() || translations.size() != colors.size())
+    {
+        throw std::runtime_error("instancedMesh: translations, transforms and colors must have the same size.");
+    }
+
+    const unsigned int instanceCount = translations.size();
+
+    float *vertices = (float *)glm::value_ptr(m.vertices[0]);
+    const std::vector<unsigned int> &indices = m.indices;
+
+    instancedMeshShader.use();
+
+    glm::vec2 resolution(width, height);
+    instancedMeshShader.setUniform("uResolution", &resolution);
+
+    // instanced arrays
+    float *translationsArr = (float *)glm::value_ptr(translations[0]);
+    float *transformsArr = (float *)glm::value_ptr(transforms[0]);
+
+    instancedMeshShader.setAttrib("aTranslation", translationsArr, instanceCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
+    instancedMeshShader.setAttrib("aTransform", transformsArr, instanceCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1, 2);
+
+    float *colorsArr = (float *)glm::value_ptr(colors[0]);
+    instancedMeshShader.setAttrib("aColor", colorsArr, instanceCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
+
+    // vertices and indices
+    instancedMeshShader.setAttrib("aPos", vertices, m.vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    instancedMeshShader.setIndices("aPos", &m.indices[0], m.indices.size(), GL_DYNAMIC_DRAW);
+
+    instancedMeshShader.drawInstanced(instanceCount, GL_TRIANGLES, m.indices.size());
+    instancedMeshShader.unbind();
 };
 
 void Rendering::Renderer::setClearColor(const Color &color)

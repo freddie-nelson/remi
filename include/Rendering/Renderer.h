@@ -69,6 +69,20 @@ namespace Rendering
         void mesh(const Mesh2D &m, const Color &color);
 
         /**
+         * Renders the given mesh instances.
+         *
+         * Uses the vertices and indices from `m`. `translations[0], transformations[0], colors[0]` will be used for the first instance (`m`).
+         *
+         * Params are not const because they are passed to OpenGL, they most likely won't be modified.
+         *
+         * @param m The mesh to render.
+         * @param translations The translations of the instances.
+         * @param transformations The transformations of the instances.
+         * @param colors The colors of the instances, as vec4s.
+         */
+        void instancedMesh(const Mesh2D &m, std::vector<glm::vec2> &translations, std::vector<glm::mat2> &transformations, std::vector<glm::vec4> &colors);
+
+        /**
          * Sets the clear color.
          *
          * @param color The new clear color.
@@ -111,6 +125,7 @@ namespace Rendering
         int height;
 
         Shader meshShader;
+        Shader instancedMeshShader;
 
         Color clearColor = Color(0.0f);
 

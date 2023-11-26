@@ -26,6 +26,12 @@ namespace Rendering
     public:
         /**
          * Creates a new window with the given title and dimensions.
+         *
+         * Initializes glfw.
+         *
+         * @param windowTitle The title of the window.
+         * @param windowWidth The width of the window.
+         * @param windowHeight The height of the window.
          */
         Window(std::string windowTitle, int windowWidth, int windowHeight);
 
@@ -142,6 +148,51 @@ namespace Rendering
         Rendering::Renderer *renderer;
 
         bool running = false;
+
+        /**
+         * Creates a GLFW window.
+         *
+         * @param openglMajorVersion The major version of OpenGL to use.
+         * @param openglMinorVersion The minor version of OpenGL to use.
+         * @param debugContext Whether to create a debug context on opengl versions >= 4.3.
+         * @param monitor The monitor to create the window on, or null for windowed mode.
+         */
+        GLFWwindow *createGLFWWindow(int openglMajorVersion, int openglMinorVersion, bool debugContext, GLFWmonitor *monitor = nullptr);
+
+        struct OpenGLContext
+        {
+            int majorVersion;
+            int minorVersion;
+            std::string versionString;
+            std::string vendor;
+
+            bool debugContext;
+        };
+
+        /**
+         * Creates an OpenGL context.
+         *
+         * @param window The window to create the context for.
+         *
+         * @returns The OpenGL context or nullptr if failed to create context.
+         */
+        OpenGLContext *createOpenGLContext(GLFWwindow *window);
+
+        /**
+         * Returns all OpenGL contexts that support the given parameters.
+         *
+         *
+         * It does this by creating a window for each monitor and then destroying it.
+         *
+         * @param openglMajorVersion The major version of OpenGL to use.
+         * @param openglMinorVersion The minor version of OpenGL to use.
+         * @param debugContext Whether to create a debug context on opengl versions >= 4.3.
+         *
+         * @returns A vector of all supported OpenGL contexts and the monitor they were created on.
+         *
+         * @warning Doesn't really work, it will return the same context for each monitor.
+         */
+        std::vector<std::pair<OpenGLContext *, GLFWmonitor *>> getAllSupportedOpenGLContexts(int openglMajorVersion, int openglMinorVersion, bool debugContext);
 
         /**
          * Polls events from the window.

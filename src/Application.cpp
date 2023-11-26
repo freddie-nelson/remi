@@ -35,13 +35,11 @@ int Application::init()
 {
     // init window
     window = new Rendering::Window(windowTitle, initialWindowWidth, initialWindowHeight);
-    if (window->init(3, 3) != 0)
+    if (window->init(4, 3) != 0)
     {
         std::cout << "Failed to initialize window." << std::endl;
         return 1;
     }
-
-    window->setPosition(4000, 100);
 
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
@@ -51,17 +49,34 @@ int Application::init()
 
     // window->syncRendererSize(false);
 
-    for (int i = 0; i < 100; i++)
+    // meshs
+    // for (int i = 0; i < 1000; i++)
+    // {
+    //     meshs.push_back(Rendering::createRect(rand() % 100 + 50, rand() % 100 + 50));
+
+    //     auto r = (rand() % 255) / 255.0f;
+    //     auto g = (rand() % 255) / 255.0f;
+    //     auto b = (rand() % 255) / 255.0f;
+    //     meshs[i].color.setColor(r, g, b, 1.0f);
+
+    //     Rendering::translate(meshs[i], glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
+    //                                              (rand() % initialWindowHeight) - initialWindowHeight / 2});
+    // }
+
+    // instanced meshs
+    for (int i = 0; i < 1000; i++)
     {
-        meshs.push_back(Rendering::createRect(rand() % 100 + 50, rand() % 100 + 50));
+        instancedMeshs.push_back(Rendering::createRect(1, 1));
 
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
-        meshs[i].color.setColor(r, g, b, 1.0f);
+        instancedMeshs[i].color.setColor(r, g, b, 1.0f);
 
-        Rendering::translateMesh(meshs[i], glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
-                                                     (rand() % initialWindowHeight) - initialWindowHeight / 2});
+        Rendering::translate(instancedMeshs[i], glm::vec2((rand() % initialWindowWidth) - initialWindowWidth / 2,
+                                                          (rand() % initialWindowHeight) - initialWindowHeight / 2));
+
+        Rendering::scale(instancedMeshs[i], glm::vec2(rand() % 100 + 50, rand() % 100 + 50));
     }
 
     return 0;
@@ -80,7 +95,12 @@ void Application::update(float dt, Rendering::Renderer *renderer)
 
     for (auto &m : meshs)
     {
-        Rendering::rotateMesh(m, std::numbers::pi * (rand() % 100) * 0.01f * dt);
+        Rendering::rotate(m, std::numbers::pi * (rand() % 100) * 0.01f * dt);
+    }
+
+    for (int i = 0; i < instancedMeshs.size(); i++)
+    {
+        Rendering::rotate(instancedMeshs[i], std::numbers::pi * (rand() % 100) * 0.01f * dt);
     }
 
     render(renderer);
@@ -101,4 +121,18 @@ void Application::render(Rendering::Renderer *renderer)
     {
         renderer->mesh(m);
     }
+
+    std::vector<glm::vec2> translations(instancedMeshs.size());
+    std::vector<glm::mat2> transforms(instancedMeshs.size());
+    std::vector<glm::vec4> colors(instancedMeshs.size());
+
+    for (auto &m : instancedMeshs)
+    {
+        translations.push_back(m.translation);
+        transforms.push_back(getTransformationMatrix(m));
+        colors.push_back(m.color.getColor());
+    }
+
+    if (instancedMeshs.size() > 0)
+        renderer->instancedMesh(instancedMeshs[0], translations, transforms, colors);
 }

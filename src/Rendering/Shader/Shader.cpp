@@ -122,10 +122,7 @@ void Rendering::Shader::unbind()
 
 void Rendering::Shader::draw(unsigned int drawMode, unsigned int drawCount, unsigned int offset)
 {
-    if (drawMode != GL_POINTS && drawMode != GL_LINE_STRIP && drawMode != GL_LINE_LOOP && drawMode != GL_LINES && drawMode != GL_LINE_STRIP_ADJACENCY && drawMode != GL_LINES_ADJACENCY && drawMode != GL_TRIANGLE_STRIP && drawMode != GL_TRIANGLE_FAN && drawMode != GL_TRIANGLES && drawMode != GL_TRIANGLE_STRIP_ADJACENCY && drawMode != GL_TRIANGLES_ADJACENCY && drawMode != GL_PATCHES)
-    {
-        throw std::invalid_argument("drawMode must be one of the following: GL_POINTS, GL_LINE_STRIP, GL_LINE_LOOP, GL_LINES, GL_LINE_STRIP_ADJACENCY, GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_TRIANGLES, GL_TRIANGLE_STRIP_ADJACENCY, GL_TRIANGLES_ADJACENCY, GL_PATCHES");
-    }
+    checkDrawModeValid(drawMode);
 
     if (!inUse())
     {
@@ -142,6 +139,28 @@ void Rendering::Shader::draw(unsigned int drawMode, unsigned int drawCount, unsi
     else
     {
         glDrawArrays(drawMode, offset, drawCount);
+    }
+}
+
+void Rendering::Shader::drawInstanced(unsigned int instanceCount, unsigned int drawMode, unsigned int drawCount, unsigned int offset)
+{
+    checkDrawModeValid(drawMode);
+
+    if (!inUse())
+    {
+        throw std::runtime_error("Shader must be in use before it can be drawn.");
+    }
+
+    updateAttributesAndUniforms();
+    glBindVertexArray(VAO);
+
+    if (hasIndices)
+    {
+        glDrawElementsInstanced(drawMode, drawCount, GL_UNSIGNED_INT, (void *)offset, instanceCount);
+    }
+    else
+    {
+        glDrawArraysInstanced(drawMode, offset, drawCount, instanceCount);
     }
 }
 
@@ -202,6 +221,7 @@ bool Rendering::Shader::compileShaderSource(const std::string &source, unsigned 
         throw std::invalid_argument("shaderType must be either GL_VERTEX_SHADER or GL_FRAGMENT_SHADER.");
     }
 
+    const auto shaderName = shaderType == GL_VERTEX_SHADER ? "vertex" : "fragment";
     const char *sourceStr = source.c_str();
 
     unsigned int shaderId = glCreateShader(shaderType);
@@ -216,7 +236,7 @@ bool Rendering::Shader::compileShaderSource(const std::string &source, unsigned 
     if (!success)
     {
         glGetShaderInfoLog(shaderId, 512, NULL, infoLog);
-        std::cerr << "Failed to compile vertex shader. Info: " << infoLog << std::endl;
+        std::cerr << "Failed to compile " << shaderName << " shader. Info: " << infoLog << std::endl;
         return false;
     }
 
@@ -527,7 +547,7 @@ void Rendering::Shader::createVAO()
 
     for (auto &[name, attrib] : attribValues)
     {
-        const auto &[stale, value, size, componentSize, glType, normalize, stride, offset, drawType, indices, VBO, EBO] = attrib;
+        const auto &[stale, typeSize, value, size, componentSize, glType, normalize, stride, offset, drawType, divisor, matrixSize, indices, VBO, EBO] = attrib;
 
         // if attribute does not need updated, skip
         if (!stale)
@@ -575,8 +595,33 @@ void Rendering::Shader::createVAO()
         // std::cout << "stride: " << stride << std::endl;
         // std::cout << "offset: " << offset << std::endl;
 
-        glVertexAttribPointer(location, componentSize, glType, normalize ? GL_TRUE : GL_FALSE, stride, (void *)offset);
-        glEnableVertexAttribArray(location);
+        if (matrixSize == -1)
+        {
+            glVertexAttribPointer(location, componentSize, glType, normalize ? GL_TRUE : GL_FALSE, stride, (void *)offset);
+
+            if (divisor != -1)
+            {
+                glVertexAttribDivisor(location, divisor);
+            }
+
+            glEnableVertexAttribArray(location);
+        }
+        else
+        {
+            // we must set the attribute pointer for each column of the matrix
+            // component size for mat2 is 4, mat3 is 9, mat4 is 16
+            for (int col = 0; col < matrixSize; col++)
+            {
+                glVertexAttribPointer(location + col, matrixSize, glType, normalize ? GL_TRUE : GL_FALSE, typeSize * matrixSize * matrixSize, (void *)(typeSize * matrixSize * col));
+
+                if (divisor != -1)
+                {
+                    glVertexAttribDivisor(location + col, divisor);
+                }
+
+                glEnableVertexAttribArray(location + col);
+            }
+        }
 
         attrib.stale = false;
     }
@@ -667,16 +712,18 @@ std::string Rendering::Shader::getUniformName(unsigned int location)
     return nameStr;
 }
 
-int Rendering::Shader::findUniformLocation(const std::string &name)
+int Rendering::Shader::findUniformLocation(const std::string &name, bool isUniformArray)
 {
     GLint numOfUniforms;
     glGetProgramiv(programId, GL_ACTIVE_UNIFORMS, &numOfUniforms);
+
+    const auto uniformName = isUniformArray ? name + "[0]" : name;
 
     // we can just loop through as uniform locations are assigned in order
     for (GLint location = 0; location < numOfUniforms; location++)
     {
         auto nameAtLocation = getUniformName(location);
-        if (nameAtLocation == name)
+        if (nameAtLocation == uniformName)
         {
             return location;
         }
@@ -708,4 +755,12 @@ void Rendering::Shader::checkUniformSetRules(const std::string &name)
     }
 
     getUniformLocation(name);
+}
+
+void Rendering::Shader::checkDrawModeValid(unsigned int drawMode)
+{
+    if (drawMode != GL_POINTS && drawMode != GL_LINE_STRIP && drawMode != GL_LINE_LOOP && drawMode != GL_LINES && drawMode != GL_LINE_STRIP_ADJACENCY && drawMode != GL_LINES_ADJACENCY && drawMode != GL_TRIANGLE_STRIP && drawMode != GL_TRIANGLE_FAN && drawMode != GL_TRIANGLES && drawMode != GL_TRIANGLE_STRIP_ADJACENCY && drawMode != GL_TRIANGLES_ADJACENCY && drawMode != GL_PATCHES)
+    {
+        throw std::invalid_argument("drawMode must be one of the following: GL_POINTS, GL_LINE_STRIP, GL_LINE_LOOP, GL_LINES, GL_LINE_STRIP_ADJACENCY, GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_TRIANGLES, GL_TRIANGLE_STRIP_ADJACENCY, GL_TRIANGLES_ADJACENCY, GL_PATCHES");
+    }
 }
