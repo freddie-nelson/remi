@@ -1,6 +1,7 @@
 #include "../../../include/Rendering/Shader/Shader.h"
 #include "../../../include/Rendering/Utility/FileHandling.h"
 #include "../../../include/Rendering/Utility/GlmHelpers.h"
+#include "../../../include/Rendering/Utility/OpenGLHelpers.h"
 
 #include "../../../include/externals/glad/gl.h"
 #include <stdexcept>
@@ -353,6 +354,10 @@ void Rendering::Shader::useUniform(const std::string &name)
     case GL_UNSIGNED_INT:
     {
         auto v = *static_cast<unsigned int *>(value);
+        // std::cout << "unsigned int" << std::endl;
+        // std::cout << v << std::endl;
+        // std::cout << "using uniform: " << name << std::endl;
+        // std::cout << "location: " << getUniformLocation(name) << std::endl;
         glUniform1ui(location, v);
         break;
     }
@@ -565,6 +570,16 @@ void Rendering::Shader::createVAO()
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, size, value, drawType);
 
+        // if (name == "aZIndex")
+        // {
+        //     unsigned int *intVal = static_cast<unsigned int *>(value);
+        //     for (int i = 0; i < size / sizeof(unsigned int); i++)
+        //     {
+        //         std::cout << i << ": ";
+        //         std::cout << intVal[i] << std::endl;
+        //     }
+        // }
+
         // float *floatVal = static_cast<float *>(value);
         // for (int i = 0; i < size / sizeof(float); i++)
         // {
@@ -597,7 +612,14 @@ void Rendering::Shader::createVAO()
 
         if (matrixSize == -1)
         {
-            glVertexAttribPointer(location, componentSize, glType, normalize ? GL_TRUE : GL_FALSE, stride, (void *)offset);
+            if (glIsTypeInt(glType))
+            {
+                glVertexAttribIPointer(location, componentSize, glType, stride, (void *)offset);
+            }
+            else
+            {
+                glVertexAttribPointer(location, componentSize, glType, normalize ? GL_TRUE : GL_FALSE, stride, (void *)offset);
+            }
 
             if (divisor != -1)
             {

@@ -105,6 +105,7 @@ int Rendering::Window::run(WindowFrameCallback frameCallback)
 
         // clear renderer
         renderer->clear();
+        renderer->updateViewProjectionMatrix();
 
         // call user frame callback
         frameCallback(dt, renderer);

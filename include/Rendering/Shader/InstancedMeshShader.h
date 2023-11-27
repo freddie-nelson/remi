@@ -8,7 +8,9 @@ namespace Rendering
         "#version 330 core\n"
         "\n"
         "uniform vec2 uResolution;\n"
+        "uniform mat4 uViewProjectionMatrix;\n"
         "\n"
+        "in uint aZIndex;\n"
         "in vec2 aTranslation;\n"
         "in mat2 aTransform;\n"
         "in vec4 aColor;\n"
@@ -22,11 +24,8 @@ namespace Rendering
         "   vec2 pos = aTransform * aPos;\n"
         "   pos += aTranslation;\n"
         "\n"
-        "   // convert from pixel coordinates to normalized device coordinates\n"
-        "   // with the origin at the center of the screen\n"
-        "   pos = (pos / uResolution) * 2.0f;\n"
-        "\n"
-        "   gl_Position = vec4(pos, 0.0f, 1.0f);\n"
+        "   gl_Position = vec4(pos, float(aZIndex), 1.0f);\n"
+        "   gl_Position = uViewProjectionMatrix * gl_Position;\n"
         "   vColor = aColor;\n"
         "}\n";
 

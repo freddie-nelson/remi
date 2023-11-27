@@ -24,12 +24,16 @@ namespace Rendering
      * The transform matrix is the combined rotation and scale matrix. See [here](https://en.wikipedia.org/wiki/Transformation_matrix#Examples_in_2_dimensions) for an explanation.
      *
      * The default color given to the mesh is (1.0, 1.0, 1.0, 1.0) or fully opaque white.
+     *
+     * The default zIndex is 0. A higher zIndex means the mesh will be rendered below meshes with a lower zIndex.
+     * A higher zIndex is 'further' away from the camera. 0 is the highest zIndex and will be rendered on top of everything.
      */
     struct Mesh2D
     {
         std::vector<glm::vec2> vertices;
         std::vector<unsigned int> indices;
 
+        unsigned int zIndex = 0;
         glm::vec2 translation = glm::vec2(0.0f);
         glm::mat2 scale = glm::mat2(1.0f);
         glm::mat2 rotation = glm::mat2(1.0f);

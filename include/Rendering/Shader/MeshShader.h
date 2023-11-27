@@ -8,6 +8,9 @@ namespace Rendering
         "#version 330 core\n"
         "\n"
         "uniform vec2 uResolution;\n"
+        "uniform mat4 uViewProjectionMatrix;\n"
+        "\n"
+        "uniform uint uMeshZIndex;\n"
         "uniform vec2 uMeshTranslation;\n"
         "uniform mat2 uMeshTransform;\n"
         "\n"
@@ -18,11 +21,8 @@ namespace Rendering
         "   vec2 pos = uMeshTransform * aPos;\n"
         "   pos += uMeshTranslation;\n"
         "\n"
-        "   // convert from pixel coordinates to normalized device coordinates\n"
-        "   // with the origin at the center of the screen\n"
-        "   pos = (pos / uResolution) * 2.0f;\n"
-        "\n"
-        "   gl_Position = vec4(pos, 0.0f, 1.0f);\n"
+        "   gl_Position = vec4(pos, float(uMeshZIndex), 1.0f);\n"
+        "   gl_Position = uViewProjectionMatrix * gl_Position;\n"
         "}\n";
 
     const std::string meshFragShader =

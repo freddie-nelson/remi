@@ -50,28 +50,32 @@ int Application::init()
     // window->syncRendererSize(false);
 
     // meshs
-    // for (int i = 0; i < 1000; i++)
+    // for (int i = 0; i < 100; i++)
     // {
     //     meshs.push_back(Rendering::createRect(rand() % 100 + 50, rand() % 100 + 50));
+
+    //     meshs[i].zIndex = rand() % 10;
 
     //     auto r = (rand() % 255) / 255.0f;
     //     auto g = (rand() % 255) / 255.0f;
     //     auto b = (rand() % 255) / 255.0f;
-    //     meshs[i].color.setColor(r, g, b, 1.0f);
+    //     meshs[i].color.setColor((9 - meshs[i].zIndex) / 9.0f, 0.0f, 0.0f, 1.0f);
 
     //     Rendering::translate(meshs[i], glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
     //                                              (rand() % initialWindowHeight) - initialWindowHeight / 2});
     // }
 
     // instanced meshs
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 100; i++)
     {
         instancedMeshs.push_back(Rendering::createRect(1, 1));
+
+        instancedMeshs[i].zIndex = rand() % 10;
 
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
-        instancedMeshs[i].color.setColor(r, g, b, 1.0f);
+        instancedMeshs[i].color.setColor((9 - instancedMeshs[i].zIndex) / 9.0f, 0.0f, 0.0f, 1.0f);
 
         Rendering::translate(instancedMeshs[i], glm::vec2((rand() % initialWindowWidth) - initialWindowWidth / 2,
                                                           (rand() % initialWindowHeight) - initialWindowHeight / 2));
@@ -122,17 +126,22 @@ void Application::render(Rendering::Renderer *renderer)
         renderer->mesh(m);
     }
 
+    std::vector<unsigned int> zIndices(instancedMeshs.size());
     std::vector<glm::vec2> translations(instancedMeshs.size());
     std::vector<glm::mat2> transforms(instancedMeshs.size());
     std::vector<glm::vec4> colors(instancedMeshs.size());
 
+    int i = 0;
     for (auto &m : instancedMeshs)
     {
-        translations.push_back(m.translation);
-        transforms.push_back(getTransformationMatrix(m));
-        colors.push_back(m.color.getColor());
+        zIndices[i] = m.zIndex;
+        translations[i] = m.translation;
+        transforms[i] = getTransformationMatrix(m);
+        colors[i] = m.color.getColor();
+
+        i++;
     }
 
     if (instancedMeshs.size() > 0)
-        renderer->instancedMesh(instancedMeshs[0], translations, transforms, colors);
+        renderer->instancedMesh(instancedMeshs[0], zIndices, translations, transforms, colors);
 }
