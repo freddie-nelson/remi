@@ -13,7 +13,7 @@ namespace Rendering
      * The camera view matrix points in the positive z direction.
      *
      * NOTE:
-     * Reducing the camera's far plane below `Config::MAX_Z_INDEX` will cause the camera to clip z indexes starting at 0 and going up to `Config::MAX_Z_INDEX`.
+     * Reducing the camera's far plane below `Config::MAX_Z_INDEX + 1` will cause the camera to clip z indexes starting at 0 and going up to `Config::MAX_Z_INDEX`.
      * Whereas increasing the camera's near plane above 0 will cause the camera to clip z indexes starting at `Config::MAX_Z_INDEX` and going down to 0.
      *
      * You can think of the clipping as happening in the reverse direction to the z index. Lower z indexes are clipped by the far plane and higher z indexes are clipped by the near plane.
