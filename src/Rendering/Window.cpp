@@ -84,7 +84,7 @@ int Rendering::Window::run(WindowFrameCallback frameCallback)
         if (syncRendererSizeWithWindow)
         {
             auto size = getSize();
-            renderer->resize(size.first, size.second);
+            renderer->setSize(size.first, size.second);
         }
 
         // when not running, just poll events

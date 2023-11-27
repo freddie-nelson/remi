@@ -21,6 +21,9 @@ namespace Rendering
      * It is also responsible for clearing the screen and swapping the front and back buffers.
      *
      * The renderer does not handle the window, it only handles the rendering through OpenGL.
+     *
+     * The renderer also handles the camera, by default it will create a camera with the same size as the renderer.
+     * The camera's size can be synced to the renderer's size, or it can be set manually. By default, the camera's size is not synced.
      */
     class Renderer
     {
@@ -119,7 +122,7 @@ namespace Rendering
          * @param w The width of the renderer
          * @param h The height of the renderer
          */
-        void resize(int w, int h);
+        void setSize(int w, int h);
 
         /**
          * Returns the width and height of the renderer.
@@ -150,6 +153,22 @@ namespace Rendering
         void setCamera(const Camera &camera);
 
         /**
+         * Sets whether the renderer should update the camera size to match the renderer size, always.
+         *
+         * By default, this is false.
+         *
+         * @param sync Whether to sync the camera size to the renderer size.
+         */
+        void syncCameraSize(bool sync);
+
+        /**
+         * Returns whether the renderer is syncing the camera size to the renderer size.
+         *
+         * @returns Whether the renderer is syncing the camera size to the renderer size.
+         */
+        bool getSyncCameraSize() const;
+
+        /**
          * Updates the view projection matrix from the camera.
          *
          * Should be called at the start of each frame.
@@ -166,6 +185,8 @@ namespace Rendering
          * Should be updated at the start of each frame from the camera.
          */
         glm::mat4 viewProjectionMatrix;
+
+        bool syncCameraSizeWithRenderer = false;
         Camera camera;
 
         Shader meshShader;

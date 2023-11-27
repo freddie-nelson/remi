@@ -125,11 +125,19 @@ namespace Rendering
 
         /**
          * Sets whether the renderer should be resized when the window is resized.
+         *
+         * By default, this is true.
+         *
+         * The renderer will be resized at the start of each frame.
+         *
+         * @param sync Whether to sync the renderer size with the window size.
          */
         void syncRendererSize(bool sync);
 
         /**
          * Returns whether the renderer is resized when the window is resized.
+         *
+         * @returns Whether the renderer is resized when the window is resized.
          */
         bool getSyncRendererSize() const;
 

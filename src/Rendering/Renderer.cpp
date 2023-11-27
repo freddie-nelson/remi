@@ -12,7 +12,7 @@
 
 Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height), camera(Camera(glm::vec2(0, 0), width, height))
 {
-    resize(width, height);
+    setSize(width, height);
 }
 
 Rendering::Renderer::~Renderer()
@@ -163,12 +163,22 @@ void Rendering::Renderer::enableDepthTest(bool enable)
     }
 }
 
-void Rendering::Renderer::resize(int w, int h)
+void Rendering::Renderer::setSize(int w, int h)
 {
+    if (w <= 0 || h <= 0)
+    {
+        throw std::runtime_error("Renderer::resize: width and height must be greater than 0.");
+    }
+
     width = w;
     height = h;
 
     glViewport(0, 0, width, height);
+
+    if (syncCameraSizeWithRenderer)
+    {
+        camera.setSize(width, height);
+    }
 }
 
 std::pair<int, int> Rendering::Renderer::getSize() const
@@ -192,6 +202,16 @@ Rendering::Camera &Rendering::Renderer::getCamera()
 void Rendering::Renderer::setCamera(const Camera &camera)
 {
     this->camera = camera;
+}
+
+void Rendering::Renderer::syncCameraSize(bool sync)
+{
+    syncCameraSizeWithRenderer = sync;
+}
+
+bool Rendering::Renderer::getSyncCameraSize() const
+{
+    return syncCameraSizeWithRenderer;
 }
 
 void Rendering::Renderer::updateViewProjectionMatrix()

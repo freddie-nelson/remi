@@ -50,23 +50,25 @@ int Application::init()
     // window->syncRendererSize(false);
 
     // meshs
-    // for (int i = 0; i < 100; i++)
-    // {
-    //     meshs.push_back(Rendering::createRect(rand() % 100 + 50, rand() % 100 + 50));
+    int meshCount = 0;
+    for (int i = 0; i < meshCount; i++)
+    {
+        meshs.push_back(Rendering::createRect(rand() % 100 + 50, rand() % 100 + 50));
 
-    //     meshs[i].zIndex = rand() % 10;
+        meshs[i].zIndex = rand() % 10;
 
-    //     auto r = (rand() % 255) / 255.0f;
-    //     auto g = (rand() % 255) / 255.0f;
-    //     auto b = (rand() % 255) / 255.0f;
-    //     meshs[i].color.setColor((9 - meshs[i].zIndex) / 9.0f, 0.0f, 0.0f, 1.0f);
+        auto r = (rand() % 255) / 255.0f;
+        auto g = (rand() % 255) / 255.0f;
+        auto b = (rand() % 255) / 255.0f;
+        meshs[i].color.setColor((9 - meshs[i].zIndex) / 9.0f, 0.0f, 0.0f, 1.0f);
 
-    //     Rendering::translate(meshs[i], glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
-    //                                              (rand() % initialWindowHeight) - initialWindowHeight / 2});
-    // }
+        Rendering::translate(meshs[i], glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
+                                                 (rand() % initialWindowHeight) - initialWindowHeight / 2});
+    }
 
     // instanced meshs
-    for (int i = 0; i < 100; i++)
+    int instancedMeshCount = 100;
+    for (int i = 0; i < instancedMeshCount; i++)
     {
         instancedMeshs.push_back(Rendering::createRect(1, 1));
 
@@ -97,6 +99,16 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     // print timestep info
     std::cout << "\rdt: " << dt << "          ";
 
+    // move camera
+    auto &camera = renderer->getCamera();
+
+    double n = Rendering::timeSinceEpochMillisec() / 1000.0;
+    float camX = sin(n) * 200.0f;
+    float camY = cos(n) * 200.0f;
+
+    camera.setCentre(glm::vec2{camX, camY});
+
+    // rotate meshs
     for (auto &m : meshs)
     {
         Rendering::rotate(m, std::numbers::pi * (rand() % 100) * 0.01f * dt);
@@ -118,8 +130,8 @@ void Application::render(Rendering::Renderer *renderer)
 
     // Rendering::Mesh2D shape = Rendering::createPolygon({glm::vec2(0, 0.5), glm::vec2(0.5, -0.5), glm::vec2(-0.5, -0.5)});
 
-    // Rendering::Mesh2D shape = Rendering::createRect(1, 1);
-    // Rendering::translateMesh(shape, glm::vec2(-0.5, -0.5));
+    // Rendering::Mesh2D shape = Rendering::createRect(200, 100);
+    // renderer->mesh(shape);
 
     for (auto &m : meshs)
     {

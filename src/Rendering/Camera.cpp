@@ -1,7 +1,9 @@
 #include "../../include/Rendering/Camera.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include "glm/gtx/string_cast.hpp"
 #include <stdexcept>
+#include <iostream>
 
 Rendering::Camera::Camera(glm::vec2 centre, float width, float height, float near, float far)
     : centre(centre), width(width), height(height), near(near), far(far)
@@ -61,8 +63,10 @@ float Rendering::Camera::getHeight()
 
 void Rendering::Camera::setNear(float near)
 {
-    if (near <= 0)
-        throw std::invalid_argument("Near cannot be less than or equal to 0.");
+    if (near < 0)
+        throw std::invalid_argument("Near cannot be less than 0.");
+    if (near > far)
+        throw std::invalid_argument("Near cannot be greater than far.");
 
     this->near = near;
     updateViewProjectionMatrix();
@@ -75,8 +79,10 @@ float Rendering::Camera::getNear()
 
 void Rendering::Camera::setFar(float far)
 {
-    if (far <= 0)
-        throw std::invalid_argument("Far cannot be less than or equal to 0.");
+    if (far < 0)
+        throw std::invalid_argument("Far cannot be less than 0.");
+    if (far < near)
+        throw std::invalid_argument("Far cannot be less than near.");
 
     this->far = far;
     updateViewProjectionMatrix();
@@ -106,7 +112,13 @@ glm::mat4 Rendering::Camera::getViewProjectionMatrix()
 void Rendering::Camera::updateViewProjectionMatrix()
 {
     // camera is at -1.0f on the z axis looking towards z = 0.0f (looks towards positive z)
-    glm::mat4 viewMatrix = glm::lookAt(glm::vec3(centre, -1.0f), glm::vec3(centre, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //! for some reason using this view matrix makes the camera not be able to move on the x axis
+    //! however identity matrix fixes this
+    //! look into
+    //! found solution from stack overflow - https://stackoverflow.com/questions/68454362/having-trouble-when-using-2d-orthographic-matrix-with-glm
+    //! however identity matrix makes camera look down negative z axis
+    // glm::mat4 viewMatrix = glm::lookAt(glm::vec3(centre, 0.0f), glm::vec3(centre, far), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 viewMatrix(1.0f);
 
     glm::mat4 projectionMatrix = glm::ortho(centre.x - width / 2.0f, centre.x + width / 2.0f, centre.y - height / 2.0f, centre.y + height / 2.0f, near, far);
 

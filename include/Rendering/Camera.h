@@ -22,7 +22,7 @@ namespace Rendering
          * @param near The z cut off for the near plane.
          * @param far The z cut off for the far plane.
          */
-        Camera(glm::vec2 centre, float width, float height, float near = 0.1f, float far = 10000.0f);
+        Camera(glm::vec2 centre, float width, float height, float near = 0.0f, float far = 10000.0f);
 
         /**
          * Moves the camera by the given amount.

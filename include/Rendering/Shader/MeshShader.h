@@ -21,7 +21,7 @@ namespace Rendering
         "   vec2 pos = uMeshTransform * aPos;\n"
         "   pos += uMeshTranslation;\n"
         "\n"
-        "   gl_Position = vec4(pos, float(uMeshZIndex), 1.0f);\n"
+        "   gl_Position = vec4(pos, float(uMeshZIndex) * -1.0f, 1.0f);\n"
         "   gl_Position = uViewProjectionMatrix * gl_Position;\n"
         "}\n";
 

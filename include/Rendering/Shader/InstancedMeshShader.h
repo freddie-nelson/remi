@@ -24,7 +24,7 @@ namespace Rendering
         "   vec2 pos = aTransform * aPos;\n"
         "   pos += aTranslation;\n"
         "\n"
-        "   gl_Position = vec4(pos, float(aZIndex), 1.0f);\n"
+        "   gl_Position = vec4(pos, float(aZIndex) * -1.0f, 1.0f);\n"
         "   gl_Position = uViewProjectionMatrix * gl_Position;\n"
         "   vColor = aColor;\n"
         "}\n";
