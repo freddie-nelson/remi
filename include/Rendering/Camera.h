@@ -28,9 +28,9 @@ namespace Rendering
          * @param width The width of the camera viewport.
          * @param height The height of the camera viewport.
          * @param near The z cut off for the near plane, by default this is set to `0.0f`.
-         * @param far The z cut off for the far plane, by default this is set to `Config::MAX_Z_INDEX`.
+         * @param far The z cut off for the far plane, by default this is set to `Config::MAX_Z_INDEX + 1.0f`.
          */
-        Camera(glm::vec2 centre, float width, float height, float near = 0.0f, float far = Config::MAX_Z_INDEX);
+        Camera(glm::vec2 centre, float width, float height, float near = 0.0f, float far = Config::MAX_Z_INDEX + 1.0f);
 
         /**
          * Moves the camera by the given amount.

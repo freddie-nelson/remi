@@ -73,10 +73,12 @@ int Application::init()
         instancedMeshs.push_back(Rendering::createRect(1, 1));
 
         instancedMeshs[i].zIndex = rand() % 10;
+        // instancedMeshs[i].zIndex = 65535;
 
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
+        // instancedMeshs[i].color.setColor(r, g, b, 1.0f);
         instancedMeshs[i].color.setColor((instancedMeshs[i].zIndex + 1) / 10.0f, 0.0f, 0.0f, 1.0f);
 
         Rendering::translate(instancedMeshs[i], glm::vec2((rand() % initialWindowWidth) - initialWindowWidth / 2,
