@@ -7,8 +7,8 @@ namespace Rendering
     const std::string meshVertexShader =
         "#version 330 core\n"
         "\n"
-        "uniform vec2 uResolution;\n"
         "uniform mat4 uViewProjectionMatrix;\n"
+        "uniform uint uMaxZIndex;\n"
         "\n"
         "uniform uint uMeshZIndex;\n"
         "uniform vec2 uMeshTranslation;\n"
@@ -21,7 +21,10 @@ namespace Rendering
         "   vec2 pos = uMeshTransform * aPos;\n"
         "   pos += uMeshTranslation;\n"
         "\n"
-        "   gl_Position = vec4(pos, float(uMeshZIndex) * -1.0f, 1.0f);\n"
+        "   // zIndex is flipped and converted to float so 0 is below everything, then multplied by -1 since the camera is looking down the negative z axis.\n"
+        "   float zIndex = float(uMaxZIndex - uMeshZIndex) * -1.0f;\n"
+        "\n"
+        "   gl_Position = vec4(pos, zIndex, 1.0f);\n"
         "   gl_Position = uViewProjectionMatrix * gl_Position;\n"
         "}\n";
 

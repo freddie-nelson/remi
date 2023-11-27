@@ -25,8 +25,8 @@ namespace Rendering
      *
      * The default color given to the mesh is (1.0, 1.0, 1.0, 1.0) or fully opaque white.
      *
-     * The default zIndex is 0. A higher zIndex means the mesh will be rendered below meshes with a lower zIndex.
-     * A higher zIndex is 'further' away from the camera. 0 is the highest zIndex and will be rendered on top of everything.
+     * The default zIndex is 0. A higher zIndex means the mesh will be rendered above meshes with a lower zIndex.
+     * A higher zIndex is 'closer' to the camera. 0 is the lowest zIndex and will be rendered below everying, whereas `Config::MAX_Z_INDEX` is the largest z index and will be rendered above everything.
      */
     struct Mesh2D
     {

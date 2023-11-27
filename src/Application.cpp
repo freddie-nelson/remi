@@ -60,7 +60,7 @@ int Application::init()
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
-        meshs[i].color.setColor((9 - meshs[i].zIndex) / 9.0f, 0.0f, 0.0f, 1.0f);
+        instancedMeshs[i].color.setColor((meshs[i].zIndex + 1) / 10.0f, 0.0f, 0.0f, 1.0f);
 
         Rendering::translate(meshs[i], glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
                                                  (rand() % initialWindowHeight) - initialWindowHeight / 2});
@@ -77,7 +77,7 @@ int Application::init()
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
-        instancedMeshs[i].color.setColor((9 - instancedMeshs[i].zIndex) / 9.0f, 0.0f, 0.0f, 1.0f);
+        instancedMeshs[i].color.setColor((instancedMeshs[i].zIndex + 1) / 10.0f, 0.0f, 0.0f, 1.0f);
 
         Rendering::translate(instancedMeshs[i], glm::vec2((rand() % initialWindowWidth) - initialWindowWidth / 2,
                                                           (rand() % initialWindowHeight) - initialWindowHeight / 2));

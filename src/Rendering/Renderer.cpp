@@ -3,6 +3,7 @@
 #include "../../include/Rendering/Shader/InstancedMeshShader.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 #include "../../include/Rendering/Mesh/Transforms.h"
+#include "../../include/Rendering/Config.h"
 
 #include "../../include/externals/glad/gl.h"
 #include <iostream>
@@ -87,6 +88,7 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Color &color)
     glm::vec2 resolution(width, height);
     // meshShader.setUniform("uResolution", &resolution);
     meshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
+    meshShader.setUniform("uMaxZIndex", &Config::MAX_Z_INDEX);
 
     unsigned int zIndex = m.zIndex;
     glm::vec2 translation = m.translation;
@@ -120,6 +122,7 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, std::vector<unsigned in
     glm::vec2 resolution(width, height);
     // instancedMeshShader.setUniform("uResolution", &resolution);
     instancedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
+    instancedMeshShader.setUniform("uMaxZIndex", &Config::MAX_Z_INDEX);
 
     // instanced arrays
     unsigned int *zIndicesArr = (unsigned int *)&zIndices[0];
