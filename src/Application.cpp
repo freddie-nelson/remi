@@ -130,7 +130,8 @@ void Application::render(Rendering::Renderer *renderer)
 
     // Rendering::Mesh2D shape = Rendering::createPolygon({glm::vec2(0, 0.5), glm::vec2(0.5, -0.5), glm::vec2(-0.5, -0.5)});
 
-    // Rendering::Mesh2D shape = Rendering::createRect(200, 100);
+    // Rendering::Mesh2D shape({glm::vec2(0, 0.5), glm::vec2(0.5, -0.5), glm::vec2(-0.5, -0.5)});
+    // shape.scale(100);
     // renderer->mesh(shape);
 
     for (auto &m : meshs)

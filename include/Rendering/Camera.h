@@ -10,7 +10,7 @@ namespace Rendering
     /**
      * Represents an orthographic camera.
      *
-     * The camera view matrix points in the positive z direction.
+     * The camera points towards the postive z axis.
      *
      * NOTE:
      * Reducing the camera's far plane below `Config::MAX_Z_INDEX + 1` will cause the camera to clip z indexes starting at 0 and going up to `Config::MAX_Z_INDEX`.

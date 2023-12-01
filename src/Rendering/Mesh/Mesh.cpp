@@ -185,7 +185,7 @@ glm::mat4 Rendering::Mesh2D::getTransformationMatrix() const
     glm::mat4 t(1.0f);
     t[3][0] = translation.x;
     t[3][1] = translation.y;
-    t[3][2] = (Config::MAX_Z_INDEX - zIndex) * -1.0f;
+    t[3][2] = Config::MAX_Z_INDEX - zIndex;
 
     // scale
     glm::mat4 s(1.0f);
