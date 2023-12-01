@@ -113,6 +113,19 @@ namespace Rendering
         void enableDepthTest(bool enable);
 
         /**
+         * Enables or disables alpha blending.
+         *
+         * Alpha blending is disabled by default.
+         *
+         * When alpha blending is enabled, the renderer will blend the fragment color with the color already in the framebuffer.
+         *
+         * The correct sorting of objects is not handled by the renderer, it is up to the user to sort objects correctly.
+         *
+         * @param enable Whether to enable or disable alpha blending.
+         */
+        void enableAlphaBlending(bool enable);
+
+        /**
          * Sets the width and height of the renderer.
          *
          * This will also set the glViewport.

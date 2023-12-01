@@ -23,6 +23,7 @@ Rendering::Renderer::~Renderer()
 void Rendering::Renderer::init()
 {
     enableDepthTest(true);
+    enableAlphaBlending(false);
 
     meshShader = Shader();
     if (!meshShader.loadFromSource(meshVertexShader, meshFragShader))
@@ -150,6 +151,19 @@ void Rendering::Renderer::enableDepthTest(bool enable)
     else
     {
         glDisable(GL_DEPTH_TEST);
+    }
+}
+
+void Rendering::Renderer::enableAlphaBlending(bool enable)
+{
+    if (enable)
+    {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    else
+    {
+        glDisable(GL_BLEND);
     }
 }
 

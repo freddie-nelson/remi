@@ -66,7 +66,7 @@ int Application::init()
     }
 
     // instanced meshs
-    int instancedMeshCount = 100;
+    int instancedMeshCount = 10000;
     for (int i = 0; i < instancedMeshCount; i++)
     {
         instancedMeshs.push_back(Rendering::Mesh2D(1.0f, 1.0f));
