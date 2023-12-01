@@ -229,25 +229,29 @@ void Rendering::createIndexedVertices(std::vector<glm::vec2> &vertices, std::vec
     // }
 }
 
-Rendering::Mesh2D Rendering::triangulate(const std::vector<glm::vec2> &vertices)
+Rendering::IndexedVertices Rendering::triangulate(const std::vector<glm::vec2> &vertices)
 {
     if (vertices.size() < 3)
     {
         throw std::invalid_argument("Cannot triangulate a polygon with less than 3 vertices.");
     }
 
-    Mesh2D mesh;
+    std::vector<glm::vec2> meshVertices;
+    std::vector<unsigned int> meshIndices;
 
     // if the polygon is a triangle, just return it
     if (vertices.size() == 3)
     {
         for (int i = 0; i < vertices.size(); i++)
         {
-            mesh.vertices.push_back(vertices[i]);
-            mesh.indices.push_back(i);
+            meshVertices.push_back(vertices[i]);
+            meshIndices.push_back(i);
         }
 
-        return mesh;
+        return {
+            vertices : meshVertices,
+            indices : meshIndices
+        };
     }
 
     // triangulate using ear clipping
@@ -296,9 +300,9 @@ Rendering::Mesh2D Rendering::triangulate(const std::vector<glm::vec2> &vertices)
         // std::cout << "  (" << ear->vertex.x << ", " << ear->vertex.y << "), " << std::endl;
         // std::cout << "  (" << next->vertex.x << ", " << next->vertex.y << "), " << std::endl;
 
-        mesh.vertices.push_back(prev->vertex);
-        mesh.vertices.push_back(ear->vertex);
-        mesh.vertices.push_back(next->vertex);
+        meshVertices.push_back(prev->vertex);
+        meshVertices.push_back(ear->vertex);
+        meshVertices.push_back(next->vertex);
 
         // remove ear from list
         verticesList.erase(ear);
@@ -310,11 +314,14 @@ Rendering::Mesh2D Rendering::triangulate(const std::vector<glm::vec2> &vertices)
     // add last triangle
     for (auto &vertex : verticesList)
     {
-        mesh.vertices.push_back(vertex.vertex);
+        meshVertices.push_back(vertex.vertex);
     }
 
     // index vertices
-    createIndexedVertices(mesh.vertices, mesh.indices);
+    createIndexedVertices(meshVertices, meshIndices);
 
-    return mesh;
+    return {
+        vertices : meshVertices,
+        indices : meshIndices
+    };
 }

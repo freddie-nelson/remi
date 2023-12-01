@@ -2,7 +2,6 @@
 #include "../../include/Rendering/Shader/MeshShader.h"
 #include "../../include/Rendering/Shader/InstancedMeshShader.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
-#include "../../include/Rendering/Mesh/Transforms.h"
 #include "../../include/Rendering/Config.h"
 
 #include "../../include/externals/glad/gl.h"
@@ -66,13 +65,15 @@ void Rendering::Renderer::present()
 
 void Rendering::Renderer::mesh(const Mesh2D &m)
 {
-    mesh(m, m.color);
+    mesh(m, m.getColor());
 }
 
 void Rendering::Renderer::mesh(const Mesh2D &m, const Color &color)
 {
-    float *vertices = (float *)glm::value_ptr(m.vertices[0]);
-    const std::vector<unsigned int> &indices = m.indices;
+    const std::vector<glm::vec2> &vertices = m.getVertices();
+    float *verticesPointer = (float *)glm::value_ptr(vertices[0]);
+
+    const std::vector<unsigned int> &indices = m.getIndices();
 
     // for (int i = 0; i < mesh.vertices.size(); i++)
     // {
@@ -85,62 +86,48 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Color &color)
     auto colorVec = color.getColor();
     meshShader.setUniform("uColor", &colorVec);
 
-    glm::vec2 resolution(width, height);
-    // meshShader.setUniform("uResolution", &resolution);
     meshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
-    meshShader.setUniform("uMaxZIndex", &Config::MAX_Z_INDEX);
 
-    unsigned int zIndex = m.zIndex;
-    glm::vec2 translation = m.translation;
-    glm::mat2 transform = getTransformationMatrix(m);
-
-    meshShader.setUniform("uMeshZIndex", &zIndex);
-    meshShader.setUniform("uMeshTranslation", &translation);
+    glm::mat4 transform = m.getTransformationMatrix();
     meshShader.setUniform("uMeshTransform", &transform);
 
-    meshShader.setAttrib("aPos", vertices, m.vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    meshShader.setIndices("aPos", &m.indices[0], m.indices.size(), GL_DYNAMIC_DRAW);
+    meshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    meshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
 
-    meshShader.draw(GL_TRIANGLES, m.indices.size());
+    meshShader.draw(GL_TRIANGLES, indices.size());
     meshShader.unbind();
 };
 
-void Rendering::Renderer::instancedMesh(const Mesh2D &m, std::vector<unsigned int> &zIndices, std::vector<glm::vec2> &translations, std::vector<glm::mat2> &transforms, std::vector<glm::vec4> &colors)
+void Rendering::Renderer::instancedMesh(const Mesh2D &m, std::vector<glm::mat4> &transforms, std::vector<glm::vec4> &colors)
 {
-    if (translations.size() != transforms.size() || translations.size() != colors.size() || translations.size() != zIndices.size())
+    if (transforms.size() != colors.size())
     {
-        throw std::runtime_error("instancedMesh: zIndices, translations, transforms and colors must have the same size.");
+        throw std::runtime_error("instancedMesh: transforms and colors must have the same size.");
     }
 
-    const unsigned int instanceCount = translations.size();
+    const unsigned int instanceCount = transforms.size();
 
-    float *vertices = (float *)glm::value_ptr(m.vertices[0]);
-    const std::vector<unsigned int> &indices = m.indices;
+    const std::vector<glm::vec2> &vertices = m.getVertices();
+    float *verticesPointer = (float *)glm::value_ptr(vertices[0]);
+
+    const std::vector<unsigned int> &indices = m.getIndices();
 
     instancedMeshShader.use();
 
-    glm::vec2 resolution(width, height);
-    // instancedMeshShader.setUniform("uResolution", &resolution);
     instancedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
-    instancedMeshShader.setUniform("uMaxZIndex", &Config::MAX_Z_INDEX);
 
     // instanced arrays
-    unsigned int *zIndicesArr = (unsigned int *)&zIndices[0];
-    float *translationsArr = (float *)glm::value_ptr(translations[0]);
     float *transformsArr = (float *)glm::value_ptr(transforms[0]);
-
-    instancedMeshShader.setAttrib("aZIndex", zIndicesArr, instanceCount, 1, GL_UNSIGNED_INT, false, 0, GL_DYNAMIC_DRAW, 1);
-    instancedMeshShader.setAttrib("aTranslation", translationsArr, instanceCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
-    instancedMeshShader.setAttrib("aTransform", transformsArr, instanceCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1, 2);
+    instancedMeshShader.setAttrib("aTransform", transformsArr, instanceCount * 16, 16, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1, 4);
 
     float *colorsArr = (float *)glm::value_ptr(colors[0]);
     instancedMeshShader.setAttrib("aColor", colorsArr, instanceCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
 
     // vertices and indices
-    instancedMeshShader.setAttrib("aPos", vertices, m.vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    instancedMeshShader.setIndices("aPos", &m.indices[0], m.indices.size(), GL_DYNAMIC_DRAW);
+    instancedMeshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    instancedMeshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
 
-    instancedMeshShader.drawInstanced(instanceCount, GL_TRIANGLES, m.indices.size());
+    instancedMeshShader.drawInstanced(instanceCount, GL_TRIANGLES, indices.size());
     instancedMeshShader.unbind();
 };
 

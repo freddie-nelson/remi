@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Mesh.h"
+#include "Triangulate.h"
 
 #include <vector>
 #include <glm/vec2.hpp>
@@ -18,7 +18,7 @@ namespace Rendering
      *
      * @returns A Mesh2D representing the polygon.
      */
-    Mesh2D createPolygon(const std::vector<glm::vec2> &vertices);
+    IndexedVertices createPolygon(const std::vector<glm::vec2> &vertices);
 
     /**
      * Creates a regular polygon with the centre at (0, 0), and the given radius and number of sides.
@@ -30,7 +30,7 @@ namespace Rendering
      *
      * @returns A Mesh2D representing the regular polygon.
      */
-    Mesh2D createRegularPolygon(float radius, int sides);
+    IndexedVertices createRegularPolygon(float radius, int sides);
 
     /**
      * Creates a rectangle with the top left corner or centre at (0, 0), and the given width and height.
@@ -41,5 +41,5 @@ namespace Rendering
      *
      * @returns A Mesh2D representing the rectangle.
      */
-    Mesh2D createRect(float w, float h, bool centered = true);
+    IndexedVertices createRect(float w, float h, bool centered = true);
 }

@@ -77,17 +77,15 @@ namespace Rendering
         /**
          * Renders the given mesh instances.
          *
-         * Uses the vertices and indices from `m`. `translations[0], transformations[0], colors[0]` will be used for the first instance (`m`).
+         * Uses the vertices and indices from `m`. `transformations[0], colors[0]` will be used for the first instance (`m`).
          *
          * Params are not const because they are passed to OpenGL, they most likely won't be modified.
          *
          * @param m The mesh to render.
-         * @param zIndices The z indices of the instances.
-         * @param translations The translations of the instances.
-         * @param transformations The transformations of the instances.
+         * @param transformations The transformations matrices of the instances.
          * @param colors The colors of the instances, as vec4s.
          */
-        void instancedMesh(const Mesh2D &m, std::vector<unsigned int> &zIndices, std::vector<glm::vec2> &translations, std::vector<glm::mat2> &transformations, std::vector<glm::vec4> &colors);
+        void instancedMesh(const Mesh2D &m, std::vector<glm::mat4> &transformations, std::vector<glm::vec4> &colors);
 
         /**
          * Sets the clear color.

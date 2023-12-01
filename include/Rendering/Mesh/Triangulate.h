@@ -7,6 +7,12 @@
 
 namespace Rendering
 {
+    struct IndexedVertices
+    {
+        std::vector<glm::vec2> vertices;
+        std::vector<unsigned int> indices;
+    };
+
     /**
      * Triangulates the given vertices into a mesh.
      *
@@ -18,7 +24,7 @@ namespace Rendering
      *
      * @returns A Mesh2D representing the triangulated polygon.
      */
-    Mesh2D triangulate(const std::vector<glm::vec2> &vertices);
+    IndexedVertices triangulate(const std::vector<glm::vec2> &vertices);
 
     /**
      * Transforms the given vertices into indexed vertices.

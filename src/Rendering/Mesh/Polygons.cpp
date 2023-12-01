@@ -3,12 +3,12 @@
 
 #include <math.h>
 
-Rendering::Mesh2D Rendering::createPolygon(const std::vector<glm::vec2> &vertices)
+Rendering::IndexedVertices Rendering::createPolygon(const std::vector<glm::vec2> &vertices)
 {
     return triangulate(vertices);
 }
 
-Rendering::Mesh2D Rendering::createRegularPolygon(float radius, int sides)
+Rendering::IndexedVertices Rendering::createRegularPolygon(float radius, int sides)
 {
     std::vector<glm::vec2> vertices;
 
@@ -28,7 +28,7 @@ Rendering::Mesh2D Rendering::createRegularPolygon(float radius, int sides)
     return createPolygon(vertices);
 }
 
-Rendering::Mesh2D Rendering::createRect(float w, float h, bool centered)
+Rendering::IndexedVertices Rendering::createRect(float w, float h, bool centered)
 {
     std::vector<glm::vec2> vertices;
 
