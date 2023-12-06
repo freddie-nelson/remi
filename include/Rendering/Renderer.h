@@ -24,6 +24,12 @@ namespace Rendering
      *
      * The renderer also handles the camera, by default it will create a camera with the same size as the renderer.
      * The camera's size can be synced to the renderer's size, or it can be set manually. By default, the camera's size is not synced.
+     *
+     * Depth testing is enabled by default.
+     *
+     * Alpha blending is disabled by default.
+     *
+     * The default alpha blending function is `GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA`.
      */
     class Renderer
     {
@@ -52,12 +58,12 @@ namespace Rendering
         /**
          * Clears the render buffers.
          */
-        void clear(bool clearColorBuffer = true, bool clearDepthBuffer = true, bool clearStencilBuffer = true);
+        void clear(bool clearColorBuffer = true, bool clearDepthBuffer = true, bool clearStencilBuffer = true) const;
 
         /**
          * Swaps the front and back buffers, presenting the rendered image to the screen.
          */
-        void present();
+        void present() const;
 
         /**
          * Renders the given mesh with the `mesh.color`.
@@ -113,6 +119,13 @@ namespace Rendering
         void enableDepthTest(bool enable);
 
         /**
+         * Returns whether depth testing is enabled.
+         *
+         * @returns whether depth testing is enabled.
+         */
+        bool isDepthTestEnabled() const;
+
+        /**
          * Enables or disables alpha blending.
          *
          * Alpha blending is disabled by default.
@@ -124,6 +137,29 @@ namespace Rendering
          * @param enable Whether to enable or disable alpha blending.
          */
         void enableAlphaBlending(bool enable);
+
+        /**
+         * Sets the alpha blending function.
+         *
+         * This is the sfactor and dfactor used in `glBlendFunc(sfactor, dfactor)`.
+         *
+         * By default, this is `GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA`.
+         *
+         * This does not enable alpha blending, use `enableAlphaBlending` to enable alpha blending.
+         *
+         * @param sfactor The sfactor to use in `glBlendFunc(sfactor, dfactor)`.
+         * @param dfactor The dfactor to use in `glBlendFunc(sfactor, dfactor)`.
+         *
+         * @throws std::invalid_argument if sfactor or dfactor is not a valid value.
+         */
+        void setAlphaBlendingFunction(GLenum sfactor, GLenum dfactor);
+
+        /**
+         * Returns whether alpha blending is enabled.
+         *
+         * @returns whether alpha blending is enabled.
+         */
+        bool isAlphaBlendingEnabled() const;
 
         /**
          * Sets the width and height of the renderer.
@@ -150,18 +186,18 @@ namespace Rendering
         std::pair<int, int> getWindowSize() const;
 
         /**
-         * Returns a reference to the camera used for rendering.
-         *
-         * @returns The camera used for rendering.
-         */
-        Camera &getCamera();
-
-        /**
          * Sets the camera to use for rendering.
          *
          * @param camera The camera to use for rendering.
          */
         void setCamera(const Camera &camera);
+
+        /**
+         * Returns a reference to the camera used for rendering.
+         *
+         * @returns The camera used for rendering.
+         */
+        Camera &getCamera();
 
         /**
          * Sets whether the renderer should update the camera size to match the renderer size, always.
@@ -202,6 +238,9 @@ namespace Rendering
 
         Shader meshShader;
         Shader instancedMeshShader;
+
+        GLenum alphaBlendingSFactor = GL_SRC_ALPHA;
+        GLenum alphaBlendingDFactor = GL_ONE_MINUS_SRC_ALPHA;
 
         Color clearColor = Color(0.0f);
 

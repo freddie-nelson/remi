@@ -132,3 +132,32 @@ bool Rendering::glIsTypeInt(GLenum type)
         return false;
     }
 }
+
+bool Rendering::glIsValidAlphaBlendingFunction(GLenum function)
+{
+    switch (function)
+    {
+    case GL_ZERO:
+    case GL_ONE:
+    case GL_SRC_COLOR:
+    case GL_ONE_MINUS_SRC_COLOR:
+    case GL_DST_COLOR:
+    case GL_ONE_MINUS_DST_COLOR:
+    case GL_SRC_ALPHA:
+    case GL_ONE_MINUS_SRC_ALPHA:
+    case GL_DST_ALPHA:
+    case GL_ONE_MINUS_DST_ALPHA:
+    case GL_CONSTANT_COLOR:
+    case GL_ONE_MINUS_CONSTANT_COLOR:
+    case GL_CONSTANT_ALPHA:
+    case GL_ONE_MINUS_CONSTANT_ALPHA:
+    case GL_SRC_ALPHA_SATURATE:
+    case GL_SRC1_COLOR:
+    case GL_ONE_MINUS_SRC1_COLOR:
+    case GL_SRC1_ALPHA:
+    case GL_ONE_MINUS_SRC1_ALPHA:
+        return true;
+    default:
+        return false;
+    }
+}

@@ -38,7 +38,7 @@ void Rendering::Renderer::init()
     }
 }
 
-void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer)
+void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer) const
 {
     glClearColor(clearColor.r(), clearColor.g(), clearColor.b(), clearColor.a());
 
@@ -59,7 +59,7 @@ void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bo
     glClear(clearBits);
 }
 
-void Rendering::Renderer::present()
+void Rendering::Renderer::present() const
 {
     glfwSwapBuffers(glfwWindow);
 }
@@ -154,17 +154,39 @@ void Rendering::Renderer::enableDepthTest(bool enable)
     }
 }
 
+bool Rendering::Renderer::isDepthTestEnabled() const
+{
+    return glIsEnabled(GL_DEPTH_TEST);
+}
+
 void Rendering::Renderer::enableAlphaBlending(bool enable)
 {
     if (enable)
     {
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFunc(alphaBlendingSFactor, alphaBlendingDFactor);
     }
     else
     {
         glDisable(GL_BLEND);
     }
+}
+
+void Rendering::Renderer::setAlphaBlendingFunction(GLenum sfactor, GLenum dfactor)
+{
+    if (!glIsValidAlphaBlendingFunction(sfactor) || !glIsValidAlphaBlendingFunction(dfactor))
+    {
+        throw std::invalid_argument("Renderer::setAlphaBlendingFunction: sfactor and dfactor must be valid values.");
+    }
+
+    alphaBlendingSFactor = sfactor;
+    alphaBlendingDFactor = dfactor;
+    glBlendFunc(sfactor, dfactor);
+}
+
+bool Rendering::Renderer::isAlphaBlendingEnabled() const
+{
+    return glIsEnabled(GL_BLEND);
 }
 
 void Rendering::Renderer::setSize(int w, int h)

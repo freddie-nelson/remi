@@ -22,4 +22,13 @@ namespace Rendering
      * @returns True if the type is an int type, false otherwise.
      */
     bool glIsTypeInt(GLenum type);
+
+    /**
+     * Checks if the given function is a valid OpenGL alpha blending function.
+     *
+     * @param function The OpenGL alpha blending function to check.
+     *
+     * @returns True if the function is a valid OpenGL alpha blending function, false otherwise.
+     */
+    bool glIsValidAlphaBlendingFunction(GLenum function);
 }

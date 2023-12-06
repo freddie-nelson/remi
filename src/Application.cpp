@@ -66,7 +66,7 @@ int Application::init()
     }
 
     // instanced meshs
-    int instancedMeshCount = 10000;
+    int instancedMeshCount = 1000;
     for (int i = 0; i < instancedMeshCount; i++)
     {
         instancedMeshs.push_back(Rendering::Mesh2D(1.0f, 1.0f));
@@ -107,6 +107,7 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     float camY = cos(n) * 200.0f;
 
     camera.setCentre(glm::vec2{camX, camY});
+    camera.rotate(std::numbers::pi * 0.5f * dt);
 
     // rotate meshs
     for (auto &m : meshs)
