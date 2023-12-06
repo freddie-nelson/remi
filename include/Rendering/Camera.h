@@ -55,7 +55,36 @@ namespace Rendering
          *
          * @returns the centre of the camera's viewport in world space.
          */
-        glm::vec2 getCentre();
+        glm::vec2 getCentre() const;
+
+        /**
+         * Rotates the camera by the given amount.
+         *
+         * Adds the given angle to the camera's rotation.
+         *
+         * A positive angle will rotate the camera anti-clockwise.
+         *
+         * @param angle The amount to rotate the camera by in radians.
+         *
+         * @returns the new rotation of the camera in radians.
+         */
+        float rotate(float angle);
+
+        /**
+         * Sets the rotation of the camera.
+         *
+         * A positive angle will rotate the camera anti-clockwise.
+         *
+         * @param angle The rotation of the camera in radians.
+         */
+        void setRotation(float angle);
+
+        /**
+         * Gets the rotation of the camera.
+         *
+         * @returns the rotation of the camera in radians.
+         */
+        float getRotation() const;
 
         /**
          * Sets the width of the camera viewport.
@@ -69,7 +98,7 @@ namespace Rendering
          *
          * @returns the width of the camera viewport.
          */
-        float getWidth();
+        float getWidth() const;
 
         /**
          * Sets the height of the camera viewport.
@@ -83,7 +112,7 @@ namespace Rendering
          *
          * @returns the height of the camera viewport.
          */
-        float getHeight();
+        float getHeight() const;
 
         /**
          * Sets the size of the camera viewport.
@@ -98,7 +127,7 @@ namespace Rendering
          *
          * @returns the size of the camera viewport.
          */
-        std::pair<float, float> getSize();
+        std::pair<float, float> getSize() const;
 
         /**
          * Sets the z cut off for the near plane.
@@ -112,7 +141,7 @@ namespace Rendering
          *
          * @returns the z cut off for the near plane.
          */
-        float getNear();
+        float getNear() const;
 
         /**
          * Sets the z cut off for the far plane.
@@ -126,17 +155,19 @@ namespace Rendering
          *
          * @returns the z cut off for the far plane.
          */
-        float getFar();
+        float getFar() const;
 
         /**
          * Gets the view projection matrix.
          *
          * @returns the view projection matrix.
          */
-        glm::mat4 getViewProjectionMatrix();
+        glm::mat4 getViewProjectionMatrix() const;
 
     private:
         glm::vec2 centre;
+        float rotation = 0.0f;
+
         float width;
         float height;
         float near;

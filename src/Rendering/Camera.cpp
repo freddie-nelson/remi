@@ -28,9 +28,28 @@ void Rendering::Camera::setCentre(glm::vec2 centre)
     updateViewProjectionMatrix();
 }
 
-glm::vec2 Rendering::Camera::getCentre()
+glm::vec2 Rendering::Camera::getCentre() const
 {
     return centre;
+}
+
+float Rendering::Camera::rotate(float angle)
+{
+    rotation += angle;
+    updateViewProjectionMatrix();
+
+    return rotation;
+}
+
+void Rendering::Camera::setRotation(float angle)
+{
+    rotation = angle;
+    updateViewProjectionMatrix();
+}
+
+float Rendering::Camera::getRotation() const
+{
+    return rotation;
 }
 
 void Rendering::Camera::setWidth(float width)
@@ -42,7 +61,7 @@ void Rendering::Camera::setWidth(float width)
     updateViewProjectionMatrix();
 }
 
-float Rendering::Camera::getWidth()
+float Rendering::Camera::getWidth() const
 {
     return width;
 }
@@ -56,7 +75,7 @@ void Rendering::Camera::setHeight(float height)
     updateViewProjectionMatrix();
 }
 
-float Rendering::Camera::getHeight()
+float Rendering::Camera::getHeight() const
 {
     return height;
 }
@@ -72,7 +91,7 @@ void Rendering::Camera::setNear(float near)
     updateViewProjectionMatrix();
 }
 
-float Rendering::Camera::getNear()
+float Rendering::Camera::getNear() const
 {
     return near;
 }
@@ -88,7 +107,7 @@ void Rendering::Camera::setFar(float far)
     updateViewProjectionMatrix();
 }
 
-float Rendering::Camera::getFar()
+float Rendering::Camera::getFar() const
 {
     return far;
 }
@@ -99,20 +118,24 @@ void Rendering::Camera::setSize(float width, float height)
     setHeight(height);
 }
 
-std::pair<float, float> Rendering::Camera::getSize()
+std::pair<float, float> Rendering::Camera::getSize() const
 {
     return std::make_pair(width, height);
 }
 
-glm::mat4 Rendering::Camera::getViewProjectionMatrix()
+glm::mat4 Rendering::Camera::getViewProjectionMatrix() const
 {
     return viewProjectionMatrix;
 }
 
 void Rendering::Camera::updateViewProjectionMatrix()
 {
+    // rotate up vector on z axis by rotation angle
+    glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::vec3 up = glm::vec3(rotationMatrix * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
     // camera is at 0.0f on the z axis looking towards z = far (looks towards positive z)
-    glm::mat4 viewMatrix = glm::lookAt(glm::vec3(centre, 0.0f), glm::vec3(centre, far), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 viewMatrix = glm::lookAt(glm::vec3(centre, 0.0f), glm::vec3(centre, far), up);
     glm::mat4 projectionMatrix = glm::ortho(-width / 2.0f, width / 2.0f, -height / 2.0f, height / 2.0f, near, far);
 
     viewProjectionMatrix = projectionMatrix * viewMatrix;
