@@ -1,6 +1,7 @@
 #include "../../include/Rendering/Renderer.h"
 #include "../../include/Rendering/Shader/MeshShader.h"
 #include "../../include/Rendering/Shader/InstancedMeshShader.h"
+#include "../../include/Rendering/Shader/BatchedMeshShader.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 #include "../../include/Rendering/Config.h"
 
@@ -35,6 +36,12 @@ void Rendering::Renderer::init()
     if (!instancedMeshShader.loadFromSource(instancedMeshVertexShader, instancedMeshFragShader))
     {
         throw std::runtime_error("Failed to load instanced mesh shader.");
+    }
+
+    batchedMeshShader = Shader();
+    if (!batchedMeshShader.loadFromSource(batchedMeshVertexShader, batchedMeshFragShader))
+    {
+        throw std::runtime_error("Failed to load batched mesh shader.");
     }
 }
 
@@ -132,6 +139,68 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, std::vector<glm::mat4> 
     instancedMeshShader.unbind();
 };
 
+void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs)
+{
+    if (meshs.size() == 0)
+    {
+        return;
+    }
+
+    int verticesCount = 0;
+    int indicesCount = 0;
+
+    for (auto &m : meshs)
+    {
+        verticesCount += m.getVertices().size();
+        indicesCount += m.getIndices().size();
+    }
+
+    std::vector<glm::vec4> batchedVertices(verticesCount);
+    std::vector<unsigned int> batchedIndices(indicesCount);
+
+    std::vector<glm::vec4> batchedColors(verticesCount);
+
+    int verticesOffset = 0;
+    int indicesOffset = 0;
+
+    for (auto &m : meshs)
+    {
+        const std::vector<glm::vec2> &vertices = m.getVertices();
+        const std::vector<unsigned int> &indices = m.getIndices();
+        const auto color = m.getColor().getColor();
+
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            batchedVertices[verticesOffset + i] = m.getTransformationMatrix() * glm::vec4(vertices[i], 0.0f, 1.0f);
+        }
+
+        for (int i = 0; i < indices.size(); i++)
+        {
+            batchedIndices[indicesOffset + i] = indices[i] + verticesOffset;
+        }
+
+        for (int i = 0; i < vertices.size(); i++)
+        {
+            batchedColors[verticesOffset + i] = color;
+        }
+
+        verticesOffset += vertices.size();
+        indicesOffset += indices.size();
+    }
+
+    batchedMeshShader.use();
+
+    batchedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
+
+    batchedMeshShader.setAttrib("aColor", (float *)glm::value_ptr(batchedColors[0]), batchedColors.size() * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+
+    batchedMeshShader.setAttrib("aPos", (float *)glm::value_ptr(batchedVertices[0]), batchedVertices.size() * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setIndices("aPos", &batchedIndices[0], batchedIndices.size(), GL_DYNAMIC_DRAW);
+
+    batchedMeshShader.draw(GL_TRIANGLES, batchedIndices.size());
+    batchedMeshShader.unbind();
+}
+
 void Rendering::Renderer::setClearColor(const Color &color)
 {
     clearColor = color;
@@ -225,7 +294,7 @@ Rendering::Camera &Rendering::Renderer::getCamera()
     return camera;
 }
 
-void Rendering::Renderer::setCamera(const Camera &camera)
+void Rendering::Renderer::setCamera(Camera &camera)
 {
     this->camera = camera;
 }

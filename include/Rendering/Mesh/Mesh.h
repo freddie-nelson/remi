@@ -9,6 +9,15 @@
 namespace Rendering
 {
     /**
+     * ! For adding uvs to mesh:
+     * ! First need to implement function to get aabb of mesh's vertices, only recalculate when raw vertices change, don't even need to worry about indices since they won't affect the aabb
+     * ! Need to either pass aabb to shader to have uvs calculated in shader, or calculate uvs in c++ and pass to shader
+     * ! Need to add ability for user to set custom uvs for the mesh, but use calculated uvs by default, number of uvs should be equal to number of vertices
+     * ! uvs are in range [0, 1] and represent the percentage of the texture to use, so (0, 0) is the bottom left of the texture and (1, 1) is the top right of the texture
+     * ! maybe add ability to scale aabb used for calculating uvs, so that the user can scale the uvs i.e. the texture on the mesh
+     */
+
+    /**
      * A 2D mesh.
      *
      * This mesh must be ready to be rendered by OpenGL.
@@ -303,6 +312,8 @@ namespace Rendering
          * The transformation matrix is the combined rotation, scale, sheer and translation matrix.
          *
          * The transformation matrix includes the zIndex translation of the mesh.
+         *
+         * This recomputes the transformation matrix every time it is called.
          *
          * @returns the transformation matrix of the mesh.
          */

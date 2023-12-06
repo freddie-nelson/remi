@@ -66,7 +66,7 @@ int Application::init()
     }
 
     // instanced meshs
-    int instancedMeshCount = 1000;
+    int instancedMeshCount = 0;
     for (int i = 0; i < instancedMeshCount; i++)
     {
         instancedMeshs.push_back(Rendering::Mesh2D(1.0f, 1.0f));
@@ -83,6 +83,23 @@ int Application::init()
                                               (rand() % initialWindowHeight) - initialWindowHeight / 2));
 
         instancedMeshs[i].scale(glm::vec2(rand() % 100 + 50, rand() % 100 + 50));
+    }
+
+    // batched meshs
+    int batchedMeshCount = 1000;
+    for (int i = 0; i < batchedMeshCount; i++)
+    {
+        batchedMeshs.push_back(Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
+
+        batchedMeshs[i].setZIndex(rand() % 10);
+
+        auto r = (rand() % 255) / 255.0f;
+        auto g = (rand() % 255) / 255.0f;
+        auto b = (rand() % 255) / 255.0f;
+        batchedMeshs[i].setColor(Rendering::Color((batchedMeshs[i].getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
+
+        batchedMeshs[i].translate(glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
+                                            (rand() % initialWindowHeight) - initialWindowHeight / 2});
     }
 
     return 0;
@@ -107,7 +124,7 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     float camY = cos(n) * 200.0f;
 
     camera.setCentre(glm::vec2{camX, camY});
-    camera.rotate(std::numbers::pi * 0.5f * dt);
+    // camera.rotate(std::numbers::pi * 0.5f * dt);
 
     // rotate meshs
     for (auto &m : meshs)
@@ -116,6 +133,11 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     }
 
     for (auto &m : instancedMeshs)
+    {
+        m.rotate(-std::numbers::pi * 0.5f * dt);
+    }
+
+    for (auto &m : batchedMeshs)
     {
         m.rotate(-std::numbers::pi * 0.5f * dt);
     }
@@ -140,18 +162,23 @@ void Application::render(Rendering::Renderer *renderer)
         renderer->mesh(m);
     }
 
-    std::vector<glm::mat4> transforms(instancedMeshs.size());
-    std::vector<glm::vec4> colors(instancedMeshs.size());
-
-    int i = 0;
-    for (auto &m : instancedMeshs)
+    if (instancedMeshs.size() > 0)
     {
-        transforms[i] = m.getTransformationMatrix();
-        colors[i] = m.getColor().getColor();
+        std::vector<glm::mat4> transforms(instancedMeshs.size());
+        std::vector<glm::vec4> colors(instancedMeshs.size());
 
-        i++;
+        int i = 0;
+        for (auto &m : instancedMeshs)
+        {
+            transforms[i] = m.getTransformationMatrix();
+            colors[i] = m.getColor().getColor();
+
+            i++;
+        }
+
+        renderer->instancedMesh(instancedMeshs[0], transforms, colors);
     }
 
-    if (instancedMeshs.size() > 0)
-        renderer->instancedMesh(instancedMeshs[0], transforms, colors);
+    if (batchedMeshs.size() > 0)
+        renderer->batchedMesh(batchedMeshs);
 }

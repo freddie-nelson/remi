@@ -94,6 +94,15 @@ namespace Rendering
         void instancedMesh(const Mesh2D &m, std::vector<glm::mat4> &transformations, std::vector<glm::vec4> &colors);
 
         /**
+         * Batches the given meshs and renders them.
+         *
+         * Transformed vertices are calculated on the CPU and sent to the GPU.
+         *
+         * @param meshs The meshs to render.
+         */
+        void batchedMesh(const std::vector<Mesh2D> &meshs);
+
+        /**
          * Sets the clear color.
          *
          * @param color The new clear color.
@@ -190,7 +199,7 @@ namespace Rendering
          *
          * @param camera The camera to use for rendering.
          */
-        void setCamera(const Camera &camera);
+        void setCamera(Camera &camera);
 
         /**
          * Returns a reference to the camera used for rendering.
@@ -238,6 +247,7 @@ namespace Rendering
 
         Shader meshShader;
         Shader instancedMeshShader;
+        Shader batchedMeshShader;
 
         GLenum alphaBlendingSFactor = GL_SRC_ALPHA;
         GLenum alphaBlendingDFactor = GL_ONE_MINUS_SRC_ALPHA;

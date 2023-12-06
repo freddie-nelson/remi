@@ -29,6 +29,9 @@ private:
     // instanced meshs
     std::vector<Rendering::Mesh2D> instancedMeshs;
 
+    // batched meshs
+    std::vector<Rendering::Mesh2D> batchedMeshs;
+
     void update(float dt, Rendering::Renderer *renderer);
     void render(Rendering::Renderer *renderer);
 };

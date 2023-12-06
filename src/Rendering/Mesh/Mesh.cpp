@@ -192,7 +192,7 @@ glm::mat4 Rendering::Mesh2D::getTransformationMatrix() const
     s[0][0] = scaleVec.x;
     s[1][1] = scaleVec.y;
 
-    // // shear
+    // shear
     s[1][0] = shear.x;
     s[0][1] = shear.y;
 
