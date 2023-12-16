@@ -94,6 +94,27 @@ namespace ECS
         }
 
         /**
+         * Removes a component from the given entity.
+         *
+         * If the component does not exist, nothing will happen.
+         *
+         * @tparam T The type of component.
+         *
+         * @param entity The entity to remove the component from.
+         */
+        template <typename T>
+        void remove(Entity entity)
+        {
+            if (!hasComponentPool<T>())
+            {
+                return;
+            }
+
+            auto &componentPool = getComponentPool<T>();
+            componentPool.remove(entity);
+        }
+
+        /**
          * Gets the component for the given entity.
          *
          * @tparam T The type of component.
