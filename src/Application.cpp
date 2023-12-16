@@ -2,6 +2,7 @@
 #include "../include/Globals.h"
 #include "../include/Rendering/Mesh/Polygons.h"
 #include "../include/Rendering/Utility/Timestep.h"
+#include "../include/ECS/Registry.h"
 
 #include <math.h>
 #include <random>
@@ -29,6 +30,18 @@ int Application::run()
 
     return window->run(std::bind(&Application::update, this, std::placeholders::_1, std::placeholders::_2));
 }
+
+struct Position
+{
+    float x;
+    float y;
+};
+
+struct Velocity
+{
+    float x;
+    float y;
+};
 
 int Application::init()
 {
@@ -100,6 +113,46 @@ int Application::init()
 
         batchedMeshs[i].translate(glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
                                             (rand() % initialWindowHeight) - initialWindowHeight / 2});
+    }
+
+    // ECS test
+    ECS::Registry registry;
+
+    auto e0 = registry.create();
+    registry.add<Position>(e0, {0.0f, 0.0f});
+    registry.add<Velocity>(e0, {1.0f, 1.0f});
+
+    auto e1 = registry.create();
+    registry.add<Position>(e1, {1.0f, 1.0f});
+
+    auto e2 = registry.create();
+    registry.add<Position>(e2, {2.0f, 2.0f});
+    registry.add<Velocity>(e2, {2.0f, 2.0f});
+
+    std::cout << "Entities with position: " << std::endl;
+    auto entities = registry.view<Position>();
+    for (auto &e : entities)
+    {
+        auto &p = registry.get<Position>(e);
+        std::cout << e << ": p: " << p.x << ", " << p.y << std::endl;
+    }
+
+    std::cout << "Entities with velocity: " << std::endl;
+    entities = registry.view<Velocity>();
+    for (auto &e : entities)
+    {
+        auto &v = registry.get<Velocity>(e);
+        std::cout << e << ": v: " << v.x << ", " << v.y << std::endl;
+    }
+
+    std::cout << "Entities with position and velocity: " << std::endl;
+    entities = registry.view<Position, Velocity>();
+    for (auto &e : entities)
+    {
+        std::cout << e << std::endl;
+        auto &p = registry.get<Position>(e);
+        auto &v = registry.get<Velocity>(e);
+        std::cout << e << ": p: " << p.x << ", " << p.y << ", v: " << v.x << ", " << v.y << std::endl;
     }
 
     return 0;

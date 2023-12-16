@@ -224,11 +224,12 @@ GLFWwindow *Rendering::Window::createGLFWWindow(int openglMajorVersion, int open
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, openglMajorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, openglMinorVersion);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_FALSE);
+    glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
 
     // enable debug context if opengl version is greater than or equal to 4.3
     if (openglMajorVersion >= 4 && openglMinorVersion >= 3)
     {
+        glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_FALSE);
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, debugContext);
     }
 
