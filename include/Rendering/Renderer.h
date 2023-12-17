@@ -4,6 +4,7 @@
 #include "./Mesh/Mesh.h"
 #include "./Shader/Shader.h"
 #include "./Camera.h"
+#include "../Core/Transform.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -66,41 +67,33 @@ namespace Rendering
         void present() const;
 
         /**
-         * Renders the given mesh with the `mesh.color`.
+         * Renders the given mesh with the given transformation and color.
          *
          * @param m The mesh to render.
-         */
-        void mesh(const Mesh2D &m);
-
-        /**
-         * Renders the given mesh with the given color.
-         *
-         * @param m The mesh to render.
+         * @param transform The transformation matrix to render the mesh with.
          * @param color The color to render the mesh, overwrites the color set on the mesh.
          */
-        void mesh(const Mesh2D &m, const Color &color);
+        void mesh(const Mesh2D &m, const Core::Transform &transform, const Color &color);
 
         /**
          * Renders the given mesh instances.
          *
-         * Uses the vertices and indices from `m`. `transformations[0], colors[0]` will be used for the first instance (`m`).
-         *
-         * Params are not const because they are passed to OpenGL, they most likely won't be modified.
+         * Uses the vertices and indices from `m`. `transforms[0], colors[0]` will be used for the first instance (`m`).
          *
          * @param m The mesh to render.
-         * @param transformations The transformations matrices of the instances.
+         * @param transforms The transformation matrices of the instances.
          * @param colors The colors of the instances, as vec4s.
          */
-        void instancedMesh(const Mesh2D &m, std::vector<glm::mat4> &transformations, std::vector<glm::vec4> &colors);
+        void instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Color> &colors);
 
         /**
          * Batches the given meshs and renders them.
          *
-         * Transformed vertices are calculated on the CPU and sent to the GPU.
-         *
          * @param meshs The meshs to render.
+         * @param transforms The transformation matrices of the meshs.
+         * @param colors The colors of the meshs.
          */
-        void batchedMesh(const std::vector<Mesh2D> &meshs);
+        void batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Color> &colors);
 
         /**
          * Sets the clear color.

@@ -31,6 +31,11 @@ bool Rendering::Color::isColorValidSafe(glm::vec4 rgba)
     }
 }
 
+Rendering::Color::Color()
+{
+    setColor(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
 Rendering::Color::Color(float r, float g, float b, float a)
 {
     setColor(r, g, b, a);

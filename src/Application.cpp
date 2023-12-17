@@ -1,8 +1,9 @@
 #include "../include/Application.h"
 #include "../include/Globals.h"
 #include "../include/Rendering/Mesh/Polygons.h"
+#include "../include/Rendering/Color.h"
 #include "../include/Rendering/Utility/Timestep.h"
-#include "../include/ECS/Registry.h"
+#include "../include/Core/Transform.h"
 
 #include <math.h>
 #include <random>
@@ -61,99 +62,62 @@ int Application::init()
 
     // window->syncRendererSize(false);
 
-    // meshs
-    int meshCount = 0;
-    for (int i = 0; i < meshCount; i++)
+    // entity count
+    int entityCount = 2000;
+    for (int i = 0; i < entityCount; i++)
     {
-        meshs.push_back(Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
+        auto e = registry.create();
+        auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
+        auto &t = registry.add(e, Core::Transform());
+        auto &c = registry.add(e, Rendering::Color());
 
-        meshs[i].setZIndex(rand() % 10);
+        t.setZIndex(rand() % 10);
+        t.translate(glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
+                              (rand() % initialWindowHeight) - initialWindowHeight / 2});
 
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
-        meshs[i].setColor(Rendering::Color((meshs[i].getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
-
-        meshs[i].translate(glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
-                                     (rand() % initialWindowHeight) - initialWindowHeight / 2});
-    }
-
-    // instanced meshs
-    int instancedMeshCount = 0;
-    for (int i = 0; i < instancedMeshCount; i++)
-    {
-        instancedMeshs.push_back(Rendering::Mesh2D(1.0f, 1.0f));
-
-        instancedMeshs[i].setZIndex(rand() % 10);
-        // instancedMeshs[i].zIndex = 65535;
-
-        auto r = (rand() % 255) / 255.0f;
-        auto g = (rand() % 255) / 255.0f;
-        auto b = (rand() % 255) / 255.0f;
-        instancedMeshs[i].setColor(Rendering::Color((instancedMeshs[i].getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
-
-        instancedMeshs[i].translate(glm::vec2((rand() % initialWindowWidth) - initialWindowWidth / 2,
-                                              (rand() % initialWindowHeight) - initialWindowHeight / 2));
-
-        instancedMeshs[i].scale(glm::vec2(rand() % 100 + 50, rand() % 100 + 50));
-    }
-
-    // batched meshs
-    int batchedMeshCount = 1000;
-    for (int i = 0; i < batchedMeshCount; i++)
-    {
-        batchedMeshs.push_back(Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
-
-        batchedMeshs[i].setZIndex(rand() % 10);
-
-        auto r = (rand() % 255) / 255.0f;
-        auto g = (rand() % 255) / 255.0f;
-        auto b = (rand() % 255) / 255.0f;
-        batchedMeshs[i].setColor(Rendering::Color((batchedMeshs[i].getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
-
-        batchedMeshs[i].translate(glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
-                                            (rand() % initialWindowHeight) - initialWindowHeight / 2});
+        c.setColor((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f);
     }
 
     // ECS test
-    ECS::Registry registry;
+    // auto e0 = registry.create();
+    // registry.add<Position>(e0, {0.0f, 0.0f});
+    // registry.add<Velocity>(e0, {1.0f, 1.0f});
 
-    auto e0 = registry.create();
-    registry.add<Position>(e0, {0.0f, 0.0f});
-    registry.add<Velocity>(e0, {1.0f, 1.0f});
+    // auto e1 = registry.create();
+    // registry.add<Position>(e1, {1.0f, 1.0f});
 
-    auto e1 = registry.create();
-    registry.add<Position>(e1, {1.0f, 1.0f});
+    // auto e2 = registry.create();
+    // registry.add<Position>(e2, {2.0f, 2.0f});
+    // registry.add<Velocity>(e2, {2.0f, 2.0f});
 
-    auto e2 = registry.create();
-    registry.add<Position>(e2, {2.0f, 2.0f});
-    registry.add<Velocity>(e2, {2.0f, 2.0f});
+    // std::cout << "Entities with position: " << std::endl;
+    // auto entities = registry.view<Position>();
+    // for (auto &e : entities)
+    // {
+    //     auto &p = registry.get<Position>(e);
+    //     std::cout << e << ": p: " << p.x << ", " << p.y << std::endl;
+    // }
 
-    std::cout << "Entities with position: " << std::endl;
-    auto entities = registry.view<Position>();
-    for (auto &e : entities)
-    {
-        auto &p = registry.get<Position>(e);
-        std::cout << e << ": p: " << p.x << ", " << p.y << std::endl;
-    }
+    // std::cout << "Entities with velocity: " << std::endl;
+    // entities = registry.view<Velocity>();
+    // for (auto &e : entities)
+    // {
+    //     auto &v = registry.get<Velocity>(e);
+    //     std::cout << e << ": v: " << v.x << ", " << v.y << std::endl;
+    // }
 
-    std::cout << "Entities with velocity: " << std::endl;
-    entities = registry.view<Velocity>();
-    for (auto &e : entities)
-    {
-        auto &v = registry.get<Velocity>(e);
-        std::cout << e << ": v: " << v.x << ", " << v.y << std::endl;
-    }
-
-    std::cout << "Entities with position and velocity: " << std::endl;
-    entities = registry.view<Position, Velocity>();
-    for (auto &e : entities)
-    {
-        std::cout << e << std::endl;
-        auto &p = registry.get<Position>(e);
-        auto &v = registry.get<Velocity>(e);
-        std::cout << e << ": p: " << p.x << ", " << p.y << ", v: " << v.x << ", " << v.y << std::endl;
-    }
+    // std::cout << "Entities with position and velocity: " << std::endl;
+    // entities = registry.view<Position, Velocity>();
+    // for (auto &e : entities)
+    // {
+    //     std::cout << e << std::endl;
+    //     auto &p = registry.get<Position>(e);
+    //     auto &v = registry.get<Velocity>(e);
+    //     std::cout << e << ": p: " << p.x << ", " << p.y << ", v: " << v.x << ", " << v.y << std::endl;
+    // }
 
     return 0;
 }
@@ -179,20 +143,13 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     camera.setCentre(glm::vec2{camX, camY});
     // camera.rotate(std::numbers::pi * 0.5f * dt);
 
-    // rotate meshs
-    for (auto &m : meshs)
-    {
-        m.rotate(-std::numbers::pi * 0.5f * dt);
-    }
+    // rotate all entities with a transform component
+    auto entities = registry.view<Core::Transform>();
 
-    for (auto &m : instancedMeshs)
+    for (auto &e : entities)
     {
-        m.rotate(-std::numbers::pi * 0.5f * dt);
-    }
-
-    for (auto &m : batchedMeshs)
-    {
-        m.rotate(-std::numbers::pi * 0.5f * dt);
+        auto &t = registry.get<Core::Transform>(e);
+        t.rotate(-std::numbers::pi * 0.5f * dt);
     }
 
     render(renderer);
@@ -202,36 +159,32 @@ void Application::render(Rendering::Renderer *renderer)
 {
     // auto resolution = window->getSize();
 
-    // Rendering::Mesh2D shape = Rendering::createPolygon({glm::vec2(0, 0), glm::vec2(100, 0), glm::vec2(20, 20), glm::vec2(0, 100)});
+    // render all entities with a mesh, transform and color component
+    auto renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Color>();
+    std::vector<Rendering::Mesh2D> meshs(renderables.size());
+    std::vector<Core::Transform> transforms(renderables.size());
+    std::vector<Rendering::Color> colors(renderables.size());
 
-    // Rendering::Mesh2D shape = Rendering::createPolygon({glm::vec2(0, 0.5), glm::vec2(0.5, -0.5), glm::vec2(-0.5, -0.5)});
-
-    // Rendering::Mesh2D shape({glm::vec2(0, 0.5), glm::vec2(0.5, -0.5), glm::vec2(-0.5, -0.5)});
-    // shape.scale(100);
-    // renderer->mesh(shape);
-
-    for (auto &m : meshs)
+    for (size_t i = 0; i < renderables.size(); i++)
     {
-        renderer->mesh(m);
+        auto &m = registry.get<Rendering::Mesh2D>(renderables[i]);
+        auto &t = registry.get<Core::Transform>(renderables[i]);
+        auto &c = registry.get<Rendering::Color>(renderables[i]);
+
+        meshs[i] = m;
+        transforms[i] = t;
+        colors[i] = c;
     }
 
-    if (instancedMeshs.size() > 0)
-    {
-        std::vector<glm::mat4> transforms(instancedMeshs.size());
-        std::vector<glm::vec4> colors(instancedMeshs.size());
+    // single mesh
+    // for (size_t i = 0; i < renderables.size(); i++)
+    // {
+    //     renderer->mesh(meshs[i], transforms[i], colors[i]);
+    // }
 
-        int i = 0;
-        for (auto &m : instancedMeshs)
-        {
-            transforms[i] = m.getTransformationMatrix();
-            colors[i] = m.getColor().getColor();
+    // instancing
+    // renderer->instancedMesh(meshs[0], transforms, colors);
 
-            i++;
-        }
-
-        renderer->instancedMesh(instancedMeshs[0], transforms, colors);
-    }
-
-    if (batchedMeshs.size() > 0)
-        renderer->batchedMesh(batchedMeshs);
+    // batching
+    renderer->batchedMesh(meshs, transforms, colors);
 }

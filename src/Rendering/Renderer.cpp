@@ -3,7 +3,7 @@
 #include "../../include/Rendering/Shader/InstancedMeshShader.h"
 #include "../../include/Rendering/Shader/BatchedMeshShader.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
-#include "../../include/Rendering/Config.h"
+#include "../../include/Config.h"
 
 #include "../../include/externals/glad/gl.h"
 #include <iostream>
@@ -71,12 +71,7 @@ void Rendering::Renderer::present() const
     glfwSwapBuffers(glfwWindow);
 }
 
-void Rendering::Renderer::mesh(const Mesh2D &m)
-{
-    mesh(m, m.getColor());
-}
-
-void Rendering::Renderer::mesh(const Mesh2D &m, const Color &color)
+void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform, const Color &color)
 {
     const std::vector<glm::vec2> &vertices = m.getVertices();
     float *verticesPointer = (float *)glm::value_ptr(vertices[0]);
@@ -96,8 +91,8 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Color &color)
 
     meshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
 
-    glm::mat4 transform = m.getTransformationMatrix();
-    meshShader.setUniform("uMeshTransform", &transform);
+    glm::mat4 transformMatrix = transform.getTransformationMatrix();
+    meshShader.setUniform("uMeshTransform", &transformMatrix);
 
     meshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
     meshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
@@ -106,11 +101,11 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Color &color)
     meshShader.unbind();
 };
 
-void Rendering::Renderer::instancedMesh(const Mesh2D &m, std::vector<glm::mat4> &transforms, std::vector<glm::vec4> &colors)
+void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Color> &colors)
 {
     if (transforms.size() != colors.size())
     {
-        throw std::runtime_error("instancedMesh: transforms and colors must have the same size.");
+        throw std::runtime_error("Renderer (instancedMesh): transforms and colors must have the same size.");
     }
 
     const unsigned int instanceCount = transforms.size();
@@ -120,15 +115,25 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, std::vector<glm::mat4> 
 
     const std::vector<unsigned int> &indices = m.getIndices();
 
+    // create transforms and colors arrays
+    std::vector<glm::mat4> transformMatrices(instanceCount);
+    std::vector<glm::vec4> colorsVec(instanceCount);
+
+    for (int i = 0; i < instanceCount; i++)
+    {
+        transformMatrices[i] = transforms[i].getTransformationMatrix();
+        colorsVec[i] = colors[i].getColor();
+    }
+
     instancedMeshShader.use();
 
     instancedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
 
     // instanced arrays
-    float *transformsArr = (float *)glm::value_ptr(transforms[0]);
+    float *transformsArr = (float *)glm::value_ptr(transformMatrices[0]);
     instancedMeshShader.setAttrib("aTransform", transformsArr, instanceCount * 16, 16, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1, 4);
 
-    float *colorsArr = (float *)glm::value_ptr(colors[0]);
+    float *colorsArr = (float *)glm::value_ptr(colorsVec[0]);
     instancedMeshShader.setAttrib("aColor", colorsArr, instanceCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
 
     // vertices and indices
@@ -139,8 +144,13 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, std::vector<glm::mat4> 
     instancedMeshShader.unbind();
 };
 
-void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs)
+void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Color> &colors)
 {
+    if (meshs.size() != transforms.size() || meshs.size() != colors.size())
+    {
+        throw std::runtime_error("Renderer (batchedMesh): meshs, transforms and colors must have the same size.");
+    }
+
     if (meshs.size() == 0)
     {
         return;
@@ -163,15 +173,18 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs)
     int verticesOffset = 0;
     int indicesOffset = 0;
 
-    for (auto &m : meshs)
+    for (int i = 0; i < meshs.size(); i++)
     {
+        const auto &m = meshs[i];
+        const auto &transform = transforms[i];
+        const auto &color = colors[i];
+
         const std::vector<glm::vec2> &vertices = m.getVertices();
         const std::vector<unsigned int> &indices = m.getIndices();
-        const auto color = m.getColor().getColor();
 
         for (int i = 0; i < vertices.size(); i++)
         {
-            batchedVertices[verticesOffset + i] = m.getTransformationMatrix() * glm::vec4(vertices[i], 0.0f, 1.0f);
+            batchedVertices[verticesOffset + i] = transform.getTransformationMatrix() * glm::vec4(vertices[i], 0.0f, 1.0f);
         }
 
         for (int i = 0; i < indices.size(); i++)
@@ -181,7 +194,7 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs)
 
         for (int i = 0; i < vertices.size(); i++)
         {
-            batchedColors[verticesOffset + i] = color;
+            batchedColors[verticesOffset + i] = color.getColor();
         }
 
         verticesOffset += vertices.size();

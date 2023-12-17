@@ -2,6 +2,7 @@
 
 #include "./Rendering/Renderer.h"
 #include "./Rendering/Window.h"
+#include "./ECS/Registry.h"
 
 #include <string>
 
@@ -23,14 +24,7 @@ private:
     int init();
     void destroy();
 
-    // meshs
-    std::vector<Rendering::Mesh2D> meshs;
-
-    // instanced meshs
-    std::vector<Rendering::Mesh2D> instancedMeshs;
-
-    // batched meshs
-    std::vector<Rendering::Mesh2D> batchedMeshs;
+    ECS::Registry registry;
 
     void update(float dt, Rendering::Renderer *renderer);
     void render(Rendering::Renderer *renderer);

@@ -42,6 +42,13 @@ namespace Rendering
         /**
          * Constructs a color.
          *
+         * The color will be set to (1.0, 1.0, 1.0, 1.0) or fully opaque white.
+         */
+        Color();
+
+        /**
+         * Constructs a color.
+         *
          * @param r The red component of the color.
          * @param g The green component of the color.
          * @param b The blue component of the color.
