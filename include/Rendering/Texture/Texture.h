@@ -6,6 +6,15 @@
 
 namespace Rendering
 {
+    /**
+     * Represents a texture.
+     *
+     * A texture is a 2D image in raw RGBA bytes.
+     *
+     * If a non RGBA image or pixels buffer is loaded it will be converted to RGBA.
+     *
+     * The texture will destroy the pixels when it is destroyed.
+     */
     class Texture
     {
     public:
@@ -13,8 +22,9 @@ namespace Rendering
          * Constructs a texture.
          *
          * @param path The path to the image to load.
+         * @param flip Whether to flip the image vertically or not, by default this is true.
          */
-        Texture(std::string path);
+        Texture(std::string path, bool flip = true);
 
         /**
          * Constructs a texture.
@@ -48,8 +58,9 @@ namespace Rendering
          * Loads an image from the given path into the texture.
          *
          * @param path The path to the image to load.
+         * @param flip Whether to flip the image vertically or not, by default this is true.
          */
-        void fromFile(std::string path);
+        void fromFile(std::string path, bool flip = true);
 
         /**
          * Creates the texture from the given pixels.
@@ -73,6 +84,13 @@ namespace Rendering
         void fromColor(Color color, unsigned int width, unsigned int height);
 
         /**
+         * Gets the id of the texture.
+         *
+         * @returns The id of the texture.
+         */
+        size_t getId() const;
+
+        /**
          * Gets the width of the texture.
          *
          * @returns The width of the texture.
@@ -89,6 +107,8 @@ namespace Rendering
         /**
          * Gets the number of channels in the texture.
          *
+         * Will always be 4 as the texture is always in RGBA format.
+         *
          * @returns The number of channels in the texture.
          */
         unsigned int getChannels() const;
@@ -101,10 +121,27 @@ namespace Rendering
         unsigned char *getPixels() const;
 
     private:
+        static size_t nextId;
+
+        const size_t id = nextId++;
+
         unsigned int width;
         unsigned int height;
         unsigned int channels;
 
         unsigned char *pixels;
+
+        /**
+         * Converts the given pixels to RGBA.
+         *
+         * The pixels must be in RGB format.
+         *
+         * @param pixels The pixels to convert.
+         * @param width The width of the pixels.
+         * @param height The height of the pixels.
+         *
+         * @returns The pixels in RGBA format.
+         */
+        unsigned char *toRGBA(unsigned char *pixels, unsigned int width, unsigned int height);
     };
 }

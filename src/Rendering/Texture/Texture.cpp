@@ -5,7 +5,9 @@
 
 #include <stdexcept>
 
-Rendering::Texture::Texture(std::string path)
+size_t Rendering::Texture::nextId = 0;
+
+Rendering::Texture::Texture(std::string path, bool flip)
 {
     fromFile(path);
 }
@@ -28,7 +30,7 @@ Rendering::Texture::~Texture()
     }
 }
 
-void Rendering::Texture::fromFile(std::string path)
+void Rendering::Texture::fromFile(std::string path, bool flip)
 {
     if (path.empty())
     {
@@ -39,6 +41,8 @@ void Rendering::Texture::fromFile(std::string path)
     {
         delete pixels;
     }
+
+    stbi_set_flip_vertically_on_load(flip);
 
     int w, h, numChannels;
     pixels = stbi_load(path.c_str(), &w, &h, &numChannels, 0);
@@ -51,6 +55,14 @@ void Rendering::Texture::fromFile(std::string path)
     if (numChannels != 3 && numChannels != 4)
     {
         throw std::invalid_argument("Image must have 3 or 4 channels.");
+    }
+
+    if (numChannels == 3)
+    {
+        auto rgba = toRGBA(pixels, w, h);
+        delete pixels;
+
+        pixels = rgba;
     }
 
     width = w;
@@ -78,6 +90,15 @@ void Rendering::Texture::fromPixels(unsigned char *pixels, unsigned int width, u
     if (this->pixels != nullptr)
     {
         delete this->pixels;
+    }
+
+    if (channels == 3)
+    {
+        this->pixels = toRGBA(pixels, width, height);
+    }
+    else
+    {
+        this->pixels = pixels;
     }
 
     this->pixels = pixels;
@@ -114,6 +135,11 @@ void Rendering::Texture::fromColor(Color color, unsigned int width, unsigned int
     this->channels = 4;
 }
 
+size_t Rendering::Texture::getId() const
+{
+    return id;
+}
+
 unsigned int Rendering::Texture::getWidth() const
 {
     return width;
@@ -132,4 +158,19 @@ unsigned int Rendering::Texture::getChannels() const
 unsigned char *Rendering::Texture::getPixels() const
 {
     return pixels;
+}
+
+unsigned char *Rendering::Texture::toRGBA(unsigned char *pixels, unsigned int width, unsigned int height)
+{
+    unsigned char *rgba = new unsigned char[width * height * 4];
+
+    for (int i = 0; i < width * height; i++)
+    {
+        rgba[i * 4] = pixels[i * 3];
+        rgba[i * 4 + 1] = pixels[i * 3 + 1];
+        rgba[i * 4 + 2] = pixels[i * 3 + 2];
+        rgba[i * 4 + 3] = 255;
+    }
+
+    return rgba;
 }
