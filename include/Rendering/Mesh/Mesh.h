@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Color.h"
+#include "../Material/Color.h"
 
 #include <glm/vec2.hpp>
 #include <glm/mat2x2.hpp>

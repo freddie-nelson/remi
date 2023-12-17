@@ -1,7 +1,7 @@
 #include "../include/Application.h"
 #include "../include/Globals.h"
 #include "../include/Rendering/Mesh/Polygons.h"
-#include "../include/Rendering/Color.h"
+#include "../include/Rendering/Material/Color.h"
 #include "../include/Rendering/Utility/Timestep.h"
 #include "../include/Core/Transform.h"
 
