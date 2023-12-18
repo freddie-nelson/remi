@@ -1,4 +1,4 @@
-#include "../../include/Rendering/Material/Color.h"
+#include "../../../include/Rendering/Material/Color.h"
 
 #include <algorithm>
 #include <stdexcept>

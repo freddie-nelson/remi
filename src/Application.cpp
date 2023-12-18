@@ -160,20 +160,19 @@ void Application::render(Rendering::Renderer *renderer)
     // auto resolution = window->getSize();
 
     // render all entities with a mesh, transform and color component
+    auto now = Rendering::timeSinceEpochMillisec();
     auto renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Color>();
+    std::cout << "registry search time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+
     std::vector<Rendering::Mesh2D> meshs(renderables.size());
     std::vector<Core::Transform> transforms(renderables.size());
     std::vector<Rendering::Color> colors(renderables.size());
 
     for (size_t i = 0; i < renderables.size(); i++)
     {
-        auto &m = registry.get<Rendering::Mesh2D>(renderables[i]);
-        auto &t = registry.get<Core::Transform>(renderables[i]);
-        auto &c = registry.get<Rendering::Color>(renderables[i]);
-
-        meshs[i] = m;
-        transforms[i] = t;
-        colors[i] = c;
+        meshs[i] = registry.get<Rendering::Mesh2D>(renderables[i]);
+        transforms[i] = registry.get<Core::Transform>(renderables[i]);
+        colors[i] = registry.get<Rendering::Color>(renderables[i]);
     }
 
     // single mesh

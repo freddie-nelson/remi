@@ -20,6 +20,8 @@ namespace Rendering
      * The window will also create and manage the Renderer.
      *
      * The window must be initialized before it can be used.
+     *
+     * By default the window runs at 60 fps.
      */
     class Window
     {

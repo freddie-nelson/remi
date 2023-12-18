@@ -5,10 +5,13 @@
 #include "SparseSet.h"
 #include "../TypeList.h"
 
+#include <boost/unordered_map.hpp>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
 #include <vector>
 #include <utility>
+#include <iostream>
 
 namespace ECS
 {
@@ -55,12 +58,22 @@ namespace ECS
          * @returns A vector of entities with the given components.
          */
         template <typename... Types>
-        std::vector<Entity> view()
+        const std::vector<Entity> &view()
         {
+            std::set<ComponentId> cacheKey = {ComponentIdGenerator::id<Types>...};
+
+            if (cachedViews.count(cacheKey) != 0)
+            {
+                // std::cout << "cached" << std::endl;
+                return cachedViews[cacheKey];
+            }
+
             std::unordered_set<Entity> entitySet;
             viewHelper<Types...>(TypeList<Types...>{}, entitySet);
 
-            return std::vector<Entity>(entitySet.begin(), entitySet.end());
+            cachedViews[cacheKey] = std::vector<Entity>(entitySet.begin(), entitySet.end());
+
+            return cachedViews[cacheKey];
         }
 
         /**
@@ -90,6 +103,8 @@ namespace ECS
             auto &componentPool = getComponentPool<T>();
             componentPool.add(entity, component);
 
+            invalidateCachedViews<T>();
+
             return componentPool.get(entity);
         }
 
@@ -112,6 +127,8 @@ namespace ECS
 
             auto &componentPool = getComponentPool<T>();
             componentPool.remove(entity);
+
+            invalidateCachedViews<T>();
         }
 
         /**
@@ -165,6 +182,34 @@ namespace ECS
         std::vector<Entity> entities;
 
         std::unordered_map<ComponentId, SparseSetBase *> componentPools;
+
+        /**
+         * The cached entity views.
+         *
+         * The key is a set of component IDs.
+         *
+         * The value is a vector of entities that have all the components in the key.
+         */
+        boost::unordered_map<std::set<ComponentId>, std::vector<Entity>> cachedViews;
+
+        /**
+         * Invalidates the cached entity views for the given component.
+         *
+         * @tparam T The type of component.
+         */
+        template <typename T>
+        void invalidateCachedViews()
+        {
+            auto componentId = ComponentIdGenerator::id<T>;
+
+            for (auto &[components, view] : cachedViews)
+            {
+                if (components.count(componentId) != 0)
+                {
+                    cachedViews.erase(components);
+                }
+            }
+        }
 
         /**
          * Helper function for view.
@@ -222,7 +267,7 @@ namespace ECS
                 // remove entities that don't have the component
                 std::unordered_set<Entity> entitySetT(entitiesT.begin(), entitiesT.end());
 
-                for (Entity entity : entitySet)
+                for (Entity entity : entitySetT)
                 {
                     if (entitySetT.count(entity) == 0)
                     {
