@@ -5,7 +5,7 @@
 
 #include <stdexcept>
 
-size_t Rendering::Texture::nextId = 0;
+Rendering::TextureId Rendering::Texture::nextId = 0;
 
 Rendering::Texture::Texture(std::string path, bool flip)
 {

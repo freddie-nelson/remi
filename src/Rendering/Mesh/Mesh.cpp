@@ -28,34 +28,42 @@ void Rendering::Mesh2D::createPolygon(std::vector<glm::vec2> vertices)
 {
     auto iv = Rendering::createPolygon(vertices);
 
-    this->vertices = iv.vertices;
-    this->indices = iv.indices;
+    vertices = iv.vertices;
+    indices = iv.indices;
+
+    aabb.setFromPoints(vertices);
 }
 
 void Rendering::Mesh2D::createRegularPolygon(unsigned int sides, float radius)
 {
     auto iv = Rendering::createRegularPolygon(sides, radius);
 
-    this->vertices = iv.vertices;
-    this->indices = iv.indices;
+    vertices = iv.vertices;
+    indices = iv.indices;
+
+    aabb.setFromPoints(vertices);
 }
 
 void Rendering::Mesh2D::createRect(float width, float height)
 {
     auto iv = Rendering::createRect(width, height);
 
-    this->vertices = iv.vertices;
-    this->indices = iv.indices;
+    vertices = iv.vertices;
+    indices = iv.indices;
+
+    aabb.setFromPoints(vertices);
 }
 
 void Rendering::Mesh2D::setVertices(std::vector<glm::vec2> vertices)
 {
     if (vertices.size() < 3)
     {
-        throw std::runtime_error("vertices must have at least 3 vertices.");
+        throw std::invalid_argument("Mesh (setVertices): vertices must have at least 3 vertices.");
     }
 
     this->vertices = vertices;
+
+    aabb.setFromPoints(vertices);
 }
 
 const std::vector<glm::vec2> &Rendering::Mesh2D::getVertices() const
@@ -67,7 +75,7 @@ void Rendering::Mesh2D::setIndices(std::vector<unsigned int> indices)
 {
     if (indices.size() < 3)
     {
-        throw std::runtime_error("indices must have at least 3 indices.");
+        throw std::invalid_argument("Mesh (setIndices): indices must have at least 3 indices.");
     }
 
     this->indices = indices;
@@ -76,4 +84,42 @@ void Rendering::Mesh2D::setIndices(std::vector<unsigned int> indices)
 const std::vector<unsigned int> &Rendering::Mesh2D::getIndices() const
 {
     return indices;
+}
+
+void Rendering::Mesh2D::setUvs(std::vector<glm::vec2> uvs)
+{
+    if (uvs.size() != vertices.size())
+    {
+        throw std::invalid_argument("Mesh (setUvs): uvs must have the same size as vertices.");
+    }
+
+    this->uvs = uvs;
+}
+
+void Rendering::Mesh2D::setUvsFromAABB()
+{
+    auto width = aabb.getWidth();
+    auto height = aabb.getHeight();
+    auto min = aabb.getMin();
+    auto max = aabb.getMax();
+
+    uvs.clear();
+
+    for (auto &v : vertices)
+    {
+        auto x = width != 0 ? (v.x - min.x) / width : 0;
+        auto y = height != 0 ? (v.y - min.y) / height : 0;
+
+        uvs.push_back(glm::vec2(x, y));
+    }
+}
+
+const std::vector<glm::vec2> &Rendering::Mesh2D::getUvs() const
+{
+    return uvs;
+}
+
+const Core::AABB &Rendering::Mesh2D::getAABB() const
+{
+    return aabb;
 }

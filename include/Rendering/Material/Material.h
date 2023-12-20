@@ -5,6 +5,8 @@
 
 namespace Rendering
 {
+    using MaterialId = size_t;
+
     /**
      * Represents a material.
      *
@@ -85,15 +87,20 @@ namespace Rendering
          */
         void setTexture(Texture *texture);
 
+    protected:
+        Color color;
+        Texture *texture;
+
     private:
+        static MaterialId nextId;
+
+        const MaterialId id = nextId++;
+
         /**
          * The default texture.
          *
          * This is a 1x1 white texture.
          */
         static Texture *defaultTexture;
-
-        Color color;
-        Texture *texture;
     };
 }

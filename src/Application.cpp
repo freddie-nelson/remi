@@ -63,7 +63,7 @@ int Application::init()
     // window->syncRendererSize(false);
 
     // entity count
-    int entityCount = 2000;
+    int entityCount = 250;
     for (int i = 0; i < entityCount; i++)
     {
         auto e = registry.create();
@@ -160,9 +160,9 @@ void Application::render(Rendering::Renderer *renderer)
     // auto resolution = window->getSize();
 
     // render all entities with a mesh, transform and color component
-    auto now = Rendering::timeSinceEpochMillisec();
+    // auto now = Rendering::timeSinceEpochMillisec();
     auto renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Color>();
-    std::cout << "registry search time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+    // std::cout << "registry search time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
     std::vector<Rendering::Mesh2D> meshs(renderables.size());
     std::vector<Core::Transform> transforms(renderables.size());

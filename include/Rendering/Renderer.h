@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./Material/Color.h"
+#include "./Material/Material.h"
 #include "./Mesh/Mesh.h"
 #include "./Shader/Shader.h"
 #include "./Camera.h"
@@ -73,7 +73,7 @@ namespace Rendering
          * @param transform The transformation matrix to render the mesh with.
          * @param color The color to render the mesh, overwrites the color set on the mesh.
          */
-        void mesh(const Mesh2D &m, const Core::Transform &transform, const Color &color);
+        void mesh(const Mesh2D &m, const Core::Transform &transform, const Material &material);
 
         /**
          * Renders the given mesh instances.
@@ -84,7 +84,7 @@ namespace Rendering
          * @param transforms The transformation matrices of the instances.
          * @param colors The colors of the instances, as vec4s.
          */
-        void instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Color> &colors);
+        void instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material> &colors);
 
         /**
          * Batches the given meshs and renders them.
@@ -93,7 +93,7 @@ namespace Rendering
          * @param transforms The transformation matrices of the meshs.
          * @param colors The colors of the meshs.
          */
-        void batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Color> &colors);
+        void batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material> &material);
 
         /**
          * Sets the clear color.

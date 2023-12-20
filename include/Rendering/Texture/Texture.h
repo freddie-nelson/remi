@@ -6,6 +6,8 @@
 
 namespace Rendering
 {
+    using TextureId = size_t;
+
     /**
      * Represents a texture.
      *
@@ -52,7 +54,7 @@ namespace Rendering
          *
          * Frees the memory allocated for the pixels.
          */
-        ~Texture();
+        virtual ~Texture();
 
         /**
          * Loads an image from the given path into the texture.
@@ -120,11 +122,7 @@ namespace Rendering
          */
         unsigned char *getPixels() const;
 
-    private:
-        static size_t nextId;
-
-        const size_t id = nextId++;
-
+    protected:
         unsigned int width;
         unsigned int height;
         unsigned int channels;
@@ -143,5 +141,10 @@ namespace Rendering
          * @returns The pixels in RGBA format.
          */
         unsigned char *toRGBA(unsigned char *pixels, unsigned int width, unsigned int height);
+
+    private:
+        static TextureId nextId;
+
+        const TextureId id = nextId++;
     };
 }

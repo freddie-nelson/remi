@@ -1,5 +1,7 @@
 #include "../../../include/Rendering/Material/Material.h"
 
+Rendering::MaterialId Rendering::Material::nextId = 0;
+
 Rendering::Texture *Rendering::Material::defaultTexture = new Rendering::Texture(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), 1, 1);
 
 Rendering::Material::Material()

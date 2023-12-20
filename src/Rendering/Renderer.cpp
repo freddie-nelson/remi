@@ -71,7 +71,7 @@ void Rendering::Renderer::present() const
     glfwSwapBuffers(glfwWindow);
 }
 
-void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform, const Color &color)
+void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform, const Material &material)
 {
     const std::vector<glm::vec2> &vertices = m.getVertices();
     float *verticesPointer = (float *)glm::value_ptr(vertices[0]);
@@ -101,11 +101,11 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform
     meshShader.unbind();
 };
 
-void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Color> &colors)
+void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material> &materials)
 {
-    if (transforms.size() != colors.size())
+    if (transforms.size() != materials.size())
     {
-        throw std::runtime_error("Renderer (instancedMesh): transforms and colors must have the same size.");
+        throw std::runtime_error("Renderer (instancedMesh): transforms and materials must have the same size.");
     }
 
     const unsigned int instanceCount = transforms.size();
@@ -144,11 +144,11 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core:
     instancedMeshShader.unbind();
 };
 
-void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Color> &colors)
+void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material> &materials)
 {
-    if (meshs.size() != transforms.size() || meshs.size() != colors.size())
+    if (meshs.size() != transforms.size() || meshs.size() != materials.size())
     {
-        throw std::runtime_error("Renderer (batchedMesh): meshs, transforms and colors must have the same size.");
+        throw std::runtime_error("Renderer (batchedMesh): meshs, transforms and materials must have the same size.");
     }
 
     if (meshs.size() == 0)
@@ -177,7 +177,7 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const st
     {
         const auto &m = meshs[i];
         const auto &transform = transforms[i];
-        const auto &color = colors[i];
+        const auto &color = colors[i].getColor();
 
         const std::vector<glm::vec2> &vertices = m.getVertices();
         const std::vector<unsigned int> &indices = m.getIndices();
@@ -194,7 +194,7 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const st
 
         for (int i = 0; i < vertices.size(); i++)
         {
-            batchedColors[verticesOffset + i] = color.getColor();
+            batchedColors[verticesOffset + i] = color;
         }
 
         verticesOffset += vertices.size();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Material/Color.h"
+#include "../../Core/AABB.h"
 
 #include <glm/vec2.hpp>
 #include <glm/mat2x2.hpp>
@@ -27,6 +28,8 @@ namespace Rendering
      * A Mesh2D must represent a simple polygon.
      *
      * A Mesh2D's vertices must be in counter-clockwise order.
+     *
+     * By default the mesh's uvs will be set using the mesh's AABB. Custom uvs can be set using `setUvs`.
      */
     class Mesh2D
     {
@@ -134,8 +137,42 @@ namespace Rendering
          */
         const std::vector<unsigned int> &getIndices() const;
 
+        /**
+         * Sets the uvs of the mesh.
+         *
+         * @param uvs The uvs of the mesh.
+         */
+        void setUvs(std::vector<glm::vec2> uvs);
+
+        /**
+         * Sets the uvs of the mesh based on the meshs AABB.
+         *
+         * This will overwrite any uvs that have been set.
+         *
+         * This is called on creation of the mesh and will be the default uvs.
+         */
+        void setUvsFromAABB();
+
+        /**
+         * Gets the uvs of the mesh.
+         *
+         * @returns the uvs of the mesh.
+         */
+        const std::vector<glm::vec2> &getUvs() const;
+
+        /**
+         * Gets the AABB of the mesh.
+         *
+         * @returns The AABB of the mesh.
+         */
+        const Core::AABB &getAABB() const;
+
     private:
         std::vector<glm::vec2> vertices;
         std::vector<unsigned int> indices;
+
+        std::vector<glm::vec2> uvs;
+
+        Core::AABB aabb;
     };
 }
