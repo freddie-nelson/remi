@@ -23,6 +23,17 @@ namespace Rendering
         /**
          * Constructs a texture.
          *
+         * The texture will have the same pixels, width, height and channels as the given texture.
+         *
+         * However the texture will have a different id.
+         *
+         * @param t The texture to copy.
+         */
+        Texture(const Texture &t);
+
+        /**
+         * Constructs a texture.
+         *
          * @param path The path to the image to load.
          * @param flip Whether to flip the image vertically or not, by default this is true.
          */
@@ -30,6 +41,8 @@ namespace Rendering
 
         /**
          * Constructs a texture.
+         *
+         * Copies the pixels into the texture.
          *
          * @param pixels The pixels to create the texture from. Should be bytes of RGB or RGBA values.
          * @param width The width of the texture.
@@ -66,6 +79,8 @@ namespace Rendering
 
         /**
          * Creates the texture from the given pixels.
+         *
+         * Copies the pixels into the texture.
          *
          * @param pixels The pixels to create the texture from. Should be bytes of RGB or RGBA values.
          * @param width The width of the texture.
@@ -122,12 +137,21 @@ namespace Rendering
          */
         unsigned char *getPixels() const;
 
+        /**
+         * Copys the pixels, width, height and channels from the given texture into this texture.
+         *
+         * @param t The texture to copy.
+         *
+         * @returns This texture.
+         */
+        Texture &operator=(const Texture &t);
+
     protected:
         unsigned int width;
         unsigned int height;
         unsigned int channels;
 
-        unsigned char *pixels;
+        unsigned char *pixels = nullptr;
 
         /**
          * Converts the given pixels to RGBA.

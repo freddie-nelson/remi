@@ -30,6 +30,8 @@ namespace Rendering
      * A Mesh2D's vertices must be in counter-clockwise order.
      *
      * By default the mesh's uvs will be set using the mesh's AABB. Custom uvs can be set using `setUvs`.
+     *
+     * Until custom uvs are set, the uvs will always be recalculated using the mesh's AABB whenever the AABB changes.
      */
     class Mesh2D
     {
@@ -171,6 +173,7 @@ namespace Rendering
         std::vector<glm::vec2> vertices;
         std::vector<unsigned int> indices;
 
+        bool hasCustomUvs;
         std::vector<glm::vec2> uvs;
 
         Core::AABB aabb;

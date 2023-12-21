@@ -31,4 +31,11 @@ namespace Rendering
      * @returns True if the function is a valid OpenGL alpha blending function, false otherwise.
      */
     bool glIsValidAlphaBlendingFunction(GLenum function);
+
+    /**
+     * Gets the maximum number of texture units supported by the GPU.
+     *
+     * @returns The maximum number of texture units supported by the GPU.
+     */
+    unsigned int glGetMaxTextureUnits();
 }

@@ -4,8 +4,11 @@
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
+#include <iostream>
+#include <cstring>
+#include <math.h>
 
-Rendering::TextureAtlas::TextureAtlas(unsigned int padding) : Texture(new unsigned char[1], 1, 1, 4)
+Rendering::TextureAtlas::TextureAtlas(unsigned int padding)
 {
     this->padding = padding;
 
@@ -13,8 +16,11 @@ Rendering::TextureAtlas::TextureAtlas(unsigned int padding) : Texture(new unsign
     int maxTextureSize;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
 
-    width = maxTextureSize;
-    height = maxTextureSize;
+    // std::cout << "Max texture size: " << maxTextureSize << std::endl;
+    // std::cout << "Atlas size: " << maxTextureSize * TextureAtlas::ATLAS_SIZE_MULTIPLIER << std::endl;
+
+    width = std::min(TextureAtlas::MAX_ATLAS_SIZE, static_cast<unsigned int>(maxTextureSize * TextureAtlas::ATLAS_SIZE_MULTIPLIER));
+    height = width;
 
     // allocate memory for the pixels
     pixels = new unsigned char[width * height * 4];
@@ -24,9 +30,10 @@ Rendering::TextureAtlas::TextureAtlas(unsigned int padding) : Texture(new unsign
 
 Rendering::TextureAtlas::~TextureAtlas()
 {
+    delete pixels;
 }
 
-glm::vec2 Rendering::TextureAtlas::add(Texture *texture)
+glm::vec2 Rendering::TextureAtlas::add(const Texture *texture)
 {
     if (texture == nullptr)
     {
@@ -42,6 +49,8 @@ glm::vec2 Rendering::TextureAtlas::add(Texture *texture)
     auto texId = texture->getId();
     textures[texId] = texture;
 
+    // std::cout << "Adding texture to atlas: " << texId << std::endl;
+
     try
     {
         pack();
@@ -50,13 +59,14 @@ glm::vec2 Rendering::TextureAtlas::add(Texture *texture)
     {
         // remove the texture from the atlas and repack
         textures.erase(texId);
+        positions.erase(texId);
         pack();
 
         // rethrow the exception
         throw e;
     }
 
-    return posToUV(positions[texId]);
+    return positions[texId];
 }
 
 void Rendering::TextureAtlas::remove(TextureId texId)
@@ -79,7 +89,7 @@ glm::vec2 Rendering::TextureAtlas::get(TextureId texId)
         throw std::invalid_argument("TextureAtlas (get): texture is not in the atlas.");
     }
 
-    return posToUV(positions[texId]);
+    return positions[texId];
 }
 
 bool Rendering::TextureAtlas::has(TextureId texId)
@@ -99,14 +109,30 @@ void Rendering::TextureAtlas::setPadding(unsigned int padding)
     pack();
 }
 
+unsigned int Rendering::TextureAtlas::getWidth() const
+{
+    return width;
+}
+
+unsigned int Rendering::TextureAtlas::getHeight() const
+{
+    return height;
+}
+
+const unsigned char *Rendering::TextureAtlas::getPixels() const
+{
+    return pixels;
+}
+
 void Rendering::TextureAtlas::pack()
 {
+    // std::cout << "Packing atlas" << std::endl;
+
     // clear the atlas
     // sets all pixels to fully transparent black
-    for (int i = 0; i < width * height * 4; i++)
-    {
-        pixels[i] = 0;
-    }
+    memset(pixels, 0, width * height * 4);
+
+    // std::cout << "cleared atlas" << std::endl;
 
     // start in top left corner
     unsigned int curX = 0;
@@ -114,12 +140,19 @@ void Rendering::TextureAtlas::pack()
     unsigned int curRowHeight = 0;
 
     // sort the textures by height
-    std::vector<TextureId> sortedTextures(textures.begin(), textures.end());
+    std::vector<TextureId> sortedTextures;
+    for (auto [texId, texture] : textures)
+    {
+        sortedTextures.push_back(texId);
+    }
+
     std::sort(sortedTextures.begin(), sortedTextures.end(), [&](TextureId a, TextureId b)
               { return textures[a]->getHeight() > textures[b]->getHeight(); });
 
+    // std::cout << "sorted textures" << std::endl;
+
     // pack the textures
-    for (auto &texId : sortedTextures)
+    for (auto texId : sortedTextures)
     {
         auto texture = textures[texId];
 
@@ -156,9 +189,9 @@ void Rendering::TextureAtlas::pack()
         }
 
         // copy the texture to the atlas
-        for (int y = 0; y < texHeight; y++)
+        for (unsigned int y = 0; y < texHeight; y++)
         {
-            for (int x = 0; x < texWidth; x++)
+            for (unsigned int x = 0; x < texWidth; x++)
             {
                 unsigned int texIndex = (y * texWidth + x) * 4;
 

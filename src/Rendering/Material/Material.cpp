@@ -2,20 +2,29 @@
 
 Rendering::MaterialId Rendering::Material::nextId = 0;
 
-Rendering::Texture *Rendering::Material::defaultTexture = new Rendering::Texture(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), 1, 1);
+Rendering::Texture *Rendering::Material::defaultTexture = new Rendering::Texture(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), 32, 32);
+
+Rendering::Material::Material(const Rendering::Material &m)
+{
+    color = m.color;
+    texture = m.texture;
+}
 
 Rendering::Material::Material()
 {
     setColor(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f));
+    setTexture(defaultTexture);
 }
 
 Rendering::Material::Material(Rendering::Color color)
 {
     setColor(color);
+    setTexture(defaultTexture);
 }
 
 Rendering::Material::Material(Rendering::Texture *texture)
 {
+    setColor(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f));
     setTexture(texture);
 }
 
@@ -52,4 +61,12 @@ void Rendering::Material::setTexture(Rendering::Texture *texture)
     }
 
     this->texture = texture;
+}
+
+Rendering::Material &Rendering::Material::operator=(const Rendering::Material &m)
+{
+    color = m.color;
+    texture = m.texture;
+
+    return *this;
 }

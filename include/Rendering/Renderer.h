@@ -5,6 +5,7 @@
 #include "./Shader/Shader.h"
 #include "./Camera.h"
 #include "../Core/Transform.h"
+#include "./Texture/TextureManager.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -17,7 +18,7 @@ namespace Rendering
 {
 
     /**
-     * The renderer is responsible for rendering meshes to the screen.
+     * The renderer is responsible for rendering entities to the screen.
      *
      * It is also responsible for clearing the screen and swapping the front and back buffers.
      *
@@ -31,6 +32,8 @@ namespace Rendering
      * Alpha blending is disabled by default.
      *
      * The default alpha blending function is `GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA`.
+     *
+     * The renderer also contains a TextureManager for managing textures.
      */
     class Renderer
     {
@@ -73,7 +76,7 @@ namespace Rendering
          * @param transform The transformation matrix to render the mesh with.
          * @param color The color to render the mesh, overwrites the color set on the mesh.
          */
-        void mesh(const Mesh2D &m, const Core::Transform &transform, const Material &material);
+        void mesh(const Mesh2D &m, const Core::Transform &transform, const Material *material);
 
         /**
          * Renders the given mesh instances.
@@ -84,7 +87,7 @@ namespace Rendering
          * @param transforms The transformation matrices of the instances.
          * @param colors The colors of the instances, as vec4s.
          */
-        void instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material> &colors);
+        void instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &colors);
 
         /**
          * Batches the given meshs and renders them.
@@ -93,7 +96,7 @@ namespace Rendering
          * @param transforms The transformation matrices of the meshs.
          * @param colors The colors of the meshs.
          */
-        void batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material> &material);
+        void batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &material);
 
         /**
          * Sets the clear color.
@@ -237,6 +240,8 @@ namespace Rendering
 
         bool syncCameraSizeWithRenderer = false;
         Camera camera;
+
+        TextureManager textureManager;
 
         Shader meshShader;
         Shader instancedMeshShader;

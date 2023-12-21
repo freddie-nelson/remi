@@ -95,24 +95,27 @@ void Rendering::Shader::use()
 
     glUseProgram(programId);
 
-    updateUniforms = true;
-    updateUniformArrays = true;
-    updateAttributesAndUniforms();
+    // updateUniforms = true;
+    // updateUniformArrays = true;
+    // updateAttributesAndUniforms();
 
     glBindVertexArray(VAO);
 }
 
 void Rendering::Shader::unbind()
 {
-    for (auto &[name, u] : uniformValues)
-    {
-        u.stale = true;
-    }
+    uniformValues.clear();
+    uniformArrayValues.clear();
 
-    for (auto &[name, u] : uniformArrayValues)
-    {
-        u.stale = true;
-    }
+    // for (auto &[name, u] : uniformValues)
+    // {
+    //     u.stale = true;
+    // }
+
+    // for (auto &[name, u] : uniformArrayValues)
+    // {
+    //     u.stale = true;
+    // }
 
     if (inUse())
     {
@@ -198,6 +201,11 @@ void Rendering::Shader::setIndices(const std::string &name, const unsigned int *
     if (drawType != GL_STATIC_DRAW && drawType != GL_DYNAMIC_DRAW && drawType != GL_STREAM_DRAW)
     {
         throw std::invalid_argument("drawType must be either GL_STATIC_DRAW, GL_DYNAMIC_DRAW or GL_STREAM_DRAW.");
+    }
+
+    if (attribValues[name].indices != nullptr)
+    {
+        delete attribValues[name].indices;
     }
 
     attribValues[name].indices = new AttribIndices{indices, length, drawType};
@@ -397,6 +405,18 @@ void Rendering::Shader::useUniform(const std::string &name)
     {
         auto v = *static_cast<glm::mat4 *>(value);
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(v));
+        break;
+    }
+
+    case GL_SAMPLER_2D:
+    {
+        auto v = *static_cast<int *>(value);
+        if (v < 0 || v > glGetMaxTextureUnits())
+        {
+            throw std::invalid_argument("Sampler2D uniform value must be between 0 and " + std::to_string(glGetMaxTextureUnits()) + ".");
+        }
+
+        glUniform1i(location, v);
         break;
     }
 
@@ -774,6 +794,11 @@ void Rendering::Shader::checkUniformSetRules(const std::string &name)
     if (!loaded)
     {
         throw std::runtime_error("Shader must be loaded before uniforms can be set.");
+    }
+
+    if (!inUse())
+    {
+        throw std::runtime_error("Shader must be in use before uniforms can be set.");
     }
 
     getUniformLocation(name);

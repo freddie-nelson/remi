@@ -93,17 +93,17 @@ namespace Core
         /**
          * The minimum point of the AABB.
          */
-        glm::vec2 min;
+        glm::vec2 min = glm::vec2(0, 0);
 
         /**
          * The maximum point of the AABB.
          */
-        glm::vec2 max;
+        glm::vec2 max = glm::vec2(0, 0);
 
         /**
          * The centre of the AABB.
          */
-        glm::vec2 centre;
+        glm::vec2 centre = glm::vec2(0, 0);
 
         /**
          * Updates the centre of the AABB.

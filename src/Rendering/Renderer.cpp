@@ -71,12 +71,15 @@ void Rendering::Renderer::present() const
     glfwSwapBuffers(glfwWindow);
 }
 
-void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform, const Material &material)
+void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform, const Material *material)
 {
     const std::vector<glm::vec2> &vertices = m.getVertices();
     float *verticesPointer = (float *)glm::value_ptr(vertices[0]);
 
     const std::vector<unsigned int> &indices = m.getIndices();
+
+    const std::vector<glm::vec2> &uvs = m.getUvs();
+    float *uvsPointer = (float *)glm::value_ptr(uvs[0]);
 
     // for (int i = 0; i < mesh.vertices.size(); i++)
     // {
@@ -86,8 +89,17 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform
 
     meshShader.use();
 
+    auto color = material->getColor();
     auto colorVec = color.getColor();
     meshShader.setUniform("uColor", &colorVec);
+
+    auto texture = material->getTexture();
+    auto boundTexture = textureManager.bind(texture);
+
+    meshShader.setUniform("uTexture", &boundTexture.textureUnit);
+    meshShader.setUniform("uTextureSize", &boundTexture.textureSize);
+    meshShader.setUniform("uTextureAtlasPos", &boundTexture.posInAtlas);
+    meshShader.setUniform("uTextureAtlasSize", &boundTexture.atlasSize);
 
     meshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
 
@@ -97,11 +109,13 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform
     meshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
     meshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
 
+    meshShader.setAttrib("aTexCoord", uvsPointer, uvs.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+
     meshShader.draw(GL_TRIANGLES, indices.size());
     meshShader.unbind();
 };
 
-void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material> &materials)
+void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &materials)
 {
     if (transforms.size() != materials.size())
     {
@@ -122,7 +136,7 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core:
     for (int i = 0; i < instanceCount; i++)
     {
         transformMatrices[i] = transforms[i].getTransformationMatrix();
-        colorsVec[i] = colors[i].getColor();
+        colorsVec[i] = materials[i]->getColor().getColor();
     }
 
     instancedMeshShader.use();
@@ -144,7 +158,7 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core:
     instancedMeshShader.unbind();
 };
 
-void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material> &materials)
+void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &materials)
 {
     if (meshs.size() != transforms.size() || meshs.size() != materials.size())
     {
@@ -177,7 +191,7 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const st
     {
         const auto &m = meshs[i];
         const auto &transform = transforms[i];
-        const auto &color = colors[i].getColor();
+        const auto &color = materials[i]->getColor().getColor();
 
         const std::vector<glm::vec2> &vertices = m.getVertices();
         const std::vector<unsigned int> &indices = m.getIndices();

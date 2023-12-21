@@ -32,6 +32,7 @@ void Rendering::Mesh2D::createPolygon(std::vector<glm::vec2> vertices)
     indices = iv.indices;
 
     aabb.setFromPoints(vertices);
+    setUvsFromAABB();
 }
 
 void Rendering::Mesh2D::createRegularPolygon(unsigned int sides, float radius)
@@ -42,6 +43,7 @@ void Rendering::Mesh2D::createRegularPolygon(unsigned int sides, float radius)
     indices = iv.indices;
 
     aabb.setFromPoints(vertices);
+    setUvsFromAABB();
 }
 
 void Rendering::Mesh2D::createRect(float width, float height)
@@ -52,6 +54,7 @@ void Rendering::Mesh2D::createRect(float width, float height)
     indices = iv.indices;
 
     aabb.setFromPoints(vertices);
+    setUvsFromAABB();
 }
 
 void Rendering::Mesh2D::setVertices(std::vector<glm::vec2> vertices)
@@ -64,6 +67,8 @@ void Rendering::Mesh2D::setVertices(std::vector<glm::vec2> vertices)
     this->vertices = vertices;
 
     aabb.setFromPoints(vertices);
+    if (!hasCustomUvs)
+        setUvsFromAABB();
 }
 
 const std::vector<glm::vec2> &Rendering::Mesh2D::getVertices() const
@@ -93,6 +98,7 @@ void Rendering::Mesh2D::setUvs(std::vector<glm::vec2> uvs)
         throw std::invalid_argument("Mesh (setUvs): uvs must have the same size as vertices.");
     }
 
+    hasCustomUvs = true;
     this->uvs = uvs;
 }
 

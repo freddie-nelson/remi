@@ -161,3 +161,17 @@ bool Rendering::glIsValidAlphaBlendingFunction(GLenum function)
         return false;
     }
 }
+
+bool maxTextureUnitsChecked = false;
+unsigned int maxTextureUnits = 0;
+
+unsigned int Rendering::glGetMaxTextureUnits()
+{
+    if (maxTextureUnitsChecked)
+        return maxTextureUnits;
+
+    int temp;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &temp);
+
+    return maxTextureUnits = static_cast<unsigned int>(temp);
+}

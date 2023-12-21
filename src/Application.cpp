@@ -1,7 +1,7 @@
 #include "../include/Application.h"
 #include "../include/Globals.h"
 #include "../include/Rendering/Mesh/Polygons.h"
-#include "../include/Rendering/Material/Color.h"
+#include "../include/Rendering/Material/Material.h"
 #include "../include/Rendering/Utility/Timestep.h"
 #include "../include/Core/Transform.h"
 
@@ -62,14 +62,17 @@ int Application::init()
 
     // window->syncRendererSize(false);
 
+    // create texture
+    Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
+
     // entity count
-    int entityCount = 250;
+    int entityCount = 100;
     for (int i = 0; i < entityCount; i++)
     {
         auto e = registry.create();
         auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
         auto &t = registry.add(e, Core::Transform());
-        auto &c = registry.add(e, Rendering::Color());
+        auto &material = registry.add(e, Rendering::Material());
 
         t.setZIndex(rand() % 10);
         t.translate(glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
@@ -78,7 +81,9 @@ int Application::init()
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
-        c.setColor((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f);
+        // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
+
+        material.setTexture(texture);
     }
 
     // ECS test
@@ -161,29 +166,29 @@ void Application::render(Rendering::Renderer *renderer)
 
     // render all entities with a mesh, transform and color component
     // auto now = Rendering::timeSinceEpochMillisec();
-    auto renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Color>();
+    auto renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Material>();
     // std::cout << "registry search time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
     std::vector<Rendering::Mesh2D> meshs(renderables.size());
     std::vector<Core::Transform> transforms(renderables.size());
-    std::vector<Rendering::Color> colors(renderables.size());
+    std::vector<Rendering::Material *> materials(renderables.size());
 
     for (size_t i = 0; i < renderables.size(); i++)
     {
         meshs[i] = registry.get<Rendering::Mesh2D>(renderables[i]);
         transforms[i] = registry.get<Core::Transform>(renderables[i]);
-        colors[i] = registry.get<Rendering::Color>(renderables[i]);
+        materials[i] = &registry.get<Rendering::Material>(renderables[i]);
     }
 
     // single mesh
-    // for (size_t i = 0; i < renderables.size(); i++)
-    // {
-    //     renderer->mesh(meshs[i], transforms[i], colors[i]);
-    // }
+    for (size_t i = 0; i < renderables.size(); i++)
+    {
+        renderer->mesh(meshs[i], transforms[i], materials[i]);
+    }
 
     // instancing
     // renderer->instancedMesh(meshs[0], transforms, colors);
 
     // batching
-    renderer->batchedMesh(meshs, transforms, colors);
+    // renderer->batchedMesh(meshs, transforms, materials);
 }

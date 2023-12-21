@@ -14,7 +14,7 @@ namespace Rendering
      *
      * The color is multiplied by the texture color to get the final color of the material.
      *
-     * If the texture is not set it will be set to a 1x1 white texture.
+     * If the texture is not set it will be set to a 32x32 white texture.
      *
      * If the color is not set it will be set to (1.0, 1.0, 1.0, 1.0) or fully opaque white.
      *
@@ -23,6 +23,17 @@ namespace Rendering
     class Material
     {
     public:
+        /**
+         * Constructs a material.
+         *
+         * The material will be set to the same color and texture as the given material.
+         *
+         * However the material will have a different id.
+         *
+         * @param m The material to copy.
+         */
+        Material(const Material &m);
+
         /**
          * Constructs a material.
          *
@@ -87,6 +98,15 @@ namespace Rendering
          */
         void setTexture(Texture *texture);
 
+        /**
+         * Copys the texture and color from the given material into this material.
+         *
+         * @param m The material to copy.
+         *
+         * @returns This material.
+         */
+        Material &operator=(const Material &m);
+
     protected:
         Color color;
         Texture *texture;
@@ -99,7 +119,7 @@ namespace Rendering
         /**
          * The default texture.
          *
-         * This is a 1x1 white texture.
+         * This is an 32x32 white texture.
          */
         static Texture *defaultTexture;
     };

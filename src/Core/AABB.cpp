@@ -4,13 +4,13 @@
 
 Core::AABB::AABB()
 {
-    setMin(glm::vec2(0.0f, 0.0f));
+    min = glm::vec2(0.0f, 0.0f);
     setMax(glm::vec2(0.0f, 0.0f));
 }
 
 Core::AABB::AABB(glm::vec2 min, glm::vec2 max)
 {
-    setMin(min);
+    this->min = min;
     setMax(max);
 }
 
@@ -86,7 +86,7 @@ void Core::AABB::setFromPoints(std::vector<glm::vec2> points)
         }
     }
 
-    setMin(glm::vec2(minX, minY));
+    min = glm::vec2(minX, minY);
     setMax(glm::vec2(maxX, maxY));
 }
 

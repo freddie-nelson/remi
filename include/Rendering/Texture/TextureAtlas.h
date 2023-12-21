@@ -12,18 +12,36 @@ namespace Rendering
      *
      * The texture atlas will be of a fixed size, and so the textures will be packed into the atlas.
      *
-     * The size of the texture atlas will be GL_MAX_TEXTURE_SIZE x GL_MAX_TEXTURE_SIZE.
+     * The size of the texture atlas will be min(MAX_ATLAS_SIZE, GL_MAX_TEXTURE_SIZE * ATLAS_SIZE_MULTIPLIER) (width and height).
      *
      * The atlas does not own the Texture objects it contains, and so will not destroy them when it is destroyed.
+     *
+     * The atlas will not modify the textures it contains.
      *
      * The texture packing algorithm is extremely simple, and so may not be the most efficient.
      *
      * TODO: Improve the texture packing algorithm.
      */
-    class TextureAtlas : protected Texture
+    class TextureAtlas
     {
 
     public:
+        /**
+         * The multiplier for the size of the atlas.
+         *
+         * By default this is 0.5f, so the atlas will be 50% of the maximum texture size.
+         *
+         * This value must be between 0 (exclusive) and 1 (inclusive).
+         */
+        static constexpr float ATLAS_SIZE_MULTIPLIER = 0.5f;
+
+        /**
+         * The maximum size of the atlas.
+         *
+         * Can be made smaller to improve precision of uv coordinates for smaller textures.
+         */
+        static constexpr unsigned int MAX_ATLAS_SIZE = 8192;
+
         /**
          * Creates a new texture atlas.
          *
@@ -36,7 +54,7 @@ namespace Rendering
          *
          * Frees the memory allocated for the pixels.
          */
-        virtual ~TextureAtlas();
+        ~TextureAtlas();
 
         /**
          * Adds a texture to the atlas.
@@ -45,13 +63,13 @@ namespace Rendering
          *
          * @param texture The texture to add to the atlas.
          *
-         * @returns The UV coordinates of the texture in the atlas.
+         * @returns The position of the top left corner of the texture in the atlas.
          *
          * @throws std::invalid_argument If the texture is null.
          * @throws std::invalid_argument If the texture is too big for the atlas.
          * @throws std::runtime_error If the texture cannot be packed into the atlas.
          */
-        glm::vec2 add(Texture *texId);
+        glm::vec2 add(const Texture *texture);
 
         /**
          * Removes a texture from the atlas.
@@ -63,11 +81,11 @@ namespace Rendering
         void remove(TextureId texId);
 
         /**
-         * Gets the UV coordinates of the given texture in the atlas.
+         * Gets the position of the top left corner of the texture in the atlas.
          *
-         * @param texId The texture to get the UV coordinates for.
+         * @param texId The texture to get the position of.
          *
-         * @returns The UV coordinates of the texture in the atlas.
+         * @returns The position of the top left corner of the texture in the atlas.
          *
          * @throws std::invalid_argument If the texture is not in the atlas.
          */
@@ -108,7 +126,29 @@ namespace Rendering
          */
         unsigned int getHeight() const;
 
+        /**
+         * Gets the pixels of the atlas.
+         *
+         * @returns The pixels of the atlas.
+         */
+        const unsigned char *getPixels() const;
+
     private:
+        /**
+         * The width of the atlas.
+         */
+        unsigned int width;
+
+        /**
+         * The height of the atlas.
+         */
+        unsigned int height;
+
+        /**
+         * The atlas pixels.
+         */
+        unsigned char *pixels = nullptr;
+
         /**
          * The padding between textures in the atlas
          */
@@ -122,7 +162,7 @@ namespace Rendering
         /**
          * The textures in the atlas.
          */
-        std::unordered_map<TextureId, Texture *> textures;
+        std::unordered_map<TextureId, const Texture *> textures;
 
         /**
          * Packs the textures into the atlas.

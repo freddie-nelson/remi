@@ -7,6 +7,11 @@
 
 Rendering::TextureId Rendering::Texture::nextId = 0;
 
+Rendering::Texture::Texture(const Rendering::Texture &t)
+{
+    fromPixels(t.pixels, t.width, t.height, t.channels);
+}
+
 Rendering::Texture::Texture(std::string path, bool flip)
 {
     fromFile(path);
@@ -26,7 +31,7 @@ Rendering::Texture::~Texture()
 {
     if (pixels != nullptr)
     {
-        delete pixels;
+        stbi_image_free(pixels);
     }
 }
 
@@ -39,13 +44,13 @@ void Rendering::Texture::fromFile(std::string path, bool flip)
 
     if (pixels != nullptr)
     {
-        delete pixels;
+        stbi_image_free(pixels);
     }
 
     stbi_set_flip_vertically_on_load(flip);
 
     int w, h, numChannels;
-    pixels = stbi_load(path.c_str(), &w, &h, &numChannels, 0);
+    pixels = stbi_load(path.c_str(), &w, &h, &numChannels, 4);
 
     if (pixels == nullptr)
     {
@@ -60,14 +65,14 @@ void Rendering::Texture::fromFile(std::string path, bool flip)
     if (numChannels == 3)
     {
         auto rgba = toRGBA(pixels, w, h);
-        delete pixels;
+        stbi_image_free(pixels);
 
         pixels = rgba;
     }
 
     width = w;
     height = h;
-    channels = numChannels;
+    channels = 4;
 }
 
 void Rendering::Texture::fromPixels(unsigned char *pixels, unsigned int width, unsigned int height, unsigned int channels)
@@ -89,7 +94,7 @@ void Rendering::Texture::fromPixels(unsigned char *pixels, unsigned int width, u
 
     if (this->pixels != nullptr)
     {
-        delete this->pixels;
+        stbi_image_free(this->pixels);
     }
 
     if (channels == 3)
@@ -98,10 +103,10 @@ void Rendering::Texture::fromPixels(unsigned char *pixels, unsigned int width, u
     }
     else
     {
-        this->pixels = pixels;
+        this->pixels = new unsigned char[width * height * channels];
+        memcpy(this->pixels, pixels, width * height * channels);
     }
 
-    this->pixels = pixels;
     this->width = width;
     this->height = height;
     this->channels = channels;
@@ -116,7 +121,7 @@ void Rendering::Texture::fromColor(Color color, unsigned int width, unsigned int
 
     if (this->pixels != nullptr)
     {
-        delete this->pixels;
+        stbi_image_free(this->pixels);
     }
 
     auto c = color.getColor();
@@ -158,6 +163,13 @@ unsigned int Rendering::Texture::getChannels() const
 unsigned char *Rendering::Texture::getPixels() const
 {
     return pixels;
+}
+
+Rendering::Texture &Rendering::Texture::operator=(const Texture &t)
+{
+    fromPixels(t.pixels, t.width, t.height, t.channels);
+
+    return *this;
 }
 
 unsigned char *Rendering::Texture::toRGBA(unsigned char *pixels, unsigned int width, unsigned int height)

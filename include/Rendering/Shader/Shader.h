@@ -65,6 +65,8 @@ namespace Rendering
         /**
          * Unbinds the shader program if it is in use.
          *
+         * This will also clear all set uniforms.
+         *
          * Calls glUseProgram(0) to deselect this shader program.
          */
         void unbind();
@@ -72,7 +74,7 @@ namespace Rendering
         /**
          * Draws the shader.
          *
-         * Will bind the current VAO before drawing.
+         * Will bind the current VAO and all uniforms before drawing.
          *
          * @param drawMode The draw mode to use, i.e. GL_TRIANGLES, GL_POINTS, GL_LINES, etc.
          * @param drawCount The number of vertices to draw.
@@ -154,6 +156,13 @@ namespace Rendering
             if (drawType != GL_STATIC_DRAW && drawType != GL_DYNAMIC_DRAW && drawType != GL_STREAM_DRAW)
             {
                 throw std::invalid_argument("drawType must be either GL_STATIC_DRAW, GL_DYNAMIC_DRAW or GL_STREAM_DRAW.");
+            }
+
+            // delete previous indices if they exist
+            if (attribValues.contains(name) && attribValues[name].indices != nullptr)
+            {
+                delete attribValues[name].indices;
+                attribValues[name].indices = nullptr;
             }
 
             int location = getAttribLocation(name);
