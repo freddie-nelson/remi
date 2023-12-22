@@ -14,9 +14,9 @@ Rendering::Mesh2D::Mesh2D(std::vector<glm::vec2> vertices)
     createPolygon(vertices);
 }
 
-Rendering::Mesh2D::Mesh2D(unsigned int sides, float radius)
+Rendering::Mesh2D::Mesh2D(float radius, unsigned int sides)
 {
-    createRegularPolygon(sides, radius);
+    createRegularPolygon(radius, sides);
 }
 
 Rendering::Mesh2D::Mesh2D(float width, float height)
@@ -35,9 +35,9 @@ void Rendering::Mesh2D::createPolygon(std::vector<glm::vec2> vertices)
     setUvsFromAABB();
 }
 
-void Rendering::Mesh2D::createRegularPolygon(unsigned int sides, float radius)
+void Rendering::Mesh2D::createRegularPolygon(float radius, unsigned int sides)
 {
-    auto iv = Rendering::createRegularPolygon(sides, radius);
+    auto iv = Rendering::createRegularPolygon(radius, sides);
 
     vertices = iv.vertices;
     indices = iv.indices;

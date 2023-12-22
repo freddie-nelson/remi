@@ -30,7 +30,7 @@ namespace Rendering
      *
      * @returns A Mesh2D representing the regular polygon.
      */
-    IndexedVertices createRegularPolygon(float radius, int sides);
+    IndexedVertices createRegularPolygon(float radius, unsigned int sides);
 
     /**
      * Creates a rectangle with the top left corner or centre at (0, 0), and the given width and height.

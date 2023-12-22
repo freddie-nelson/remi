@@ -70,7 +70,8 @@ int Application::init()
     for (int i = 0; i < entityCount; i++)
     {
         auto e = registry.create();
-        auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
+        // auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
+        auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 50 + 25), static_cast<unsigned int>(rand() % 13 + 3)));
         auto &t = registry.add(e, Core::Transform());
         auto &material = registry.add(e, Rendering::Material());
 

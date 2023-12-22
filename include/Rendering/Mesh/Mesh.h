@@ -63,10 +63,10 @@ namespace Rendering
          *
          * A high number of sides can be used to approximate a circle.
          *
-         * @param sides The number of sides of the polygon.
          * @param radius The radius of the polygon.
+         * @param sides The number of sides of the polygon.
          */
-        Mesh2D(unsigned int sides, float radius);
+        Mesh2D(float radius, unsigned int sides);
 
         /**
          * Creates a mesh instance.
@@ -96,10 +96,10 @@ namespace Rendering
          *
          * A high number of sides can be used to approximate a circle.
          *
-         * @param sides The number of sides of the polygon.
          * @param radius The radius of the polygon.
+         * @param sides The number of sides of the polygon.
          */
-        void createRegularPolygon(unsigned int sides, float radius);
+        void createRegularPolygon(float radius, unsigned int sides);
 
         /**
          * Creates the vertices and indices of the mesh to form a rectangle.

@@ -8,7 +8,7 @@ Rendering::IndexedVertices Rendering::createPolygon(const std::vector<glm::vec2>
     return triangulate(vertices);
 }
 
-Rendering::IndexedVertices Rendering::createRegularPolygon(float radius, int sides)
+Rendering::IndexedVertices Rendering::createRegularPolygon(float radius, unsigned int sides)
 {
     std::vector<glm::vec2> vertices;
 
