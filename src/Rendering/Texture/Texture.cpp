@@ -50,7 +50,7 @@ void Rendering::Texture::fromFile(std::string path, bool flip)
     stbi_set_flip_vertically_on_load(flip);
 
     int w, h, numChannels;
-    pixels = stbi_load(path.c_str(), &w, &h, &numChannels, 4);
+    pixels = stbi_load(path.c_str(), &w, &h, &numChannels, 0);
 
     if (pixels == nullptr)
     {
