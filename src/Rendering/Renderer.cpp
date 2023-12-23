@@ -39,7 +39,7 @@ void Rendering::Renderer::init()
     }
 
     batchedMeshShader = Shader();
-    if (!batchedMeshShader.loadFromSource(batchedMeshVertexShader, batchedMeshFragShader))
+    if (!batchedMeshShader.loadFromSource(batchedMeshVertexShader, meshFragShader))
     {
         throw std::runtime_error("Failed to load batched mesh shader.");
     }
@@ -185,6 +185,12 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const st
     std::vector<glm::vec4> batchedVertices(verticesCount);
     std::vector<unsigned int> batchedIndices(indicesCount);
 
+    std::vector<glm::vec2> batchedAtlasPos(verticesCount);
+
+    std::vector<unsigned int> batchedTextureUnits(verticesCount);
+    std::vector<glm::vec2> batchedTextureSizes(verticesCount);
+    std::vector<glm::vec2> batchedTexCoords(verticesCount);
+
     std::vector<glm::vec4> batchedColors(verticesCount);
 
     int verticesOffset = 0;
@@ -198,20 +204,27 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const st
 
         const std::vector<glm::vec2> &vertices = m.getVertices();
         const std::vector<unsigned int> &indices = m.getIndices();
+        const std::vector<glm::vec2> &uvs = m.getUvs();
 
         for (int i = 0; i < vertices.size(); i++)
         {
             batchedVertices[verticesOffset + i] = transform.getTransformationMatrix() * glm::vec4(vertices[i], 0.0f, 1.0f);
+
+            auto texture = materials[i]->getTexture();
+            auto boundTexture = textureManager.bind(texture);
+
+            batchedAtlasPos[verticesOffset + i] = boundTexture.posInAtlas;
+
+            batchedTextureUnits[verticesOffset + i] = boundTexture.textureUnit;
+            batchedTextureSizes[verticesOffset + i] = boundTexture.textureSize;
+            batchedTexCoords[verticesOffset + i] = uvs[i];
+
+            batchedColors[verticesOffset + i] = color;
         }
 
         for (int i = 0; i < indices.size(); i++)
         {
             batchedIndices[indicesOffset + i] = indices[i] + verticesOffset;
-        }
-
-        for (int i = 0; i < vertices.size(); i++)
-        {
-            batchedColors[verticesOffset + i] = color;
         }
 
         verticesOffset += vertices.size();
@@ -221,6 +234,14 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const st
     batchedMeshShader.use();
 
     batchedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
+
+    auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
+    batchedMeshShader.setUniform("uTextureAtlasSize", &atlasSize);
+
+    batchedMeshShader.setAttrib("aTextureAtlasPos", (float *)glm::value_ptr(batchedAtlasPos[0]), batchedAtlasPos.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aTextureUnit", &batchedTextureUnits[0], batchedTextureUnits.size(), 1, GL_UNSIGNED_INT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aTextureSize", (float *)glm::value_ptr(batchedTextureSizes[0]), batchedTextureSizes.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aTexCoord", (float *)glm::value_ptr(batchedTexCoords[0]), batchedTexCoords.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
 
     batchedMeshShader.setAttrib("aColor", (float *)glm::value_ptr(batchedColors[0]), batchedColors.size() * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
 

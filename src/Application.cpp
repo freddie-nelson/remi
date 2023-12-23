@@ -66,7 +66,7 @@ int Application::init()
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // entity count
-    int entityCount = 100;
+    int entityCount = 500;
     for (int i = 0; i < entityCount; i++)
     {
         auto e = registry.create();
@@ -174,22 +174,24 @@ void Application::render(Rendering::Renderer *renderer)
     std::vector<Core::Transform> transforms(renderables.size());
     std::vector<Rendering::Material *> materials(renderables.size());
 
+    // now = Rendering::timeSinceEpochMillisec();
     for (size_t i = 0; i < renderables.size(); i++)
     {
         meshs[i] = registry.get<Rendering::Mesh2D>(renderables[i]);
         transforms[i] = registry.get<Core::Transform>(renderables[i]);
         materials[i] = &registry.get<Rendering::Material>(renderables[i]);
     }
+    // std::cout << "registry get time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
     // single mesh
-    for (size_t i = 0; i < renderables.size(); i++)
-    {
-        renderer->mesh(meshs[i], transforms[i], materials[i]);
-    }
+    // for (size_t i = 0; i < renderables.size(); i++)
+    // {
+    //     renderer->mesh(meshs[i], transforms[i], materials[i]);
+    // }
 
     // instancing
     // renderer->instancedMesh(meshs[0], transforms, colors);
 
     // batching
-    // renderer->batchedMesh(meshs, transforms, materials);
+    renderer->batchedMesh(meshs, transforms, materials);
 }

@@ -8,18 +8,30 @@
 #include <cstring>
 #include <math.h>
 
+unsigned int atlasSize = -1;
+unsigned int Rendering::TextureAtlas::getAtlasSize()
+{
+    if (atlasSize != -1)
+    {
+        return atlasSize;
+    }
+
+    int maxTextureSize;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+
+    atlasSize = std::min(TextureAtlas::MAX_ATLAS_SIZE, static_cast<unsigned int>(maxTextureSize * TextureAtlas::ATLAS_SIZE_MULTIPLIER));
+
+    return atlasSize;
+}
+
 Rendering::TextureAtlas::TextureAtlas(unsigned int padding)
 {
     this->padding = padding;
 
-    // set width and height
-    int maxTextureSize;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-
     // std::cout << "Max texture size: " << maxTextureSize << std::endl;
     // std::cout << "Atlas size: " << maxTextureSize * TextureAtlas::ATLAS_SIZE_MULTIPLIER << std::endl;
 
-    width = std::min(TextureAtlas::MAX_ATLAS_SIZE, static_cast<unsigned int>(maxTextureSize * TextureAtlas::ATLAS_SIZE_MULTIPLIER));
+    width = TextureAtlas::getAtlasSize();
     height = width;
 
     // allocate memory for the pixels

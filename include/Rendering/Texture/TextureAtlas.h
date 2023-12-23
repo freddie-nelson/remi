@@ -43,6 +43,11 @@ namespace Rendering
         static constexpr unsigned int MAX_ATLAS_SIZE = 8192;
 
         /**
+         * Gets the size of an atlas.
+         */
+        static unsigned int getAtlasSize();
+
+        /**
          * Creates a new texture atlas.
          *
          * @param padding The padding between textures in the atlas, used to prevent artefacts.
