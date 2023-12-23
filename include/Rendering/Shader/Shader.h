@@ -70,7 +70,7 @@ namespace Rendering
         /**
          * Unbinds the shader program if it is in use.
          *
-         * This will also clear all set uniforms.
+         * This will also set all uniforms to stale so that they are updated next time the shader is drawn.
          *
          * Calls glUseProgram(0) to deselect this shader program.
          */
@@ -241,6 +241,8 @@ namespace Rendering
         {
             bool stale;
 
+            int location;
+            unsigned int type;
             void *value;
         };
 
@@ -248,6 +250,8 @@ namespace Rendering
         {
             bool stale;
 
+            int location;
+            unsigned int type;
             void *value;
             size_t length;
         };
@@ -353,8 +357,12 @@ namespace Rendering
         /**
          * Checks the uniform set rules for the given uniform.
          *
+         * This will not check if the uniform exists in the shader.
+         *
          * @param name The name of the uniform.
          * @param isUniformArray Whether or not the uniform is an array.
+         *
+         * @throws std::runtime_error If the shader has not been loaded or is not in use.
          */
         void checkUniformSetRules(const std::string &name, bool isUniformArray = false);
 

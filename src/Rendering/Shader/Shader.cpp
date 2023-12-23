@@ -10,8 +10,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
-// ! TODO optimize uniform settings, mostly by removing unnecessary calls to getUniformLocation
-
 Rendering::Shader::Shader()
 {
 }
@@ -19,6 +17,14 @@ Rendering::Shader::Shader()
 Rendering::Shader::~Shader()
 {
     unbind();
+
+    for (auto &[name, attrib] : attribValues)
+    {
+        if (attrib.indices != nullptr)
+        {
+            delete attrib.indices;
+        }
+    }
 
     if (loaded)
     {
@@ -110,18 +116,15 @@ void Rendering::Shader::use()
 
 void Rendering::Shader::unbind()
 {
-    uniformValues.clear();
-    uniformArrayValues.clear();
+    for (auto &[name, u] : uniformValues)
+    {
+        u.stale = true;
+    }
 
-    // for (auto &[name, u] : uniformValues)
-    // {
-    //     u.stale = true;
-    // }
-
-    // for (auto &[name, u] : uniformArrayValues)
-    // {
-    //     u.stale = true;
-    // }
+    for (auto &[name, u] : uniformArrayValues)
+    {
+        u.stale = true;
+    }
 
     if (inUse())
     {
@@ -178,7 +181,22 @@ void Rendering::Shader::setUniform(const std::string &name, void *value)
 {
     checkUniformSetRules(name);
 
-    uniformValues[name] = {true, value};
+    int location;
+    unsigned int type;
+
+    if (uniformValues.contains(name))
+    {
+        location = uniformValues[name].location;
+        type = uniformValues[name].type;
+    }
+    else
+    {
+        // std::cout << "fetching uniform location" << std::endl;
+        location = getUniformLocation(name);
+        type = getUniformType(name);
+    }
+
+    uniformValues[name] = {true, location, type, value};
 
     updateUniforms = true;
 }
@@ -187,7 +205,21 @@ void Rendering::Shader::setUniformArray(const std::string &name, void *value, si
 {
     checkUniformSetRules(name, true);
 
-    uniformArrayValues[name] = UniformArray{true, value, length};
+    int location;
+    unsigned int type;
+
+    if (uniformArrayValues.contains(name))
+    {
+        location = uniformArrayValues[name].location;
+        type = uniformArrayValues[name].type;
+    }
+    else
+    {
+        location = getUniformLocation(name, true);
+        type = getUniformType(name, true);
+    }
+
+    uniformArrayValues[name] = UniformArray{true, location, type, value, length};
 
     updateUniformArrays = true;
 }
@@ -300,8 +332,8 @@ void Rendering::Shader::useUniform(const std::string &name)
         throw std::runtime_error("Uniform " + name + " has not been set.");
     }
 
-    int location = getUniformLocation(name);
-    unsigned int type = getUniformType(name);
+    int location = uniformValues[name].location;
+    unsigned int type = uniformValues[name].type;
     void *value = uniformValues[name].value;
 
     //! TODO cleanup switch statement into functions
@@ -437,10 +469,11 @@ void Rendering::Shader::useUniformArray(const std::string &name)
         throw std::runtime_error("Uniform " + name + " has not been set.");
     }
 
-    int location = getUniformLocation(name, true);
-    unsigned int type = getUniformType(name, true);
-
     auto u = uniformArrayValues[name];
+
+    int location = u.location;
+    unsigned int type = u.type;
+
     void *value = u.value;
     size_t length = u.length;
 
@@ -818,8 +851,6 @@ void Rendering::Shader::checkUniformSetRules(const std::string &name, bool isUni
     {
         throw std::runtime_error("Shader must be in use before uniforms can be set.");
     }
-
-    getUniformLocation(name, isUniformArray);
 }
 
 void Rendering::Shader::checkDrawModeValid(unsigned int drawMode)

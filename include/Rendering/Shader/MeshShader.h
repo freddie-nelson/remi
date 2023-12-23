@@ -4,6 +4,18 @@
 
 namespace Rendering
 {
+    /**
+     * The vertex shader for a mesh.
+     *
+     * This shader needs access to the following uniforms:
+     * - uViewProjectionMatrix: The view projection matrix to use.
+     *
+     * This shader must have the following outputs:
+     * - gl_Position: The position of the vertex.
+     * - vTextureUnit: The texture unit to use.
+     * - vTexCoord: The texture coordinate to use.
+     * - vColor: The color to use.
+     */
     const std::string meshVertexShader =
         "#version 330 core\n"
         "\n"
@@ -36,6 +48,20 @@ namespace Rendering
         "  vColor = uColor;\n"
         "}\n";
 
+    /**
+     * The fragment shader for a mesh.
+     *
+     * This shader needs access to the following uniforms:
+     * - uTextures: The currently bound texture atlases.
+     *
+     * This shader needs access to the following inputs:
+     * - vTextureUnit: The texture unit to use.
+     * - vTexCoord: The texture coordinate to use.
+     * - vColor: The color to use.
+     *
+     * This shader must have the following outputs:
+     * - FragColor: The color of the fragment.
+     */
     const std::string meshFragShader =
         "#version 330 core\n"
         "\n"
