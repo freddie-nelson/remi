@@ -190,8 +190,8 @@ void Application::render(Rendering::Renderer *renderer)
     // }
 
     // instancing
-    // renderer->instancedMesh(meshs[0], transforms, colors);
+    renderer->instancedMesh(meshs[0], transforms, materials);
 
     // batching
-    renderer->batchedMesh(meshs, transforms, materials);
+    // renderer->batchedMesh(meshs, transforms, materials);
 }

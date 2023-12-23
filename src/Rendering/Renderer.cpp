@@ -33,7 +33,7 @@ void Rendering::Renderer::init()
     }
 
     instancedMeshShader = Shader();
-    if (!instancedMeshShader.loadFromSource(instancedMeshVertexShader, instancedMeshFragShader))
+    if (!instancedMeshShader.loadFromSource(instancedMeshVertexShader, meshFragShader))
     {
         throw std::runtime_error("Failed to load instanced mesh shader.");
     }
@@ -132,13 +132,26 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core:
 
     const std::vector<unsigned int> &indices = m.getIndices();
 
-    // create transforms and colors arrays
+    const std::vector<glm::vec2> &uvs = m.getUvs();
+    float *uvsPointer = (float *)glm::value_ptr(uvs[0]);
+
+    // create transforms and materials arrays
     std::vector<glm::mat4> transformMatrices(instanceCount);
+    std::vector<glm::vec2> textureAtlasPos(instanceCount);
+    std::vector<unsigned int> textureUnits(instanceCount);
+    std::vector<glm::vec2> textureSize(instanceCount);
     std::vector<glm::vec4> colorsVec(instanceCount);
 
     for (int i = 0; i < instanceCount; i++)
     {
         transformMatrices[i] = transforms[i].getTransformationMatrix();
+
+        auto texture = materials[i]->getTexture();
+        auto boundTexture = textureManager.bind(texture);
+
+        textureAtlasPos[i] = boundTexture.posInAtlas;
+        textureUnits[i] = boundTexture.textureUnit;
+        textureSize[i] = boundTexture.textureSize;
         colorsVec[i] = materials[i]->getColor().getColor();
     }
 
@@ -146,16 +159,30 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core:
 
     instancedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
 
+    auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
+    instancedMeshShader.setUniform("uTextureAtlasSize", &atlasSize);
+
     // instanced arrays
-    float *transformsArr = (float *)glm::value_ptr(transformMatrices[0]);
-    instancedMeshShader.setAttrib("aTransform", transformsArr, instanceCount * 16, 16, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1, 4);
+    float *atlasPosArr = (float *)glm::value_ptr(textureAtlasPos[0]);
+    instancedMeshShader.setAttrib("aTextureAtlasPos", atlasPosArr, instanceCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
+
+    unsigned int *textureUnitsArr = &textureUnits[0];
+    instancedMeshShader.setAttrib("aTextureUnit", textureUnitsArr, instanceCount, 1, GL_UNSIGNED_INT, false, 0, GL_DYNAMIC_DRAW, 1);
+
+    float *textureSizeArr = (float *)glm::value_ptr(textureSize[0]);
+    instancedMeshShader.setAttrib("aTextureSize", textureSizeArr, instanceCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
 
     float *colorsArr = (float *)glm::value_ptr(colorsVec[0]);
     instancedMeshShader.setAttrib("aColor", colorsArr, instanceCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
 
+    float *transformsArr = (float *)glm::value_ptr(transformMatrices[0]);
+    instancedMeshShader.setAttrib("aTransform", transformsArr, instanceCount * 16, 16, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1, 4);
+
     // vertices and indices
     instancedMeshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
     instancedMeshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
+
+    instancedMeshShader.setAttrib("aTexCoord", uvsPointer, uvs.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
 
     instancedMeshShader.drawInstanced(instanceCount, GL_TRIANGLES, indices.size());
     instancedMeshShader.unbind();
