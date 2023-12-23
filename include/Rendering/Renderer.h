@@ -74,7 +74,7 @@ namespace Rendering
          *
          * @param m The mesh to render.
          * @param transform The transformation matrix to render the mesh with.
-         * @param color The color to render the mesh, overwrites the color set on the mesh.
+         * @param material The material to render the mesh with.
          */
         void mesh(const Mesh2D &m, const Core::Transform &transform, const Material *material);
 
@@ -85,18 +85,18 @@ namespace Rendering
          *
          * @param m The mesh to render.
          * @param transforms The transformation matrices of the instances.
-         * @param colors The colors of the instances, as vec4s.
+         * @param materials The materials of the instances.
          */
-        void instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &colors);
+        void instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &materials);
 
         /**
          * Batches the given meshs and renders them.
          *
          * @param meshs The meshs to render.
          * @param transforms The transformation matrices of the meshs.
-         * @param colors The colors of the meshs.
+         * @param materials The materials of the meshs.
          */
-        void batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &material);
+        void batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &materials);
 
         /**
          * Sets the clear color.

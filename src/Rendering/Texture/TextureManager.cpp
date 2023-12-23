@@ -10,6 +10,11 @@ Rendering::TextureManager::TextureManager()
 
 Rendering::TextureManager::~TextureManager()
 {
+    for (size_t i = 0; i < atlases.size(); i++)
+    {
+        auto textureId = atlasToTextureId[i];
+        glDeleteTextures(1, &textureId);
+    }
 }
 
 Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Texture *texture)
@@ -33,6 +38,11 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
         atlasSize : glm::vec2(atlases[atlasIndex].getWidth(), atlases[atlasIndex].getHeight()),
         textureUnit : atlasIndex,
     };
+}
+
+const std::vector<int> &Rendering::TextureManager::getTexturesUniform() const
+{
+    return texturesUniform;
 }
 
 int Rendering::TextureManager::getContainingAtlas(const Texture *texture)
@@ -107,6 +117,7 @@ unsigned int Rendering::TextureManager::createAtlas()
     }
 
     atlases.push_back(TextureAtlas());
+    texturesUniform.push_back(atlases.size() - 1);
 
     auto atlasIndex = atlases.size() - 1;
     loadAtlas(atlasIndex);

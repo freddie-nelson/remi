@@ -56,7 +56,19 @@ namespace Rendering
          */
         BoundTexture bind(const Texture *texture);
 
+        /**
+         * Gets the array of active texture units currently bound.
+         *
+         * @returns The array of active texture units currently bound.
+         */
+        const std::vector<int> &getTexturesUniform() const;
+
     private:
+        /**
+         * The texture units that are currently bound.
+         */
+        std::vector<int> texturesUniform;
+
         /**
          * The texture atlases that have been created.
          *

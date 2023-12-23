@@ -96,7 +96,10 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform
     auto texture = material->getTexture();
     auto boundTexture = textureManager.bind(texture);
 
-    meshShader.setUniform("uTexture", &boundTexture.textureUnit);
+    auto &textures = textureManager.getTexturesUniform();
+    meshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
+
+    meshShader.setUniform("uTextureUnit", &boundTexture.textureUnit);
     meshShader.setUniform("uTextureSize", &boundTexture.textureSize);
     meshShader.setUniform("uTextureAtlasPos", &boundTexture.posInAtlas);
     meshShader.setUniform("uTextureAtlasSize", &boundTexture.atlasSize);
