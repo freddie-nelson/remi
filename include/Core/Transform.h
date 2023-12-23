@@ -188,7 +188,7 @@ namespace Core
          *
          * The transformation matrix includes the zIndex translation of the mesh.
          *
-         * This recomputes the transformation matrix every time it is called.
+         * This only recomputes the transformation matrix when the transform's properties have changed.
          *
          * @returns the transformation matrix of the mesh.
          */
@@ -201,5 +201,11 @@ namespace Core
         glm::vec2 scaleVec = glm::vec2(1.0f);
         glm::vec2 shear = glm::vec2(0.0f);
         float rotation = 0;
+
+        /**
+         * Indicates that the transformation matrix is dirty and needs to be recomputed.
+         */
+        mutable bool isTransformDirty = true;
+        mutable glm::mat4 transformationMatrix;
     };
 }

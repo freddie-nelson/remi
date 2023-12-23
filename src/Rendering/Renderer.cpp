@@ -206,9 +206,11 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const st
         const std::vector<unsigned int> &indices = m.getIndices();
         const std::vector<glm::vec2> &uvs = m.getUvs();
 
+        auto transformMatrix = transform.getTransformationMatrix();
+
         for (int i = 0; i < vertices.size(); i++)
         {
-            batchedVertices[verticesOffset + i] = transform.getTransformationMatrix() * glm::vec4(vertices[i], 0.0f, 1.0f);
+            batchedVertices[verticesOffset + i] = transformMatrix * glm::vec4(vertices[i], 0.0f, 1.0f);
 
             auto texture = materials[i]->getTexture();
             auto boundTexture = textureManager.bind(texture);

@@ -31,6 +31,7 @@ void Core::Transform::setZIndex(unsigned int zIndex)
         throw std::invalid_argument("zIndex must be less than or equal to " + std::to_string(Config::MAX_Z_INDEX) + ".");
 
     this->zIndex = zIndex;
+    isTransformDirty = true;
 }
 
 unsigned int Core::Transform::getZIndex() const
@@ -41,16 +42,19 @@ unsigned int Core::Transform::getZIndex() const
 void Core::Transform::move(glm::vec2 move)
 {
     translation += move;
+    isTransformDirty = true;
 }
 
 void Core::Transform::translate(glm::vec2 translation)
 {
     this->translation += translation;
+    isTransformDirty = true;
 }
 
 void Core::Transform::setTranslation(glm::vec2 translation)
 {
     this->translation = translation;
+    isTransformDirty = true;
 }
 
 glm::vec2 Core::Transform::getTranslation() const
@@ -61,16 +65,19 @@ glm::vec2 Core::Transform::getTranslation() const
 void Core::Transform::scale(glm::vec2 scale)
 {
     this->scaleVec *= scale;
+    isTransformDirty = true;
 }
 
 void Core::Transform::scale(float scale)
 {
     this->scaleVec *= scale;
+    isTransformDirty = true;
 }
 
 void Core::Transform::setScale(glm::vec2 scale)
 {
     this->scaleVec = scale;
+    isTransformDirty = true;
 }
 
 glm::vec2 Core::Transform::getScale() const
@@ -81,6 +88,7 @@ glm::vec2 Core::Transform::getScale() const
 void Core::Transform::setShear(glm::vec2 shear)
 {
     this->shear = shear;
+    isTransformDirty = true;
 }
 
 glm::vec2 Core::Transform::getShear() const
@@ -91,11 +99,13 @@ glm::vec2 Core::Transform::getShear() const
 void Core::Transform::rotate(float rotation)
 {
     this->rotation += rotation;
+    isTransformDirty = true;
 }
 
 void Core::Transform::setRotation(float rotation)
 {
     this->rotation = rotation;
+    isTransformDirty = true;
 }
 
 float Core::Transform::getRotation() const
@@ -105,6 +115,9 @@ float Core::Transform::getRotation() const
 
 glm::mat4 Core::Transform::getTransformationMatrix() const
 {
+    if (!isTransformDirty)
+        return transformationMatrix;
+
     // translation
     glm::mat4 t(1.0f);
     t[3][0] = translation.x;
@@ -127,5 +140,8 @@ glm::mat4 Core::Transform::getTransformationMatrix() const
     r[1][0] = -glm::sin(rotation);
     r[1][1] = glm::cos(rotation);
 
-    return t * r * s;
+    transformationMatrix = t * r * s;
+    isTransformDirty = false;
+
+    return transformationMatrix;
 }
