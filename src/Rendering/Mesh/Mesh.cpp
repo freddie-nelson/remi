@@ -7,6 +7,15 @@
 
 Rendering::Mesh2D::Mesh2D()
 {
+    vertices = {
+        glm::vec2{0.0f, 0.5f},
+        glm::vec2{0.5f, -0.5f},
+        glm::vec2{-0.5f, -0.5f},
+    };
+    indices = {0, 1, 2};
+
+    aabb.setFromPoints(vertices);
+    setUvsFromAABB();
 }
 
 Rendering::Mesh2D::Mesh2D(std::vector<glm::vec2> vertices)
@@ -26,7 +35,7 @@ Rendering::Mesh2D::Mesh2D(float width, float height)
 
 void Rendering::Mesh2D::createPolygon(std::vector<glm::vec2> vertices)
 {
-    auto iv = Rendering::createPolygon(vertices);
+    auto iv = Rendering::createPolygon(vertices, true);
 
     vertices = iv.vertices;
     indices = iv.indices;
@@ -128,4 +137,9 @@ const std::vector<glm::vec2> &Rendering::Mesh2D::getUvs() const
 const Core::AABB &Rendering::Mesh2D::getAABB() const
 {
     return aabb;
+}
+
+const glm::vec2 &Rendering::Mesh2D::getCentre() const
+{
+    return aabb.getCentre();
 }

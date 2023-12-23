@@ -66,7 +66,7 @@ int Application::init()
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // entity count
-    int entityCount = 500;
+    int entityCount = 1000;
     for (int i = 0; i < entityCount; i++)
     {
         auto e = registry.create();
@@ -190,8 +190,8 @@ void Application::render(Rendering::Renderer *renderer)
     // }
 
     // instancing
-    renderer->instancedMesh(meshs[0], transforms, materials);
+    // renderer->instancedMesh(meshs[0], transforms, materials);
 
     // batching
-    // renderer->batchedMesh(meshs, transforms, materials);
+    renderer->batchedMesh(meshs, transforms, materials);
 }

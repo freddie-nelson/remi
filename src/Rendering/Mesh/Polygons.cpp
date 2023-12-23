@@ -3,9 +3,28 @@
 
 #include <math.h>
 
-Rendering::IndexedVertices Rendering::createPolygon(const std::vector<glm::vec2> &vertices)
+Rendering::IndexedVertices Rendering::createPolygon(const std::vector<glm::vec2> &vertices, bool centered)
 {
-    return triangulate(vertices);
+    auto triangulated = triangulate(vertices);
+
+    if (!centered)
+        return triangulated;
+
+    // calculate centre
+    glm::vec2 centre{0.0f};
+    for (auto &v : triangulated.vertices)
+    {
+        centre += v;
+    }
+    centre /= triangulated.vertices.size();
+
+    // translate vertices by centre to make new centre (0, 0)
+    for (auto &v : triangulated.vertices)
+    {
+        v -= centre;
+    }
+
+    return triangulated;
 }
 
 Rendering::IndexedVertices Rendering::createRegularPolygon(float radius, unsigned int sides)

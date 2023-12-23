@@ -15,10 +15,11 @@ namespace Rendering
      * The vertices must represent a simple polygon.
      *
      * @param vertices The vertices of the polygon, in counter-clockwise order.
+     * @param centered Whether or not to centre the polygon at (0, 0).
      *
      * @returns A Mesh2D representing the polygon.
      */
-    IndexedVertices createPolygon(const std::vector<glm::vec2> &vertices);
+    IndexedVertices createPolygon(const std::vector<glm::vec2> &vertices, bool centered = true);
 
     /**
      * Creates a regular polygon with the centre at (0, 0), and the given radius and number of sides.

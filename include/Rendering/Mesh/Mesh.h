@@ -32,6 +32,8 @@ namespace Rendering
      * By default the mesh's uvs will be set using the mesh's AABB. Custom uvs can be set using `setUvs`.
      *
      * Until custom uvs are set, the uvs will always be recalculated using the mesh's AABB whenever the AABB changes.
+     *
+     * A Mesh will always have it's centre at (0, 0).
      */
     class Mesh2D
     {
@@ -39,9 +41,7 @@ namespace Rendering
         /**
          * Creates a mesh instance.
          *
-         * The mesh is not ready to be rendered until the vertices and indices have been set.
-         *
-         * This will create a mesh with no vertices or indices.
+         * This mesh will be a triangle with a width and height of 1, centered at (0, 0).
          */
         Mesh2D();
 
@@ -51,6 +51,8 @@ namespace Rendering
          * The mesh created will be a polygon with the given vertices.
          *
          * The vertices must be in counter-clockwise order and represent a simple polygon.
+         *
+         * The polygon will be centred at (0, 0).
          *
          * @param vertices The vertices of the polygon.
          */
@@ -84,6 +86,8 @@ namespace Rendering
          * This will triangulate the polygon represented by the given vertices, to create the mesh.
          *
          * The vertices must be in counter-clockwise order and represent a simple polygon.
+         *
+         * The polygon will be centred at (0, 0).
          *
          * @param vertices The vertices of the polygon.
          */
@@ -169,6 +173,13 @@ namespace Rendering
          */
         const Core::AABB &getAABB() const;
 
+        /**
+         * Gets the centre of the mesh.
+         *
+         * @returns The centre of the mesh.
+         */
+        const glm::vec2 &getCentre() const;
+
     private:
         std::vector<glm::vec2> vertices;
         std::vector<unsigned int> indices;
@@ -177,5 +188,6 @@ namespace Rendering
         std::vector<glm::vec2> uvs;
 
         Core::AABB aabb;
+        glm::vec2 centre;
     };
 }
