@@ -8,6 +8,9 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <boost/algorithm/string/replace.hpp>
+
+// ! TODO optimize uniform settings, mostly by removing unnecessary calls to getUniformLocation
 
 Rendering::Shader::Shader()
 {
@@ -46,16 +49,19 @@ bool Rendering::Shader::loadFromSource(const std::string &vertex, const std::str
         throw std::runtime_error("Shader has already been loaded. Can only load shaders once.");
     }
 
+    std::string vertexSource = injectShaderVariables(vertex);
+    std::string fragmentSource = injectShaderVariables(fragment);
+
     // vertex shader
     unsigned int vertexShader;
-    if (!compileShaderSource(vertex, GL_VERTEX_SHADER, vertexShader))
+    if (!compileShaderSource(vertexSource, GL_VERTEX_SHADER, vertexShader))
     {
         return false;
     }
 
     // fragment shader
     unsigned int fragmentShader;
-    if (!compileShaderSource(fragment, GL_FRAGMENT_SHADER, fragmentShader))
+    if (!compileShaderSource(fragmentSource, GL_FRAGMENT_SHADER, fragmentShader))
     {
         return false;
     }
@@ -179,7 +185,7 @@ void Rendering::Shader::setUniform(const std::string &name, void *value)
 
 void Rendering::Shader::setUniformArray(const std::string &name, void *value, size_t length)
 {
-    checkUniformSetRules(name);
+    checkUniformSetRules(name, true);
 
     uniformArrayValues[name] = UniformArray{true, value, length};
 
@@ -288,11 +294,6 @@ void Rendering::Shader::updateAttributesAndUniforms()
 void Rendering::Shader::useUniform(const std::string &name)
 {
     checkUniformSetRules(name);
-
-    if (!inUse())
-    {
-        throw std::runtime_error("Shader must be in use before uniforms can be used.");
-    }
 
     if (!uniformValues.contains(name))
     {
@@ -429,20 +430,15 @@ void Rendering::Shader::useUniform(const std::string &name)
 
 void Rendering::Shader::useUniformArray(const std::string &name)
 {
-    checkUniformSetRules(name);
+    checkUniformSetRules(name, true);
 
-    if (!inUse())
-    {
-        throw std::runtime_error("Shader must be in use before uniforms can be used.");
-    }
-
-    if (!uniformValues.contains(name))
+    if (!uniformArrayValues.contains(name))
     {
         throw std::runtime_error("Uniform " + name + " has not been set.");
     }
 
-    int location = getUniformLocation(name);
-    unsigned int type = getUniformType(name);
+    int location = getUniformLocation(name, true);
+    unsigned int type = getUniformType(name, true);
 
     auto u = uniformArrayValues[name];
     void *value = u.value;
@@ -545,6 +541,13 @@ void Rendering::Shader::useUniformArray(const std::string &name)
     {
         auto v = *static_cast<glm::mat4 *>(value);
         glUniformMatrix4fv(location, length, GL_FALSE, glm::value_ptr(v));
+        break;
+    }
+
+    case GL_SAMPLER_2D:
+    {
+        auto v = static_cast<int *>(value);
+        glUniform1iv(location, length, v);
         break;
     }
 
@@ -675,7 +678,7 @@ void Rendering::Shader::createVAO()
     updateAttributes = false;
 }
 
-int Rendering::Shader::getUniformLocation(const std::string &name)
+int Rendering::Shader::getUniformLocation(const std::string &name, bool isUniformArray)
 {
     if (!loaded)
     {
@@ -683,6 +686,15 @@ int Rendering::Shader::getUniformLocation(const std::string &name)
     }
 
     int location = glGetUniformLocation(programId, name.c_str());
+    std::string otherName = isUniformArray ? name + "[0]" : name;
+
+    if (location == -1 && isUniformArray)
+    {
+        location = glGetUniformLocation(programId, otherName.c_str());
+        // std::cout << "arrayName: " << otherName << std::endl;
+        // std::cout << "location: " << location << std::endl;
+    }
+
     if (location == -1)
     {
         throw std::runtime_error("Uniform " + name + " does not exist.");
@@ -691,9 +703,14 @@ int Rendering::Shader::getUniformLocation(const std::string &name)
     //? workaround weird opengl bug? TODO: fix - was driver related?
     //? keeping anyway just in case, robustness is good
     std::string uniformAtLocation = getUniformName(location);
-    if (uniformAtLocation != name)
+
+    // std::cout << "name: " << name << std::endl;
+    // std::cout << "arrayName: " << otherName << std::endl;
+    // std::cout << "uniformAtLocation: " << uniformAtLocation << std::endl;
+
+    if (uniformAtLocation != name && uniformAtLocation != otherName)
     {
-        location = findUniformLocation(name);
+        location = findUniformLocation(name, isUniformArray);
     }
 
     return location;
@@ -715,14 +732,14 @@ int Rendering::Shader::getAttribLocation(const std::string &name)
     return location;
 }
 
-unsigned int Rendering::Shader::getUniformType(const std::string &name)
+unsigned int Rendering::Shader::getUniformType(const std::string &name, bool isUniformArray)
 {
     if (!loaded)
     {
         throw std::runtime_error("Shader has not been loaded.");
     }
 
-    int location = getUniformLocation(name);
+    int location = getUniformLocation(name, isUniformArray);
 
     unsigned int type;
     glGetActiveUniform(programId, location, 0, NULL, NULL, &type, NULL);
@@ -765,7 +782,8 @@ int Rendering::Shader::findUniformLocation(const std::string &name, bool isUnifo
     for (GLint location = 0; location < numOfUniforms; location++)
     {
         auto nameAtLocation = getUniformName(location);
-        if (nameAtLocation == uniformName)
+        // std::cout << "nameAtLocation: " << nameAtLocation << std::endl;
+        if (nameAtLocation == uniformName || nameAtLocation == name)
         {
             return location;
         }
@@ -789,7 +807,7 @@ unsigned int Rendering::Shader::getAttribType(const std::string &name)
     return type;
 }
 
-void Rendering::Shader::checkUniformSetRules(const std::string &name)
+void Rendering::Shader::checkUniformSetRules(const std::string &name, bool isUniformArray)
 {
     if (!loaded)
     {
@@ -801,7 +819,7 @@ void Rendering::Shader::checkUniformSetRules(const std::string &name)
         throw std::runtime_error("Shader must be in use before uniforms can be set.");
     }
 
-    getUniformLocation(name);
+    getUniformLocation(name, isUniformArray);
 }
 
 void Rendering::Shader::checkDrawModeValid(unsigned int drawMode)
@@ -810,4 +828,14 @@ void Rendering::Shader::checkDrawModeValid(unsigned int drawMode)
     {
         throw std::invalid_argument("drawMode must be one of the following: GL_POINTS, GL_LINE_STRIP, GL_LINE_LOOP, GL_LINES, GL_LINE_STRIP_ADJACENCY, GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_TRIANGLES, GL_TRIANGLE_STRIP_ADJACENCY, GL_TRIANGLES_ADJACENCY, GL_PATCHES");
     }
+}
+
+std::string Rendering::Shader::injectShaderVariables(const std::string &source)
+{
+    std::string result = source;
+
+    // __MAX_TEXTURE_UNITS__
+    boost::replace_all(result, std::string("__MAX_TEXTURE_UNITS__"), std::to_string(glGetMaxTextureUnits()));
+
+    return result;
 }

@@ -12,6 +12,11 @@ namespace Rendering
      * Represents a shader.
      *
      * A shader is a program that runs on the GPU and is used by the Renderer.
+     *
+     * Shaders can access the following injectable variables:
+     * - `__MAX_TEXTURE_UNITS__` - The max number of texture units supported by the GPU.
+     *
+     * These variables will be string replaced at runtime.
      */
     class Shader
     {
@@ -290,10 +295,11 @@ namespace Rendering
          * Gets the location of the given uniform.
          *
          * @param name The name of the uniform.
+         * @param isUniformArray Whether or not the uniform is an array.
          *
          * @returns The location of the uniform.
          */
-        int getUniformLocation(const std::string &name);
+        int getUniformLocation(const std::string &name, bool isUniformArray = false);
 
         /**
          * Gets the location of the given attribute.
@@ -308,10 +314,11 @@ namespace Rendering
          * Gets the type of the uniform with the given name.
          *
          * @param name The name of the uniform.
+         * @param isUniformArray Whether or not the uniform is an array.
          *
          * @returns The type of the uniform.
          */
-        unsigned int getUniformType(const std::string &name);
+        unsigned int getUniformType(const std::string &name, bool isUniformArray = false);
 
         /**
          * Gets the name of the uniform stored at the given location.
@@ -347,8 +354,9 @@ namespace Rendering
          * Checks the uniform set rules for the given uniform.
          *
          * @param name The name of the uniform.
+         * @param isUniformArray Whether or not the uniform is an array.
          */
-        void checkUniformSetRules(const std::string &name);
+        void checkUniformSetRules(const std::string &name, bool isUniformArray = false);
 
         /**
          * Checks if the given draw mode is valid.
@@ -358,5 +366,17 @@ namespace Rendering
          * @throws std::invalid_argument If the draw mode is not valid.
          */
         void checkDrawModeValid(unsigned int drawMode);
+
+        /**
+         * Replaces injectable variables in the shader source with the runtime values.
+         *
+         * Injectable variables are:
+         * - `__MAX_TEXTURE_UNITS__` - The max number of texture units supported by the GPU.
+         *
+         * @param source The shader source.
+         *
+         * @returns The shader source with the injectable variables replaced.
+         */
+        std::string injectShaderVariables(const std::string &source);
     };
 }
