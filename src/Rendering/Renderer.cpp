@@ -11,7 +11,7 @@
 #include <math.h>
 #include <glm/gtc/type_ptr.hpp>
 
-Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height), camera(Camera(glm::vec2(0, 0), width, height))
+Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height), camera(Camera(width, height))
 {
     setSize(width, height);
 }
@@ -188,7 +188,7 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core:
     instancedMeshShader.unbind();
 };
 
-void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &materials)
+void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D *> &meshs, const std::vector<Core::Transform *> &transforms, const std::vector<Material *> &materials)
 {
     if (meshs.size() != transforms.size() || meshs.size() != materials.size())
     {
@@ -203,8 +203,9 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const st
     int verticesCount = 0;
     int indicesCount = 0;
 
-    for (auto &m : meshs)
+    for (size_t i = 0; i < meshs.size(); i++)
     {
+        auto m = *meshs[i];
         verticesCount += m.getVertices().size();
         indicesCount += m.getIndices().size();
     }
@@ -225,8 +226,8 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D> &meshs, const st
 
     for (int i = 0; i < meshs.size(); i++)
     {
-        const auto &m = meshs[i];
-        const auto &transform = transforms[i];
+        const auto m = *meshs[i];
+        const auto transform = *transforms[i];
         const auto &color = materials[i]->getColor().getColor();
 
         const std::vector<glm::vec2> &vertices = m.getVertices();
@@ -352,7 +353,7 @@ void Rendering::Renderer::setSize(int w, int h)
 
     if (syncCameraSizeWithRenderer)
     {
-        camera.setSize(width, height);
+        camera.setViewportSize(width, height);
     }
 }
 

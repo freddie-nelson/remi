@@ -5,51 +5,14 @@
 #include <stdexcept>
 #include <iostream>
 
-Rendering::Camera::Camera(glm::vec2 centre, float width, float height, float near, float far)
-    : centre(centre), width(width), height(height), near(near), far(far)
+Rendering::Camera::Camera(float width, float height, float near, float far)
+    : width(width), height(height), near(near), far(far)
 {
-    setCentre(centre);
     setWidth(width);
     setHeight(height);
     setNear(near);
     setFar(far);
-}
-
-glm::vec2 Rendering::Camera::move(glm::vec2 move)
-{
-    centre += move;
-    updateViewProjectionMatrix();
-    return centre;
-}
-
-void Rendering::Camera::setCentre(glm::vec2 centre)
-{
-    this->centre = centre;
-    updateViewProjectionMatrix();
-}
-
-glm::vec2 Rendering::Camera::getCentre() const
-{
-    return centre;
-}
-
-float Rendering::Camera::rotate(float angle)
-{
-    rotation += angle;
-    updateViewProjectionMatrix();
-
-    return rotation;
-}
-
-void Rendering::Camera::setRotation(float angle)
-{
-    rotation = angle;
-    updateViewProjectionMatrix();
-}
-
-float Rendering::Camera::getRotation() const
-{
-    return rotation;
+    updateAABB();
 }
 
 void Rendering::Camera::setWidth(float width)
@@ -58,7 +21,7 @@ void Rendering::Camera::setWidth(float width)
         throw std::invalid_argument("Width cannot be less than or equal to 0.");
 
     this->width = width;
-    updateViewProjectionMatrix();
+    updateAABB();
 }
 
 float Rendering::Camera::getWidth() const
@@ -72,7 +35,7 @@ void Rendering::Camera::setHeight(float height)
         throw std::invalid_argument("Height cannot be less than or equal to 0.");
 
     this->height = height;
-    updateViewProjectionMatrix();
+    updateAABB();
 }
 
 float Rendering::Camera::getHeight() const
@@ -88,7 +51,6 @@ void Rendering::Camera::setNear(float near)
         throw std::invalid_argument("Near cannot be greater than far.");
 
     this->near = near;
-    updateViewProjectionMatrix();
 }
 
 float Rendering::Camera::getNear() const
@@ -104,7 +66,6 @@ void Rendering::Camera::setFar(float far)
         throw std::invalid_argument("Far cannot be less than near.");
 
     this->far = far;
-    updateViewProjectionMatrix();
 }
 
 float Rendering::Camera::getFar() const
@@ -112,31 +73,44 @@ float Rendering::Camera::getFar() const
     return far;
 }
 
-void Rendering::Camera::setSize(float width, float height)
+void Rendering::Camera::setViewportSize(float width, float height)
 {
     setWidth(width);
     setHeight(height);
 }
 
-std::pair<float, float> Rendering::Camera::getSize() const
+std::pair<float, float> Rendering::Camera::getViewportSize() const
 {
     return std::make_pair(width, height);
 }
 
 glm::mat4 Rendering::Camera::getViewProjectionMatrix() const
 {
+    if (!isViewProjectionMatrixDirty)
+        return viewProjectionMatrix;
+
+    glm::vec3 centre = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    auto &min = aabb.getMin();
+    auto &max = aabb.getMax();
+
+    // camera is at 0.0f on the z axis looking towards z = far (looks towards positive z)
+    glm::mat4 viewMatrix = glm::lookAt(centre, glm::vec3(centre.x, centre.y, far), up);
+    glm::mat4 projectionMatrix = glm::ortho(min.x, max.x, min.y, max.y, near, far);
+
+    viewProjectionMatrix = projectionMatrix * viewMatrix;
+
     return viewProjectionMatrix;
 }
 
-void Rendering::Camera::updateViewProjectionMatrix()
+const Core::AABB &Rendering::Camera::getAABB() const
 {
-    // rotate up vector on z axis by rotation angle
-    glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::vec3 up = glm::vec3(rotationMatrix * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    return aabb;
+}
 
-    // camera is at 0.0f on the z axis looking towards z = far (looks towards positive z)
-    glm::mat4 viewMatrix = glm::lookAt(glm::vec3(centre, 0.0f), glm::vec3(centre, far), up);
-    glm::mat4 projectionMatrix = glm::ortho(-width / 2.0f, width / 2.0f, -height / 2.0f, height / 2.0f, near, far);
-
-    viewProjectionMatrix = projectionMatrix * viewMatrix;
+void Rendering::Camera::updateAABB()
+{
+    aabb.setMin(glm::vec2(-width / 2.0f, -height / 2.0f));
+    aabb.setMax(glm::vec2(width / 2.0f, height / 2.0f));
 }

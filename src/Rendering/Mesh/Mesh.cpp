@@ -12,10 +12,17 @@ Rendering::Mesh2D::Mesh2D()
         glm::vec2{0.5f, -0.5f},
         glm::vec2{-0.5f, -0.5f},
     };
+
     indices = {0, 1, 2};
 
-    aabb.setFromPoints(vertices);
-    setUvsFromAABB();
+    uvs = {
+        glm::vec2{0.5f, 1.0f},
+        glm::vec2{1.0f, 0.0f},
+        glm::vec2{0.0f, 0.0f},
+    };
+
+    aabb.setMin(glm::vec2{-0.5f, -0.5f});
+    aabb.setMax(glm::vec2{0.5f, 0.5f});
 }
 
 Rendering::Mesh2D::Mesh2D(std::vector<glm::vec2> vertices)

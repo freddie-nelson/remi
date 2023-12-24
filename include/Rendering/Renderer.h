@@ -96,7 +96,7 @@ namespace Rendering
          * @param transforms The transformation matrices of the meshs.
          * @param materials The materials of the meshs.
          */
-        void batchedMesh(const std::vector<Mesh2D> &meshs, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &materials);
+        void batchedMesh(const std::vector<Mesh2D *> &meshs, const std::vector<Core::Transform *> &transforms, const std::vector<Material *> &materials);
 
         /**
          * Sets the clear color.

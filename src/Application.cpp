@@ -4,6 +4,7 @@
 #include "../include/Rendering/Material/Material.h"
 #include "../include/Rendering/Utility/Timestep.h"
 #include "../include/Core/Transform.h"
+#include "../include/Core/BoundingCircle.h"
 
 #include <math.h>
 #include <random>
@@ -65,8 +66,11 @@ int Application::init()
     // create texture
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
-    // entity count
-    int entityCount = 1000;
+    // create entities
+    int entityCount = 10000;
+    int xRange = (initialWindowWidth * 10);
+    int yRange = (initialWindowHeight * 10);
+
     for (int i = 0; i < entityCount; i++)
     {
         auto e = registry.create();
@@ -76,8 +80,7 @@ int Application::init()
         auto &material = registry.add(e, Rendering::Material());
 
         t.setZIndex(rand() % 10);
-        t.translate(glm::vec2{(rand() % initialWindowWidth) - initialWindowWidth / 2,
-                              (rand() % initialWindowHeight) - initialWindowHeight / 2});
+        t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
 
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
@@ -146,7 +149,7 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     float camX = sin(n) * 200.0f;
     float camY = cos(n) * 200.0f;
 
-    camera.setCentre(glm::vec2{camX, camY});
+    // camera.setCentre(glm::vec2{camX, camY});
     // camera.rotate(std::numbers::pi * 0.5f * dt);
 
     // rotate all entities with a transform component
@@ -166,22 +169,46 @@ void Application::render(Rendering::Renderer *renderer)
     // auto resolution = window->getSize();
 
     // render all entities with a mesh, transform and color component
-    // auto now = Rendering::timeSinceEpochMillisec();
-    auto renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Material>();
+    auto now = Rendering::timeSinceEpochMillisec();
+    auto &renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Material>();
     // std::cout << "registry search time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
-    std::vector<Rendering::Mesh2D> meshs(renderables.size());
-    std::vector<Core::Transform> transforms(renderables.size());
+    auto &cameraAABB = renderer->getCamera().getAABB();
+    auto cameraBoundingCircle = Core::BoundingCircle(cameraAABB);
+    Core::BoundingCircle entityBoundingCircle(glm::vec2(0), 0);
+
+    std::vector<Rendering::Mesh2D *> meshs(renderables.size());
+    std::vector<Core::Transform *> transforms(renderables.size());
     std::vector<Rendering::Material *> materials(renderables.size());
 
-    // now = Rendering::timeSinceEpochMillisec();
+    now = Rendering::timeSinceEpochMillisec();
+    size_t j = 0;
+
     for (size_t i = 0; i < renderables.size(); i++)
     {
-        meshs[i] = registry.get<Rendering::Mesh2D>(renderables[i]);
-        transforms[i] = registry.get<Core::Transform>(renderables[i]);
-        materials[i] = &registry.get<Rendering::Material>(renderables[i]);
+        auto &m = registry.get<Rendering::Mesh2D>(renderables[i]);
+        auto &t = registry.get<Core::Transform>(renderables[i]);
+
+        entityBoundingCircle.set(m.getAABB(), t);
+        if (!cameraBoundingCircle.intersects(entityBoundingCircle))
+        {
+            continue;
+        }
+
+        meshs[j] = &m;
+        transforms[j] = &t;
+
+        auto &mat = registry.get<Rendering::Material>(renderables[i]);
+        materials[j] = &mat;
+
+        j++;
     }
-    // std::cout << "registry get time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+
+    meshs.resize(j);
+    transforms.resize(j);
+    materials.resize(j);
+
+    std::cout << "registry get time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
     // single mesh
     // for (size_t i = 0; i < renderables.size(); i++)

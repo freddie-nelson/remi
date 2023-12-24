@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Config.h"
+#include "../Core/AABB.h"
 
 #include <glm/glm.hpp>
 #include <utility>
@@ -24,67 +25,12 @@ namespace Rendering
         /**
          * Creates a camera instance.
          *
-         * @param centre The centre of the camera's viewport in world space.
          * @param width The width of the camera viewport.
          * @param height The height of the camera viewport.
          * @param near The z cut off for the near plane, by default this is set to `0.0f`.
          * @param far The z cut off for the far plane, by default this is set to `Config::MAX_Z_INDEX + 1.0f`.
          */
-        Camera(glm::vec2 centre, float width, float height, float near = 0.0f, float far = Config::MAX_Z_INDEX + 1.0f);
-
-        /**
-         * Moves the camera by the given amount.
-         *
-         * Adds the move vector to the centre of the camera's viewport.
-         *
-         * @param move The amount to move the camera by.
-         *
-         * @returns the new centre of the camera's viewport in world space.
-         */
-        glm::vec2 move(glm::vec2 move);
-
-        /**
-         * Sets the centre of the camera's viewport in world space.
-         *
-         * @param centre The centre of the camera's viewport in world space.
-         */
-        void setCentre(glm::vec2 centre);
-
-        /**
-         * Gets the centre of the camera's viewport in world space.
-         *
-         * @returns the centre of the camera's viewport in world space.
-         */
-        glm::vec2 getCentre() const;
-
-        /**
-         * Rotates the camera by the given amount.
-         *
-         * Adds the given angle to the camera's rotation.
-         *
-         * A positive angle will rotate the camera anti-clockwise.
-         *
-         * @param angle The amount to rotate the camera by in radians.
-         *
-         * @returns the new rotation of the camera in radians.
-         */
-        float rotate(float angle);
-
-        /**
-         * Sets the rotation of the camera.
-         *
-         * A positive angle will rotate the camera anti-clockwise.
-         *
-         * @param angle The rotation of the camera in radians.
-         */
-        void setRotation(float angle);
-
-        /**
-         * Gets the rotation of the camera.
-         *
-         * @returns the rotation of the camera in radians.
-         */
-        float getRotation() const;
+        Camera(float width, float height, float near = 0.0f, float far = Config::MAX_Z_INDEX + 1.0f);
 
         /**
          * Sets the width of the camera viewport.
@@ -120,14 +66,14 @@ namespace Rendering
          * @param width The width of the camera viewport.
          * @param height The height of the camera viewport.
          */
-        void setSize(float width, float height);
+        void setViewportSize(float width, float height);
 
         /**
          * Gets the size of the camera viewport.
          *
          * @returns the size of the camera viewport.
          */
-        std::pair<float, float> getSize() const;
+        std::pair<float, float> getViewportSize() const;
 
         /**
          * Sets the z cut off for the near plane.
@@ -164,20 +110,29 @@ namespace Rendering
          */
         glm::mat4 getViewProjectionMatrix() const;
 
-    private:
-        glm::vec2 centre;
-        float rotation = 0.0f;
+        /**
+         * Gets the AABB of the camera.
+         *
+         * This is the AABB of the camera's viewport.
+         *
+         * @returns the AABB of the camera.
+         */
+        const Core::AABB &getAABB() const;
 
+    private:
         float width;
         float height;
         float near;
         float far;
 
-        glm::mat4 viewProjectionMatrix;
+        mutable bool isViewProjectionMatrixDirty = true;
+        mutable glm::mat4 viewProjectionMatrix;
+
+        Core::AABB aabb;
 
         /**
-         * Updates the view projection matrix.
+         * Updates the camera's AABB.
          */
-        void updateViewProjectionMatrix();
+        void updateAABB();
     };
 }
