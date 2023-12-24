@@ -13,6 +13,8 @@ namespace Core
      * This can be used for fast intersection tests when AABB's are not suitable.
      *
      * i.e. This is used to quickly cull entities that can't be seen by the active camera.
+     *
+     * The radius of a bounding circle cannot be negative.
      */
     class BoundingCircle
     {

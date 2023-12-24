@@ -1,5 +1,7 @@
 #include "../../include/Core/BoundingCircle.h"
 
+#include <stdexcept>
+
 Core::BoundingCircle::BoundingCircle(glm::vec2 centre, float radius)
 {
     set(centre, radius);
@@ -30,7 +32,7 @@ void Core::BoundingCircle::set(glm::vec2 centre, float radius)
 void Core::BoundingCircle::set(const AABB &aabb)
 {
     setCentre(aabb.getCentre());
-    setRadius(glm::distance(aabb.getMin(), aabb.getMax()));
+    setRadius(glm::distance(aabb.getMin(), aabb.getMax()) / 2.0f);
 }
 
 void Core::BoundingCircle::set(const AABB &aabb, const Transform &transform)
@@ -40,7 +42,7 @@ void Core::BoundingCircle::set(const AABB &aabb, const Transform &transform)
     auto transformedMax = t * glm::vec4(aabb.getMax(), 0, 1);
 
     setCentre((transformedMin + transformedMax) / 2.0f);
-    setRadius(glm::distance(transformedMin, transformedMax));
+    setRadius(glm::distance(transformedMin, transformedMax) / 2.0f);
 }
 
 void Core::BoundingCircle::setCentre(glm::vec2 centre)
@@ -55,6 +57,9 @@ glm::vec2 Core::BoundingCircle::getCentre() const
 
 void Core::BoundingCircle::setRadius(float radius)
 {
+    if (radius < 0.0f)
+        throw std::invalid_argument("Radius cannot be negative.");
+
     this->radius = radius;
     this->sqrRadius = radius * radius;
 }
