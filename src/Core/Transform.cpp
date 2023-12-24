@@ -113,34 +113,31 @@ float Core::Transform::getRotation() const
     return rotation;
 }
 
-glm::mat4 Core::Transform::getTransformationMatrix() const
+const glm::mat4 &Core::Transform::getTransformationMatrix() const
 {
     if (!isTransformDirty)
         return transformationMatrix;
 
+    float r1 = glm::cos(rotation);
+    float r3 = glm::sin(rotation);
+    float r2 = -r3;
+    float r4 = r1;
+
+    // only need to update these rows and columns as the rest of the matrix is the identity matrix
+    // and shouldn't have changed
+
+    // rotation, scale and shear
+    transformationMatrix[0][0] = scaleVec.x * r1 + shear.y * r3;
+    transformationMatrix[0][1] = shear.x * r1 + scaleVec.y * r3;
+
+    transformationMatrix[1][0] = scaleVec.x * r2 + shear.y * r4;
+    transformationMatrix[1][1] = shear.x * r2 + scaleVec.y * r4;
+
     // translation
-    glm::mat4 t(1.0f);
-    t[3][0] = translation.x;
-    t[3][1] = translation.y;
-    t[3][2] = Config::MAX_Z_INDEX - zIndex;
+    transformationMatrix[3][0] = translation.x;
+    transformationMatrix[3][1] = translation.y;
+    transformationMatrix[3][2] = Config::MAX_Z_INDEX - zIndex;
 
-    // scale
-    glm::mat4 s(1.0f);
-    s[0][0] = scaleVec.x;
-    s[1][1] = scaleVec.y;
-
-    // shear
-    s[1][0] = shear.x;
-    s[0][1] = shear.y;
-
-    // rotation
-    glm::mat4 r(1.0f);
-    r[0][0] = glm::cos(rotation);
-    r[0][1] = glm::sin(rotation);
-    r[1][0] = -glm::sin(rotation);
-    r[1][1] = glm::cos(rotation);
-
-    transformationMatrix = t * r * s;
     isTransformDirty = false;
 
     return transformationMatrix;

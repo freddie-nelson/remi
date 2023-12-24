@@ -192,7 +192,7 @@ namespace Core
          *
          * @returns the transformation matrix of the mesh.
          */
-        glm::mat4 getTransformationMatrix() const;
+        const glm::mat4 &getTransformationMatrix() const;
 
     private:
         unsigned int zIndex = 0;
@@ -206,6 +206,6 @@ namespace Core
          * Indicates that the transformation matrix is dirty and needs to be recomputed.
          */
         mutable bool isTransformDirty = true;
-        mutable glm::mat4 transformationMatrix;
+        mutable glm::mat4 transformationMatrix = glm::mat4(1.0f);
     };
 }

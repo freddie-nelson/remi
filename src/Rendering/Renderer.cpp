@@ -106,8 +106,8 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform
 
     meshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
 
-    glm::mat4 transformMatrix = transform.getTransformationMatrix();
-    meshShader.setUniform("uMeshTransform", &transformMatrix);
+    auto &transformMatrix = transform.getTransformationMatrix();
+    meshShader.setUniform("uMeshTransform", const_cast<glm::mat4 *>(&transformMatrix));
 
     meshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
     meshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
@@ -234,7 +234,7 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D *> &meshs, const 
         const std::vector<unsigned int> &indices = m.getIndices();
         const std::vector<glm::vec2> &uvs = m.getUvs();
 
-        auto transformMatrix = transform.getTransformationMatrix();
+        auto &transformMatrix = transform.getTransformationMatrix();
 
         for (int i = 0; i < vertices.size(); i++)
         {
