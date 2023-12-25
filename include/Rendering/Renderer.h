@@ -6,6 +6,9 @@
 #include "./Camera.h"
 #include "../Core/Transform.h"
 #include "./Texture/TextureManager.h"
+#include "../ECS/System.h"
+#include "../ECS/Entity.h"
+#include "../Core/BoundingCircle.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -13,6 +16,7 @@
 #include <glm/vec2.hpp>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace Rendering
 {
@@ -35,7 +39,7 @@ namespace Rendering
      *
      * The renderer also contains a TextureManager for managing textures.
      */
-    class Renderer
+    class Renderer : ECS::System
     {
     public:
         /**
@@ -60,6 +64,18 @@ namespace Rendering
         void init();
 
         /**
+         * Updates the renderer.
+         *
+         * This renders all entities in the registry with a Mesh2D, Transform, Material and Renderable component.
+         *
+         * Culls entities outside the camera's view.
+         *
+         * @param registry The registry to render from.
+         * @param dt The time since the last frame.
+         */
+        void update(const ECS::Registry &registry, float dt) override;
+
+        /**
          * Clears the render buffers.
          */
         void clear(bool clearColorBuffer = true, bool clearDepthBuffer = true, bool clearStencilBuffer = true) const;
@@ -70,33 +86,37 @@ namespace Rendering
         void present() const;
 
         /**
-         * Renders the given mesh with the given transformation and color.
+         * Renders the given entity to the screen.
          *
-         * @param m The mesh to render.
-         * @param transform The transformation matrix to render the mesh with.
-         * @param material The material to render the mesh with.
+         * This does not cull entities outside the camera's view.
+         *
+         * @param registry The registry to read components from.
+         * @param entity The entity to render, this entity must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
-        void mesh(const Mesh2D &m, const Core::Transform &transform, const Material *material);
+        void entity(const ECS::Registry &registry, ECS::Entity &entity);
 
         /**
-         * Renders the given mesh instances.
+         * Renders the given entities using instanced rendering.
          *
-         * Uses the vertices and indices from `m`. `transforms[0], colors[0]` will be used for the first instance (`m`).
+         * The instances do not require a Rendering::Mesh2D component.
          *
-         * @param m The mesh to render.
-         * @param transforms The transformation matrices of the instances.
-         * @param materials The materials of the instances.
+         * This does not cull entities outside the camera's view.
+         *
+         * @param registry The registry to read components from.
+         * @param mesh The mesh to use for each entity.
+         * @param instances The entities to render, these entities must have atleast a Core::Transform and a Rendering::Material component.
          */
-        void instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &materials);
+        void instance(const ECS::Registry &registry, const Rendering::Mesh2D &mesh, const std::vector<ECS::Entity> &instances);
 
         /**
-         * Batches the given meshs and renders them.
+         * Batches the given entities and draws them to the screen.
          *
-         * @param meshs The meshs to render.
-         * @param transforms The transformation matrices of the meshs.
-         * @param materials The materials of the meshs.
+         * This does not cull entities outside the camera's view.
+         *
+         * @param registry The registry to read components from.
+         * @param renderables The entities to render, these entities must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
-        void batchedMesh(const std::vector<Mesh2D *> &meshs, const std::vector<Core::Transform *> &transforms, const std::vector<Material *> &materials);
+        void batch(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables);
 
         /**
          * Sets the clear color.
@@ -230,6 +250,11 @@ namespace Rendering
     private:
         int width;
         int height;
+
+        /**
+         * Static renderables and their previously computed bounding circles.
+         */
+        std::unordered_map<ECS::Entity, Core::BoundingCircle> staticRenderables;
 
         /**
          * The view projection matrix.

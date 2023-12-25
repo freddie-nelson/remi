@@ -182,6 +182,29 @@ namespace Core
         float getRotation() const;
 
         /**
+         * The number of times each property has changed.
+         *
+         * This can be used to determine what properties have changed at runtime.
+         */
+        struct PropertyChanges
+        {
+            size_t zIndexChanges = 0;
+            size_t translationChanges = 0;
+            size_t scaleChanges = 0;
+            size_t shearChanges = 0;
+            size_t rotationChanges = 0;
+        };
+
+        /**
+         * Gets the number of times each property has changed.
+         *
+         * This can be used to determine what properties have changed at runtime.
+         *
+         * @returns The number of times each property has changed.
+         */
+        const PropertyChanges &getPropertyChanges() const;
+
+        /**
          * Gets the transformation matrix of the mesh.
          *
          * The transformation matrix is the combined rotation, scale, sheer and translation matrix.
@@ -201,6 +224,8 @@ namespace Core
         glm::vec2 scaleVec = glm::vec2(1.0f);
         glm::vec2 shear = glm::vec2(0.0f);
         float rotation = 0;
+
+        PropertyChanges propertyChanges;
 
         /**
          * Indicates that the transformation matrix is dirty and needs to be recomputed.

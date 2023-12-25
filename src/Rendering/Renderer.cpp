@@ -4,12 +4,16 @@
 #include "../../include/Rendering/Shader/BatchedMeshShader.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 #include "../../include/Config.h"
+#include "../../include/Core/BoundingCircle.h"
+#include "../../include/Rendering/Utility/Timestep.h"
+#include "../../include/Rendering/Renderable.h"
 
 #include "../../include/externals/glad/gl.h"
 #include <iostream>
 #include <memory>
 #include <math.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <utility>
 
 Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height), camera(Camera(width, height))
 {
@@ -45,6 +49,61 @@ void Rendering::Renderer::init()
     }
 }
 
+void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
+{
+    auto &entities = registry.view<Mesh2D, Core::Transform, Material, Renderable>();
+
+    auto now = Rendering::timeSinceEpochMillisec();
+
+    // find entities within camera view
+    std::vector<ECS::Entity> renderables(entities.size());
+    auto cameraAABB = camera.getAABB();
+    auto cameraBoundingCircle = Core::BoundingCircle(cameraAABB);
+
+    size_t toRender = 0;
+
+    for (auto &e : entities)
+    {
+        auto &renderable = registry.get<Renderable>(e);
+        if (!renderable.isVisible)
+        {
+            continue;
+        }
+
+        if (renderable.isStatic && staticRenderables.contains(e) && !staticRenderables[e].intersects(cameraBoundingCircle))
+        {
+            continue;
+        }
+
+        auto &mesh = registry.get<Mesh2D>(e);
+        auto &transform = registry.get<Core::Transform>(e);
+
+        auto entityBoundingCircle = Core::BoundingCircle(mesh.getAABB(), transform);
+
+        if (entityBoundingCircle.intersects(cameraBoundingCircle))
+        {
+            renderables[toRender] = e;
+            toRender++;
+        }
+
+        if (renderable.isStatic)
+        {
+            staticRenderables.emplace(e, std::move(entityBoundingCircle));
+        }
+    }
+
+    if (toRender == 0)
+    {
+        return;
+    }
+
+    renderables.resize(toRender);
+
+    std::cout << "cull time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+
+    batch(registry, renderables);
+}
+
 void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer) const
 {
     glClearColor(clearColor.r(), clearColor.g(), clearColor.b(), clearColor.a());
@@ -71,32 +130,38 @@ void Rendering::Renderer::present() const
     glfwSwapBuffers(glfwWindow);
 }
 
-void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform, const Material *material)
+void Rendering::Renderer::entity(const ECS::Registry &registry, ECS::Entity &entity)
 {
-    const std::vector<glm::vec2> &vertices = m.getVertices();
+    // mesh data
+    auto &mesh = registry.get<Mesh2D>(entity);
+
+    const std::vector<glm::vec2> &vertices = mesh.getVertices();
     float *verticesPointer = (float *)glm::value_ptr(vertices[0]);
 
-    const std::vector<unsigned int> &indices = m.getIndices();
+    const std::vector<unsigned int> &indices = mesh.getIndices();
 
-    const std::vector<glm::vec2> &uvs = m.getUvs();
+    const std::vector<glm::vec2> &uvs = mesh.getUvs();
     float *uvsPointer = (float *)glm::value_ptr(uvs[0]);
 
-    // for (int i = 0; i < mesh.vertices.size(); i++)
-    // {
-    //     std::cout << vertices[i * 2] << ", " << vertices[i * 2 + 1] << std::endl;
-    //     std::cout << mesh.vertices[i].x << ", " << mesh.vertices[i].y << std::endl;
-    // }
+    // material data
+    auto &material = registry.get<Material>(entity);
+    auto color = material.getColor().getColor();
+
+    auto texture = material.getTexture();
+    auto boundTexture = textureManager.bind(texture);
+    auto &textures = textureManager.getTexturesUniform();
+
+    // transform
+    auto &transform = registry.get<Core::Transform>(entity);
+    auto &transformMatrix = transform.getTransformationMatrix();
 
     meshShader.use();
 
-    auto color = material->getColor();
-    auto colorVec = color.getColor();
-    meshShader.setUniform("uColor", &colorVec);
+    meshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
 
-    auto texture = material->getTexture();
-    auto boundTexture = textureManager.bind(texture);
+    // texture uniforms
+    meshShader.setUniform("uColor", &color);
 
-    auto &textures = textureManager.getTexturesUniform();
     meshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
 
     meshShader.setUniform("uTextureUnit", &boundTexture.textureUnit);
@@ -104,55 +169,56 @@ void Rendering::Renderer::mesh(const Mesh2D &m, const Core::Transform &transform
     meshShader.setUniform("uTextureAtlasPos", &boundTexture.posInAtlas);
     meshShader.setUniform("uTextureAtlasSize", &boundTexture.atlasSize);
 
-    meshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
-
-    auto &transformMatrix = transform.getTransformationMatrix();
+    // transform
     meshShader.setUniform("uMeshTransform", const_cast<glm::mat4 *>(&transformMatrix));
 
+    // mesh data
     meshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
     meshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
 
     meshShader.setAttrib("aTexCoord", uvsPointer, uvs.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
 
+    // draw
     meshShader.draw(GL_TRIANGLES, indices.size());
     meshShader.unbind();
 };
 
-void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core::Transform> &transforms, const std::vector<Material *> &materials)
+void Rendering::Renderer::instance(const ECS::Registry &registry, const Mesh2D &m, const std::vector<ECS::Entity> &instances)
 {
-    if (transforms.size() != materials.size())
-    {
-        throw std::runtime_error("Renderer (instancedMesh): transforms and materials must have the same size.");
-    }
+    const auto instanceCount = instances.size();
 
-    const unsigned int instanceCount = transforms.size();
-
+    // mesh data
     const std::vector<glm::vec2> &vertices = m.getVertices();
-    float *verticesPointer = (float *)glm::value_ptr(vertices[0]);
+    float *vertexArr = (float *)glm::value_ptr(vertices[0]);
 
     const std::vector<unsigned int> &indices = m.getIndices();
 
     const std::vector<glm::vec2> &uvs = m.getUvs();
-    float *uvsPointer = (float *)glm::value_ptr(uvs[0]);
+    float *uvArr = (float *)glm::value_ptr(uvs[0]);
 
     // create transforms and materials arrays
-    std::vector<glm::mat4> transformMatrices(instanceCount);
+    // vectors used so that stack overflow does not occur when instance count is too high
+    // vector allocates items on heap
+    std::vector<glm::mat4> transform(instanceCount);
     std::vector<glm::vec2> textureAtlasPos(instanceCount);
-    std::vector<unsigned int> textureUnits(instanceCount);
+    std::vector<unsigned int> textureUnit(instanceCount);
     std::vector<glm::vec2> textureSize(instanceCount);
-    std::vector<glm::vec4> colorsVec(instanceCount);
+    std::vector<glm::vec4> color(instanceCount);
 
     for (int i = 0; i < instanceCount; i++)
     {
-        transformMatrices[i] = transforms[i].getTransformationMatrix();
+        auto &t = registry.get<Core::Transform>(instances[i]);
+        auto &material = registry.get<Material>(instances[i]);
 
-        auto texture = materials[i]->getTexture();
+        transform[i] = t.getTransformationMatrix();
+
+        auto texture = material.getTexture();
         auto boundTexture = textureManager.bind(texture);
 
         textureAtlasPos[i] = boundTexture.posInAtlas;
-        textureUnits[i] = boundTexture.textureUnit;
+        textureUnit[i] = boundTexture.textureUnit;
         textureSize[i] = boundTexture.textureSize;
-        colorsVec[i] = materials[i]->getColor().getColor();
+        color[i] = material.getColor().getColor();
     }
 
     instancedMeshShader.use();
@@ -166,50 +232,47 @@ void Rendering::Renderer::instancedMesh(const Mesh2D &m, const std::vector<Core:
     float *atlasPosArr = (float *)glm::value_ptr(textureAtlasPos[0]);
     instancedMeshShader.setAttrib("aTextureAtlasPos", atlasPosArr, instanceCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
 
-    unsigned int *textureUnitsArr = &textureUnits[0];
-    instancedMeshShader.setAttrib("aTextureUnit", textureUnitsArr, instanceCount, 1, GL_UNSIGNED_INT, false, 0, GL_DYNAMIC_DRAW, 1);
+    unsigned int *textureUnitArr = &textureUnit[0];
+    instancedMeshShader.setAttrib("aTextureUnit", textureUnitArr, instanceCount, 1, GL_UNSIGNED_INT, false, 0, GL_DYNAMIC_DRAW, 1);
 
     float *textureSizeArr = (float *)glm::value_ptr(textureSize[0]);
     instancedMeshShader.setAttrib("aTextureSize", textureSizeArr, instanceCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
 
-    float *colorsArr = (float *)glm::value_ptr(colorsVec[0]);
-    instancedMeshShader.setAttrib("aColor", colorsArr, instanceCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
+    float *colorArr = (float *)glm::value_ptr(color[0]);
+    instancedMeshShader.setAttrib("aColor", colorArr, instanceCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
 
-    float *transformsArr = (float *)glm::value_ptr(transformMatrices[0]);
-    instancedMeshShader.setAttrib("aTransform", transformsArr, instanceCount * 16, 16, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1, 4);
+    float *transformArr = (float *)glm::value_ptr(transform[0]);
+    instancedMeshShader.setAttrib("aTransform", transformArr, instanceCount * 16, 16, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1, 4);
 
     // vertices and indices
-    instancedMeshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    instancedMeshShader.setAttrib("aPos", vertexArr, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
     instancedMeshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
 
-    instancedMeshShader.setAttrib("aTexCoord", uvsPointer, uvs.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    instancedMeshShader.setAttrib("aTexCoord", uvArr, uvs.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
 
     instancedMeshShader.drawInstanced(instanceCount, GL_TRIANGLES, indices.size());
     instancedMeshShader.unbind();
 };
 
-void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D *> &meshs, const std::vector<Core::Transform *> &transforms, const std::vector<Material *> &materials)
+void Rendering::Renderer::batch(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables)
 {
-    if (meshs.size() != transforms.size() || meshs.size() != materials.size())
-    {
-        throw std::runtime_error("Renderer (batchedMesh): meshs, transforms and materials must have the same size.");
-    }
+    auto now = Rendering::timeSinceEpochMillisec();
 
-    if (meshs.size() == 0)
-    {
-        return;
-    }
+    // get number of vertices and indices
+    size_t verticesCount = 0;
+    size_t indicesCount = 0;
 
-    int verticesCount = 0;
-    int indicesCount = 0;
-
-    for (size_t i = 0; i < meshs.size(); i++)
+    for (auto &e : renderables)
     {
-        auto m = *meshs[i];
+        auto &m = registry.get<Mesh2D>(e);
+
         verticesCount += m.getVertices().size();
         indicesCount += m.getIndices().size();
     }
 
+    // create vertices and indices arrays
+    // vectors used so that stack overflow does not occur when instance count is too high
+    // vector allocates items on heap
     std::vector<glm::vec4> batchedVertices(verticesCount);
     std::vector<unsigned int> batchedIndices(indicesCount);
 
@@ -224,24 +287,27 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D *> &meshs, const 
     int verticesOffset = 0;
     int indicesOffset = 0;
 
-    for (int i = 0; i < meshs.size(); i++)
+    // fill arrays with mesh and material data
+    for (auto &e : renderables)
     {
-        const auto m = *meshs[i];
-        const auto transform = *transforms[i];
-        const auto &color = materials[i]->getColor().getColor();
+        const auto &mesh = registry.get<Mesh2D>(e);
 
-        const std::vector<glm::vec2> &vertices = m.getVertices();
-        const std::vector<unsigned int> &indices = m.getIndices();
-        const std::vector<glm::vec2> &uvs = m.getUvs();
-
+        const auto &transform = registry.get<Core::Transform>(e);
         auto &transformMatrix = transform.getTransformationMatrix();
+
+        const auto &material = registry.get<Material>(e);
+        const auto color = material.getColor().getColor();
+
+        const auto texture = material.getTexture();
+        const auto boundTexture = textureManager.bind(texture);
+
+        const std::vector<glm::vec2> &vertices = mesh.getVertices();
+        const std::vector<unsigned int> &indices = mesh.getIndices();
+        const std::vector<glm::vec2> &uvs = mesh.getUvs();
 
         for (int i = 0; i < vertices.size(); i++)
         {
             batchedVertices[verticesOffset + i] = transformMatrix * glm::vec4(vertices[i], 0.0f, 1.0f);
-
-            auto texture = materials[i]->getTexture();
-            auto boundTexture = textureManager.bind(texture);
 
             batchedAtlasPos[verticesOffset + i] = boundTexture.posInAtlas;
 
@@ -261,6 +327,12 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D *> &meshs, const 
         indicesOffset += indices.size();
     }
 
+    std::cout << "batch time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+
+    now = Rendering::timeSinceEpochMillisec();
+
+    // set up shader variables
+    // and draw
     batchedMeshShader.use();
 
     batchedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
@@ -268,18 +340,20 @@ void Rendering::Renderer::batchedMesh(const std::vector<Mesh2D *> &meshs, const 
     auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
     batchedMeshShader.setUniform("uTextureAtlasSize", &atlasSize);
 
-    batchedMeshShader.setAttrib("aTextureAtlasPos", (float *)glm::value_ptr(batchedAtlasPos[0]), batchedAtlasPos.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    batchedMeshShader.setAttrib("aTextureUnit", &batchedTextureUnits[0], batchedTextureUnits.size(), 1, GL_UNSIGNED_INT, false, 0, GL_DYNAMIC_DRAW);
-    batchedMeshShader.setAttrib("aTextureSize", (float *)glm::value_ptr(batchedTextureSizes[0]), batchedTextureSizes.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    batchedMeshShader.setAttrib("aTexCoord", (float *)glm::value_ptr(batchedTexCoords[0]), batchedTexCoords.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aTextureAtlasPos", (float *)glm::value_ptr(batchedAtlasPos[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aTextureUnit", &batchedTextureUnits[0], verticesCount, 1, GL_UNSIGNED_INT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aTextureSize", (float *)glm::value_ptr(batchedTextureSizes[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aTexCoord", (float *)glm::value_ptr(batchedTexCoords[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
 
-    batchedMeshShader.setAttrib("aColor", (float *)glm::value_ptr(batchedColors[0]), batchedColors.size() * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aColor", (float *)glm::value_ptr(batchedColors[0]), verticesCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
 
-    batchedMeshShader.setAttrib("aPos", (float *)glm::value_ptr(batchedVertices[0]), batchedVertices.size() * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    batchedMeshShader.setIndices("aPos", &batchedIndices[0], batchedIndices.size(), GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aPos", (float *)glm::value_ptr(batchedVertices[0]), verticesCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setIndices("aPos", &batchedIndices[0], indicesCount, GL_DYNAMIC_DRAW);
 
-    batchedMeshShader.draw(GL_TRIANGLES, batchedIndices.size());
+    batchedMeshShader.draw(GL_TRIANGLES, indicesCount);
     batchedMeshShader.unbind();
+
+    std::cout << "draw time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 }
 
 void Rendering::Renderer::setClearColor(const Color &color)

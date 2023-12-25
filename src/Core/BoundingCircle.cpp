@@ -2,6 +2,13 @@
 
 #include <stdexcept>
 
+Core::BoundingCircle::BoundingCircle()
+{
+    centre = glm::vec2(0, 0);
+    radius = 0.0f;
+    sqrRadius = 0.0f;
+}
+
 Core::BoundingCircle::BoundingCircle(glm::vec2 centre, float radius)
 {
     set(centre, radius);

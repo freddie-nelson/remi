@@ -5,6 +5,7 @@
 #include "../include/Rendering/Utility/Timestep.h"
 #include "../include/Core/Transform.h"
 #include "../include/Core/BoundingCircle.h"
+#include "../include/Rendering/Renderable.h"
 
 #include <math.h>
 #include <random>
@@ -67,9 +68,9 @@ int Application::init()
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // create entities
-    int entityCount = 10000;
-    int xRange = (initialWindowWidth * 10);
-    int yRange = (initialWindowHeight * 10);
+    int entityCount = 50000;
+    int xRange = (initialWindowWidth * entityCount / 1000);
+    int yRange = (initialWindowHeight * entityCount / 1000);
 
     for (int i = 0; i < entityCount; i++)
     {
@@ -78,6 +79,7 @@ int Application::init()
         auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 50 + 25), static_cast<unsigned int>(rand() % 13 + 3)));
         auto &t = registry.add(e, Core::Transform());
         auto &material = registry.add(e, Rendering::Material());
+        auto &renderable = registry.add(e, Rendering::Renderable{true, true});
 
         t.setZIndex(rand() % 10);
         t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
@@ -169,56 +171,60 @@ void Application::render(Rendering::Renderer *renderer)
     // auto resolution = window->getSize();
 
     // render all entities with a mesh, transform and color component
-    auto now = Rendering::timeSinceEpochMillisec();
-    auto &renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Material>();
+    // auto now = Rendering::timeSinceEpochMillisec();
+    // auto &renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Material>();
     // std::cout << "registry search time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
-    auto &cameraAABB = renderer->getCamera().getAABB();
-    auto cameraBoundingCircle = Core::BoundingCircle(cameraAABB);
-    Core::BoundingCircle entityBoundingCircle(glm::vec2(0), 0);
+    // auto &cameraAABB = renderer->getCamera().getAABB();
+    // auto cameraBoundingCircle = Core::BoundingCircle(cameraAABB);
+    // Core::BoundingCircle entityBoundingCircle(glm::vec2(0), 0);
 
-    std::vector<Rendering::Mesh2D *> meshs(renderables.size());
-    std::vector<Core::Transform *> transforms(renderables.size());
-    std::vector<Rendering::Material *> materials(renderables.size());
+    // std::vector<Rendering::Mesh2D *> meshs(renderables.size());
+    // std::vector<Core::Transform *> transforms(renderables.size());
+    // std::vector<Rendering::Material *> materials(renderables.size());
 
-    now = Rendering::timeSinceEpochMillisec();
-    size_t j = 0;
+    // now = Rendering::timeSinceEpochMillisec();
+    // size_t j = 0;
 
-    for (size_t i = 0; i < renderables.size(); i++)
-    {
-        auto &m = registry.get<Rendering::Mesh2D>(renderables[i]);
-        auto &t = registry.get<Core::Transform>(renderables[i]);
-
-        entityBoundingCircle.set(m.getAABB(), t);
-        if (!cameraBoundingCircle.intersects(entityBoundingCircle))
-        {
-            continue;
-        }
-
-        meshs[j] = &m;
-        transforms[j] = &t;
-
-        auto &mat = registry.get<Rendering::Material>(renderables[i]);
-        materials[j] = &mat;
-
-        j++;
-    }
-
-    meshs.resize(j);
-    transforms.resize(j);
-    materials.resize(j);
-
-    std::cout << "registry get time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
-
-    // single mesh
     // for (size_t i = 0; i < renderables.size(); i++)
     // {
-    //     renderer->mesh(meshs[i], transforms[i], materials[i]);
+    //     auto &m = registry.get<Rendering::Mesh2D>(renderables[i]);
+    //     auto &t = registry.get<Core::Transform>(renderables[i]);
+
+    //     entityBoundingCircle.set(m.getAABB(), t);
+    //     if (!cameraBoundingCircle.intersects(entityBoundingCircle))
+    //     {
+    //         continue;
+    //     }
+
+    //     meshs[j] = &m;
+    //     transforms[j] = &t;
+
+    //     auto &mat = registry.get<Rendering::Material>(renderables[i]);
+    //     materials[j] = &mat;
+
+    //     j++;
     // }
 
-    // instancing
-    // renderer->instancedMesh(meshs[0], transforms, materials);
+    // meshs.resize(j);
+    // transforms.resize(j);
+    // materials.resize(j);
 
-    // batching
-    renderer->batchedMesh(meshs, transforms, materials);
+    // std::cout << "registry get time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+
+    // // single mesh
+    // // for (size_t i = 0; i < renderables.size(); i++)
+    // // {
+    // //     renderer->mesh(meshs[i], transforms[i], materials[i]);
+    // // }
+
+    // // instancing
+    // // renderer->instancedMesh(meshs[0], transforms, materials);
+
+    // // batching
+    // renderer->batchedMesh(meshs, transforms, materials);
+
+    // std::cout << "rendered " << j << " of " << renderables.size() << " entities." << std::endl;
+
+    renderer->update(registry, 0);
 }

@@ -20,6 +20,11 @@ namespace Core
     {
     public:
         /**
+         * Creates a bounding circle with the centre at (0, 0) and radius 0.
+         */
+        BoundingCircle();
+
+        /**
          * Creates a bounding circle with the given centre and radius.
          *
          * @param centre The centre of the circle.

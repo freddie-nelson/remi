@@ -32,6 +32,7 @@ void Core::Transform::setZIndex(unsigned int zIndex)
 
     this->zIndex = zIndex;
     isTransformDirty = true;
+    propertyChanges.zIndexChanges++;
 }
 
 unsigned int Core::Transform::getZIndex() const
@@ -43,18 +44,21 @@ void Core::Transform::move(glm::vec2 move)
 {
     translation += move;
     isTransformDirty = true;
+    propertyChanges.translationChanges++;
 }
 
 void Core::Transform::translate(glm::vec2 translation)
 {
     this->translation += translation;
     isTransformDirty = true;
+    propertyChanges.translationChanges++;
 }
 
 void Core::Transform::setTranslation(glm::vec2 translation)
 {
     this->translation = translation;
     isTransformDirty = true;
+    propertyChanges.translationChanges++;
 }
 
 glm::vec2 Core::Transform::getTranslation() const
@@ -66,18 +70,21 @@ void Core::Transform::scale(glm::vec2 scale)
 {
     this->scaleVec *= scale;
     isTransformDirty = true;
+    propertyChanges.scaleChanges++;
 }
 
 void Core::Transform::scale(float scale)
 {
     this->scaleVec *= scale;
     isTransformDirty = true;
+    propertyChanges.scaleChanges++;
 }
 
 void Core::Transform::setScale(glm::vec2 scale)
 {
     this->scaleVec = scale;
     isTransformDirty = true;
+    propertyChanges.scaleChanges++;
 }
 
 glm::vec2 Core::Transform::getScale() const
@@ -89,6 +96,7 @@ void Core::Transform::setShear(glm::vec2 shear)
 {
     this->shear = shear;
     isTransformDirty = true;
+    propertyChanges.shearChanges++;
 }
 
 glm::vec2 Core::Transform::getShear() const
@@ -100,17 +108,24 @@ void Core::Transform::rotate(float rotation)
 {
     this->rotation += rotation;
     isTransformDirty = true;
+    propertyChanges.rotationChanges++;
 }
 
 void Core::Transform::setRotation(float rotation)
 {
     this->rotation = rotation;
     isTransformDirty = true;
+    propertyChanges.rotationChanges++;
 }
 
 float Core::Transform::getRotation() const
 {
     return rotation;
+}
+
+const Core::Transform::PropertyChanges &Core::Transform::getPropertyChanges() const
+{
+    return propertyChanges;
 }
 
 const glm::mat4 &Core::Transform::getTransformationMatrix() const

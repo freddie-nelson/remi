@@ -58,7 +58,7 @@ namespace ECS
          * @returns A vector of entities with the given components.
          */
         template <typename... Types>
-        const std::vector<Entity> &view()
+        const std::vector<Entity> &view() const
         {
             std::set<ComponentId> cacheKey = {ComponentIdGenerator::id<Types>...};
 
@@ -141,7 +141,7 @@ namespace ECS
          * @returns A reference to the component.
          */
         template <typename T>
-        T &get(Entity entity)
+        T &get(Entity entity) const
         {
             if (!hasComponentPool<T>())
             {
@@ -161,7 +161,7 @@ namespace ECS
          * @returns Whether or not the entity has the component.
          */
         template <typename T>
-        bool has(Entity entity)
+        bool has(Entity entity) const
         {
             if (!hasComponentPool<T>())
             {
@@ -181,7 +181,7 @@ namespace ECS
     private:
         std::vector<Entity> entities;
 
-        std::unordered_map<ComponentId, SparseSetBase *> componentPools;
+        mutable std::unordered_map<ComponentId, SparseSetBase *> componentPools;
 
         /**
          * The cached entity views.
@@ -190,7 +190,7 @@ namespace ECS
          *
          * The value is a vector of entities that have all the components in the key.
          */
-        boost::unordered_map<std::set<ComponentId>, std::vector<Entity>> cachedViews;
+        mutable boost::unordered_map<std::set<ComponentId>, std::vector<Entity>> cachedViews;
 
         /**
          * Invalidates the cached entity views for the given component.
@@ -221,7 +221,7 @@ namespace ECS
          * @param depth The depth of the recursion.
          */
         template <typename T, typename... Types>
-        void viewHelper(TypeList<T, Types...> t, std::unordered_set<Entity> &entitySet, int depth = 0)
+        void viewHelper(TypeList<T, Types...> t, std::unordered_set<Entity> &entitySet, int depth = 0) const
         {
             viewHelper<T>(TypeList<T>{}, entitySet, depth);
             viewHelper<Types...>(TypeList<Types...>{}, entitySet, depth + 1);
@@ -238,7 +238,7 @@ namespace ECS
          * @param depth The depth of the recursion.
          */
         template <typename T>
-        void viewHelper(TypeList<T> t, std::unordered_set<Entity> &entitySet, int depth = 0)
+        void viewHelper(TypeList<T> t, std::unordered_set<Entity> &entitySet, int depth = 0) const
         {
             // no possible matches
             if (!hasComponentPool<T>())
@@ -313,7 +313,7 @@ namespace ECS
          * @returns A reference to the component pool.
          */
         template <typename T>
-        SparseSet<T> &getComponentPool()
+        SparseSet<T> &getComponentPool() const
         {
             ComponentId componentId = ComponentIdGenerator::id<T>;
 
@@ -333,7 +333,7 @@ namespace ECS
          * @returns Whether or not the registry has a component pool for the given component type.
          */
         template <typename T>
-        bool hasComponentPool()
+        bool hasComponentPool() const
         {
             ComponentId componentId = ComponentIdGenerator::id<T>;
 
