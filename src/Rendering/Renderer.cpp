@@ -55,12 +55,9 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
 
     auto now = Rendering::timeSinceEpochMillisec();
 
-    // find entities within camera view
-    std::vector<ECS::Entity> renderables(entities.size());
-    auto cameraAABB = camera.getAABB();
-    auto cameraBoundingCircle = Core::BoundingCircle(cameraAABB);
-
-    size_t toRender = 0;
+    auto cameraAabb = camera.getAABB();
+    auto cameraBoundingCircle = Core::BoundingCircle(cameraAabb);
+    auto fatCameraAabb = Core::AABB(cameraBoundingCircle.getCentre(), cameraBoundingCircle.getRadius());
 
     for (auto &e : entities)
     {
@@ -70,34 +67,41 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
             continue;
         }
 
-        if (renderable.isStatic && staticRenderables.contains(e) && !staticRenderables[e].intersects(cameraBoundingCircle))
+        if (!renderable.isStatic)
         {
+            // check if entity was previously static
+            if (staticRenderables.contains(e))
+            {
+                staticRenderablesTree.remove(e);
+
+                delete staticRenderables[e];
+                staticRenderables.erase(e);
+            }
+
             continue;
         }
 
-        auto &mesh = registry.get<Mesh2D>(e);
-        auto &transform = registry.get<Core::Transform>(e);
-
-        auto entityBoundingCircle = Core::BoundingCircle(mesh.getAABB(), transform);
-
-        if (entityBoundingCircle.intersects(cameraBoundingCircle))
+        // update entity in tree
+        if (staticRenderables.contains(e))
         {
-            renderables[toRender] = e;
-            toRender++;
+            // auto &aabb = staticRenderables[e];
+            // staticRenderablesTree.update(e, aabb);
         }
-
-        if (renderable.isStatic)
+        // add entity to tree
+        else
         {
-            staticRenderables.emplace(e, std::move(entityBoundingCircle));
+            auto &transform = registry.get<Core::Transform>(e);
+            auto &mesh = registry.get<Mesh2D>(e);
+
+            auto boundingCircle = Core::BoundingCircle(mesh.getAABB(), transform);
+            auto aabb = new Core::AABB(boundingCircle.getCentre(), boundingCircle.getRadius());
+
+            staticRenderablesTree.insert(e, *aabb);
+            staticRenderables[e] = aabb;
         }
     }
 
-    if (toRender == 0)
-    {
-        return;
-    }
-
-    renderables.resize(toRender);
+    auto renderables = staticRenderablesTree.query(fatCameraAabb);
 
     std::cout << "cull time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 

@@ -68,7 +68,7 @@ int Application::init()
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // create entities
-    int entityCount = 10000;
+    int entityCount = 100000;
     int xRange = (initialWindowWidth * entityCount / 500);
     int yRange = (initialWindowHeight * entityCount / 500);
 

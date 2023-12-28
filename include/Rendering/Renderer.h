@@ -9,6 +9,7 @@
 #include "../ECS/System.h"
 #include "../ECS/Entity.h"
 #include "../Core/BoundingCircle.h"
+#include "../Core/AABB/AABBTree.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -252,9 +253,14 @@ namespace Rendering
         int height;
 
         /**
-         * Static renderables and their previously computed bounding circles.
+         * Static renderables and their previously computed aabbs.
          */
-        std::unordered_map<ECS::Entity, Core::BoundingCircle> staticRenderables;
+        std::unordered_map<ECS::Entity, Core::AABB *> staticRenderables;
+
+        /**
+         * The AABB tree for static renderables.
+         */
+        Core::AABBTree<ECS::Entity> staticRenderablesTree;
 
         /**
          * The view projection matrix.

@@ -5,6 +5,8 @@
 
 namespace Core
 {
+    class BoundingCircle;
+
     /**
      * Represents an axis aligned bounding box.
      */
@@ -35,7 +37,17 @@ namespace Core
          *
          * @param points The points to create the AABB for.
          */
-        AABB(std::vector<glm::vec2> points);
+        AABB(const std::vector<glm::vec2> &points);
+
+        /**
+         * Creates a new AABB.
+         *
+         * The AABB will be the minimum AABB that contains the given circle.
+         *
+         * @param centre The centre of the circle.
+         * @param radius The radius of the circle.
+         */
+        AABB(const glm::vec2 &centre, float radius);
 
         /**
          * Gets the minimum point of the AABB.
@@ -72,9 +84,21 @@ namespace Core
         /**
          * Sets the AABB from the given points.
          *
+         * The AABB will be the minimum AABB that contains all of the given points.
+         *
          * @param points The points to create the AABB from.
          */
-        void setFromPoints(std::vector<glm::vec2> points);
+        void setFromPoints(const std::vector<glm::vec2> &points);
+
+        /**
+         * Sets the AABB from the given circle.
+         *
+         * The AABB will be the minimum AABB that contains the given circle.
+         *
+         * @param centre The centre of the circle.
+         * @param radius The radius of the circle.
+         */
+        void setFromCircle(const glm::vec2 &centre, float radius);
 
         /**
          * Gets the width of the AABB.
