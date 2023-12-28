@@ -59,7 +59,8 @@ int Application::init()
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
 
-    // auto renderer = window->getRenderer();
+    auto renderer = window->getRenderer();
+    renderer->enableAlphaBlending(true);
     // renderer->setClearColor(clearColor);
 
     // window->syncRendererSize(false);
@@ -68,7 +69,7 @@ int Application::init()
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // create entities
-    int entityCount = 100000;
+    int entityCount = 1000;
     int xRange = (initialWindowWidth * entityCount / 500);
     int yRange = (initialWindowHeight * entityCount / 500);
 

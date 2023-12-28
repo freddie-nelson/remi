@@ -14,6 +14,7 @@
 #include <math.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <utility>
+#include <algorithm>
 
 Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height), camera(Camera(width, height))
 {
@@ -59,52 +60,34 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
     auto cameraBoundingCircle = Core::BoundingCircle(cameraAabb);
     auto fatCameraAabb = Core::AABB(cameraBoundingCircle.getCentre(), cameraBoundingCircle.getRadius());
 
-    for (auto &e : entities)
+    std::vector<ECS::Entity> renderables;
+
+    // cull static renderables
+    auto dynamicsCount = getRenderables(registry, entities, fatCameraAabb, false, renderables);
+
+    // cull dynamic renderables
+    if (dynamicsCount > 0)
+        getRenderables(registry, entities, fatCameraAabb, true, renderables);
+
+    // prune trees
+    framesSinceLastTreePrune++;
+    if (framesSinceLastTreePrune == treePruneFrequency)
     {
-        auto &renderable = registry.get<Renderable>(e);
-        if (!renderable.isVisible)
-        {
-            continue;
-        }
-
-        if (!renderable.isStatic)
-        {
-            // check if entity was previously static
-            if (staticRenderables.contains(e))
-            {
-                staticRenderablesTree.remove(e);
-
-                delete staticRenderables[e];
-                staticRenderables.erase(e);
-            }
-
-            continue;
-        }
-
-        // update entity in tree
-        if (staticRenderables.contains(e))
-        {
-            // auto &aabb = staticRenderables[e];
-            // staticRenderablesTree.update(e, aabb);
-        }
-        // add entity to tree
-        else
-        {
-            auto &transform = registry.get<Core::Transform>(e);
-            auto &mesh = registry.get<Mesh2D>(e);
-
-            auto boundingCircle = Core::BoundingCircle(mesh.getAABB(), transform);
-            auto aabb = new Core::AABB(boundingCircle.getCentre(), boundingCircle.getRadius());
-
-            staticRenderablesTree.insert(e, *aabb);
-            staticRenderables[e] = aabb;
-        }
+        pruneTrees(registry);
+        framesSinceLastTreePrune = 0;
     }
-
-    auto renderables = staticRenderablesTree.query(fatCameraAabb);
 
     std::cout << "cull time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
+    now = Rendering::timeSinceEpochMillisec();
+
+    // sort renderables by z index
+    if (isAlphaBlendingEnabled())
+        sortRenderables(registry, renderables);
+
+    std::cout << "sort time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+
+    // batch render renderables
     batch(registry, renderables);
 }
 
@@ -360,6 +343,19 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const std::vector
     std::cout << "draw time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 }
 
+void Rendering::Renderer::sortRenderables(const ECS::Registry &registry, std::vector<ECS::Entity> &renderables)
+{
+    std::unordered_map<ECS::Entity, unsigned int> zIndices;
+    for (auto &e : renderables)
+    {
+        auto &transform = registry.get<Core::Transform>(e);
+        zIndices.emplace(e, transform.getZIndex());
+    }
+
+    std::sort(renderables.begin(), renderables.end(), [&zIndices](const ECS::Entity &a, const ECS::Entity &b)
+              { return zIndices[a] < zIndices[b]; });
+}
+
 void Rendering::Renderer::setClearColor(const Color &color)
 {
     clearColor = color;
@@ -471,4 +467,115 @@ bool Rendering::Renderer::getSyncCameraSize() const
 void Rendering::Renderer::updateViewProjectionMatrix()
 {
     viewProjectionMatrix = camera.getViewProjectionMatrix();
+}
+
+void Rendering::Renderer::pruneTrees(const ECS::Registry &registry)
+{
+    auto staticTreeEntities = staticRenderablesTree.getIds();
+    for (auto &e : staticTreeEntities)
+    {
+        if (!registry.has<Renderable>(e))
+        {
+            staticRenderablesTree.remove(e);
+            staticRenderables.erase(e);
+        }
+    }
+
+    auto dynamicTreeEntities = dynamicRenderablesTree.getIds();
+    for (auto &e : dynamicTreeEntities)
+    {
+        if (!registry.has<Renderable>(e))
+        {
+            dynamicRenderablesTree.remove(e);
+            dynamicRenderables.erase(e);
+        }
+    }
+}
+
+size_t Rendering::Renderer::getRenderables(const ECS::Registry &registry, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables)
+{
+    size_t otherCount = 0;
+
+    for (auto &e : entities)
+    {
+        auto &renderable = registry.get<Renderable>(e);
+        if (!renderable.isVisible)
+        {
+            continue;
+        }
+
+        if (isStatic && !renderable.isStatic)
+        {
+            // check if entity was previously static
+            if (staticRenderables.contains(e))
+            {
+                staticRenderablesTree.remove(e);
+                staticRenderables.erase(e);
+            }
+
+            otherCount++;
+
+            continue;
+        }
+
+        if (!isStatic && renderable.isStatic)
+        {
+            // check if entity was previously dynamic
+            if (dynamicRenderables.contains(e))
+            {
+                dynamicRenderablesTree.remove(e);
+                dynamicRenderables.erase(e);
+            }
+
+            otherCount++;
+
+            continue;
+        }
+
+        // skip if already in tree and is static
+        if (isStatic && staticRenderables.contains(e))
+        {
+            continue;
+        }
+
+        auto &transform = registry.get<Core::Transform>(e);
+        auto &mesh = registry.get<Mesh2D>(e);
+
+        auto boundingCircle = Core::BoundingCircle(mesh.getAABB(), transform);
+        auto aabb = Core::AABB(boundingCircle.getCentre(), boundingCircle.getRadius());
+
+        if (dynamicRenderablesTree.has(e))
+        {
+            bool updated = dynamicRenderablesTree.update(e, aabb);
+            if (updated)
+            {
+                dynamicRenderables.emplace(e, std::move(aabb));
+            }
+
+            continue;
+        }
+
+        if (isStatic)
+        {
+            staticRenderables.emplace(e, std::move(aabb));
+            staticRenderablesTree.insert(e, staticRenderables[e]);
+        }
+        else
+        {
+            dynamicRenderables.emplace(e, std::move(aabb));
+            dynamicRenderablesTree.insert(e, dynamicRenderables[e]);
+        }
+    }
+
+    // get entities in view
+    if (isStatic)
+    {
+        staticRenderablesTree.query(viewAabb, renderables);
+    }
+    else
+    {
+        dynamicRenderablesTree.query(viewAabb, renderables);
+    }
+
+    return otherCount;
 }

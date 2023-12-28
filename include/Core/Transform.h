@@ -12,7 +12,7 @@ namespace Core
      * The transform is the combined rotation, scale, shear, translation and zIndex matrix. See [here](https://en.wikipedia.org/wiki/Transformation_matrix#Examples_in_2_dimensions) for an explanation.
      *
      * The default zIndex is 0. A higher zIndex means the mesh will be rendered above meshes with a lower zIndex.
-     * A higher zIndex is 'closer' to the camera. 0 is the lowest zIndex and will be rendered below everying, whereas `Config::MAX_Z_INDEX` is the largest z index and will be rendered above everything.
+     * A higher zIndex is 'closer' to the camera. 0 is the lowest zIndex and will be rendered below everything, whereas `Config::MAX_Z_INDEX` is the largest z index and will be rendered above everything.
      *
      * This can be used as an entity component.
      */

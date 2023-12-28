@@ -43,12 +43,21 @@ namespace ECS
          *
          * @param entity The entity to destroy.
          */
-        void destroy(Entity &entity);
+        void destroy(Entity entity);
 
         /**
          * Destroys all entities and all components.
          */
         void destroyAll();
+
+        /**
+         * Returns whether or not the registry has the given entity.
+         *
+         * @param entity The entity to check.
+         *
+         * @returns Whether or not the registry has the given entity.
+         */
+        bool has(Entity entity) const;
 
         /**
          * Gets all the entities that have the given components.
@@ -179,8 +188,21 @@ namespace ECS
         std::vector<Entity> &getAllEntities();
 
     private:
+        /**
+         * The entities in the registry.
+         */
         std::vector<Entity> entities;
 
+        /**
+         * The entities in the registry as a set.
+         */
+        std::unordered_set<Entity> entitiesSet;
+
+        /**
+         * The component pools.
+         *
+         * These store sparse sets of components for each component type.
+         */
         mutable std::unordered_map<ComponentId, SparseSetBase *> componentPools;
 
         /**

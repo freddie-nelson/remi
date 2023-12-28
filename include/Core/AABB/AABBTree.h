@@ -4,6 +4,7 @@
 #include "./AABBTreeNode.h"
 
 #include <unordered_map>
+#include <unordered_set>
 #include <stdexcept>
 #include <stack>
 
@@ -63,6 +64,7 @@ namespace Core
                 root->fatAabb = AABB(aabb.getMin() - margin, aabb.getMax() + margin);
 
                 leaves[id] = root;
+                ids.emplace(id);
 
                 return;
             }
@@ -74,6 +76,7 @@ namespace Core
             leaf->fatAabb = AABB(aabb.getMin() - margin, aabb.getMax() + margin);
 
             leaves[id] = leaf;
+            ids.emplace(id);
 
             AABBTreeNode<T> *node = root;
 
@@ -185,6 +188,8 @@ namespace Core
             }
 
             AABBTreeNode<T> *node = leaves[id];
+            leaves.erase(id);
+            ids.erase(id);
 
             // if the node is the root then we can just clear the root and return
             if (node == root)
@@ -288,7 +293,7 @@ namespace Core
          */
         bool has(T id) const
         {
-            return leaves.contains(id);
+            return ids.contains(id);
         }
 
         /**
@@ -331,6 +336,9 @@ namespace Core
             }
 
             root = nullptr;
+
+            leaves.clear();
+            ids.clear();
         }
 
         /**
@@ -353,20 +361,22 @@ namespace Core
             return root == nullptr;
         }
 
+        const std::unordered_set<T> &getIds() const
+        {
+            return ids;
+        }
+
         /**
          * Queries the tree for AABBs that overlap the given AABB.
          *
          * @param aabb The AABB to query for.
-         *
-         * @returns A vector of IDs of AABBs that overlap the given AABB.
+         * @param overlapping The vector to store the IDs of the overlapping AABBs in.
          */
-        std::vector<T> query(const AABB &aabb)
+        void query(const AABB &aabb, std::vector<T> &overlapping) const
         {
-            std::vector<T> overlapping;
-
             if (root == nullptr)
             {
-                return overlapping;
+                return;
             }
 
             std::stack<AABBTreeNode<T> *> nodes;
@@ -401,8 +411,6 @@ namespace Core
                     }
                 }
             }
-
-            return overlapping;
         }
 
     private:
@@ -420,6 +428,11 @@ namespace Core
          * The leaves of the tree.
          */
         std::unordered_map<T, AABBTreeNode<T> *> leaves;
+
+        /**
+         * The IDs of the AABBs in the tree.
+         */
+        std::unordered_set<T> ids;
 
         /**
          * Fixes the tree upwards from the given node.

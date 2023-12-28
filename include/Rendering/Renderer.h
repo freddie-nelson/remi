@@ -71,6 +71,10 @@ namespace Rendering
          *
          * Culls entities outside the camera's view.
          *
+         * This also prunes the AABB trees.
+         *
+         * This also sorts the renderables by their z index, when alpha blending is enabled.
+         *
          * @param registry The registry to render from.
          * @param dt The time since the last frame.
          */
@@ -118,6 +122,20 @@ namespace Rendering
          * @param renderables The entities to render, these entities must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
         void batch(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables);
+
+        /**
+         * Sorts the given renderables by their z index.
+         *
+         * The renderables are sorted in ascending order, i.e. the renderable with the lowest z index will be first in the vector.
+         *
+         * This insures that the renderables work correctly with alpha blending.
+         *
+         * The renderables are sorted in place.
+         *
+         * @param registry The registry to read components from.
+         * @param renderables The renderables to sort.
+         */
+        void sortRenderables(const ECS::Registry &registry, std::vector<ECS::Entity> &renderables);
 
         /**
          * Sets the clear color.
@@ -253,14 +271,58 @@ namespace Rendering
         int height;
 
         /**
+         * The number of frames to wait before pruning the AABB tree.
+         *
+         * Pruning involves removing entities that are no longer in the registry.
+         */
+        unsigned int treePruneFrequency = 60;
+
+        /**
+         * The number of frames since the last prune.
+         */
+        unsigned int framesSinceLastTreePrune = 0;
+
+        /**
+         * Prunes the AABB trees.
+         *
+         * This involves removing entities that are no longer in the registry.
+         *
+         * @param registry The registry to prune against.
+         */
+        void pruneTrees(const ECS::Registry &registry);
+
+        /**
          * Static renderables and their previously computed aabbs.
          */
-        std::unordered_map<ECS::Entity, Core::AABB *> staticRenderables;
+        std::unordered_map<ECS::Entity, Core::AABB> staticRenderables;
 
         /**
          * The AABB tree for static renderables.
          */
         Core::AABBTree<ECS::Entity> staticRenderablesTree;
+
+        /**
+         * Dynamic renderables and their previously computed aabbs.
+         */
+        std::unordered_map<ECS::Entity, Core::AABB> dynamicRenderables;
+
+        /**
+         * The AABB tree for dynamic renderables.
+         */
+        Core::AABBTree<ECS::Entity> dynamicRenderablesTree;
+
+        /**
+         * Populates the renderables vector with all the entities that are inside the given aabb.
+         *
+         * @param registry The registry to read components from.
+         * @param entities The entities to check.
+         * @param viewAabb The aabb to check against.
+         * @param isStatic When true only static entities will be checked, when false only non static entities are check.
+         * @param renderables The vector to populate with the entities that are inside the given aabb.
+         *
+         * @returns The number of entities of the other renderable type, i.e. returns number of static entities when isStatic is false, and vice versa.
+         */
+        size_t getRenderables(const ECS::Registry &registry, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
 
         /**
          * The view projection matrix.

@@ -16,11 +16,12 @@ ECS::Entity ECS::Registry::create()
 {
     auto entity = createEntity();
     entities.push_back(entity);
+    entitiesSet.insert(entity);
 
     return entity;
 }
 
-void ECS::Registry::destroy(Entity &entity)
+void ECS::Registry::destroy(Entity entity)
 {
     // remove entity from entities vector
     for (auto it = entities.begin(); it != entities.end(); it++)
@@ -32,6 +33,9 @@ void ECS::Registry::destroy(Entity &entity)
         }
     }
 
+    // remove entity from entities set
+    entitiesSet.erase(entity);
+
     // remove entity and its components from component pools
     for (auto &pair : componentPools)
     {
@@ -42,6 +46,7 @@ void ECS::Registry::destroy(Entity &entity)
 void ECS::Registry::destroyAll()
 {
     entities.clear();
+    entitiesSet.clear();
 
     for (auto &pair : componentPools)
     {
@@ -49,4 +54,9 @@ void ECS::Registry::destroyAll()
     }
 
     componentPools.clear();
+}
+
+bool ECS::Registry::has(Entity entity) const
+{
+    return entitiesSet.contains(entity);
 }
