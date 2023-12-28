@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Config.h"
-#include "../Core/AABB.h"
+#include "../Core/AABB/AABB.h"
 
 #include <glm/glm.hpp>
 #include <utility>

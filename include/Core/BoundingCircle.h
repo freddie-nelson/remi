@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./AABB.h"
+#include "./AABB/AABB.h"
 #include "./Transform.h"
 
 #include <glm/glm.hpp>

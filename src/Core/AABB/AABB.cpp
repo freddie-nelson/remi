@@ -1,4 +1,4 @@
-#include "../../include/Core/AABB.h"
+#include "../../../include/Core/AABB/AABB.h"
 
 #include <stdexcept>
 
@@ -33,6 +33,7 @@ void Core::AABB::setMin(glm::vec2 min)
 
     this->min = min;
     updateCentre();
+    updateSurfaceArea();
 }
 
 const glm::vec2 &Core::AABB::getMax() const
@@ -49,6 +50,7 @@ void Core::AABB::setMax(glm::vec2 max)
 
     this->max = max;
     updateCentre();
+    updateSurfaceArea();
 }
 
 void Core::AABB::setFromPoints(std::vector<glm::vec2> points)
@@ -105,7 +107,46 @@ const glm::vec2 &Core::AABB::getCentre() const
     return centre;
 }
 
+float Core::AABB::getSurfaceArea() const
+{
+    return surfaceArea;
+}
+
+Core::AABB Core::AABB::merge(const AABB &other)
+{
+    float minX = std::min(min.x, other.min.x);
+    float minY = std::min(min.y, other.min.y);
+    float maxX = std::max(max.x, other.max.x);
+    float maxY = std::max(max.y, other.max.y);
+
+    min = glm::vec2(minX, minY);
+    max = glm::vec2(maxX, maxY);
+
+    return AABB(min, max);
+}
+
+bool Core::AABB::contains(const AABB &other) const
+{
+    auto otherMin = other.getMin();
+    auto otherMax = other.getMax();
+
+    return otherMin.x >= min.x && otherMax.x <= max.x && otherMin.y >= min.y && otherMax.y <= max.y;
+}
+
+bool Core::AABB::overlaps(const AABB &other) const
+{
+    auto otherMin = other.getMin();
+    auto otherMax = other.getMax();
+
+    return max.x > otherMin.x && min.x < otherMax.x && max.y > otherMin.y && min.y < otherMax.y;
+}
+
 void Core::AABB::updateCentre()
 {
     centre = (min + max) / 2.0f;
+}
+
+void Core::AABB::updateSurfaceArea()
+{
+    surfaceArea = getWidth() * getHeight();
 }

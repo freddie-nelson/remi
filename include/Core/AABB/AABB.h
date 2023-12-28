@@ -31,7 +31,9 @@ namespace Core
         /**
          * Creates a new AABB.
          *
-         * @param points The points to create the AABB from.
+         * The AABB will be the minimum AABB that contains all of the given points.
+         *
+         * @param points The points to create the AABB for.
          */
         AABB(std::vector<glm::vec2> points);
 
@@ -89,6 +91,46 @@ namespace Core
          */
         const glm::vec2 &getCentre() const;
 
+        /**
+         * Gets the surface area of the AABB.
+         *
+         * @returns The surface area of the AABB.
+         */
+        float getSurfaceArea() const;
+
+        /**
+         * Merge this AABB with the given AABB.
+         *
+         * This will be the minimum AABB that contains both AABBs.
+         *
+         * This is also known as the union of the AABBs.
+         *
+         * @param other The AABB to merge with.
+         *
+         * @returns The merged AABB.
+         */
+        AABB merge(const AABB &other);
+
+        /**
+         * Checks if the given AABB is completely contained within this AABB.
+         *
+         * @param other The AABB to check.
+         *
+         * @returns True if the given AABB is completely contained within this AABB, false otherwise.
+         */
+        bool contains(const AABB &other) const;
+
+        /**
+         * Checks if the given AABB overlaps with this AABB.
+         *
+         * A touch is considered an overlap.
+         *
+         * @param other The AABB to check.
+         *
+         * @returns True if the given AABB overlaps with this AABB, false otherwise.
+         */
+        bool overlaps(const AABB &other) const;
+
     private:
         /**
          * The minimum point of the AABB.
@@ -109,5 +151,15 @@ namespace Core
          * Updates the centre of the AABB.
          */
         void updateCentre();
+
+        /**
+         * The surface area of the AABB.
+         */
+        float surfaceArea = 0;
+
+        /**
+         * Updates the surface area of the AABB.
+         */
+        void updateSurfaceArea();
     };
 }
