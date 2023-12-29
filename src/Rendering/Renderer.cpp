@@ -54,6 +54,12 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
 {
     auto &entities = registry.view<Mesh2D, Core::Transform, Material, Renderable>();
 
+    // exit if no entities
+    if (entities.size() == 0)
+    {
+        return;
+    }
+
     auto now = Rendering::timeSinceEpochMillisec();
 
     auto cameraAabb = camera.getAABB();
@@ -78,6 +84,12 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
     }
 
     std::cout << "cull time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+
+    // exit if no renderables
+    if (renderables.size() == 0)
+    {
+        return;
+    }
 
     now = Rendering::timeSinceEpochMillisec();
 
