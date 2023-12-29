@@ -112,8 +112,11 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
     std::cout << "sort time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
     // batch render
-    batch(registry, opaqueRenderables);
-    batch(registry, transparentRenderables);
+    if (opaqueRenderables.size() > 0)
+        batch(registry, opaqueRenderables);
+
+    if (transparentRenderables.size() > 0)
+        batch(registry, transparentRenderables);
 }
 
 void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer) const
