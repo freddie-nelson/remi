@@ -99,6 +99,15 @@ namespace Rendering
         void setTexture(Texture *texture);
 
         /**
+         * Gets whether the material is transparent or not.
+         *
+         * The material is transparent if the alpha value of the color is less than 1.0 or the texture has transparency.
+         *
+         * @returns Whether the material is transparent or not.
+         */
+        bool isTransparent() const;
+
+        /**
          * Copys the texture and color from the given material into this material.
          *
          * @param m The material to copy.

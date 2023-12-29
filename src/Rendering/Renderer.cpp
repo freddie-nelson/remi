@@ -81,14 +81,39 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
 
     now = Rendering::timeSinceEpochMillisec();
 
-    // sort renderables by z index
+    // split renderables
+    std::vector<ECS::Entity> opaqueRenderables;
+    std::vector<ECS::Entity> transparentRenderables;
+
     if (isAlphaBlendingEnabled())
-        sortRenderables(registry, renderables);
+    {
+        for (auto &e : renderables)
+        {
+            auto &material = registry.get<Material>(e);
+            if (material.isTransparent())
+            {
+                transparentRenderables.push_back(e);
+            }
+            else
+            {
+                opaqueRenderables.push_back(e);
+            }
+        }
+
+        // sort transparent renderables by z index (back to front)
+        // for correct alpha blending
+        sortRenderables(registry, transparentRenderables);
+    }
+    else
+    {
+        opaqueRenderables = renderables;
+    }
 
     std::cout << "sort time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
-    // batch render renderables
-    batch(registry, renderables);
+    // batch render
+    batch(registry, opaqueRenderables);
+    batch(registry, transparentRenderables);
 }
 
 void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer) const

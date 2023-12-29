@@ -13,6 +13,8 @@ namespace Rendering
          * Whether or not the entity is visible.
          *
          * If this is set to false, the entity will not be rendered by Renderer::update.
+         *
+         * You can still render the entity manually by calling Renderer::entity, Renderer::batch or Renderer::instance.
          */
         bool isVisible = true;
 
@@ -24,6 +26,8 @@ namespace Rendering
          * This is useful for entities that do not move, such as the background.
          *
          * The entity can still rotate and be culled safely, however it should not be translated, scaled or sheared.
+         *
+         * It's okay for entities to be changed from static to non-static and vice versa.
          */
         bool isStatic = false;
     };

@@ -68,6 +68,20 @@ void Rendering::Texture::fromFile(std::string path, bool flip)
         stbi_image_free(pixels);
 
         pixels = rgba;
+
+        hasTransparency = false;
+    }
+    else
+    {
+        // check if the image has transparency
+        for (int i = 3; i < w * h; i += 4)
+        {
+            if (pixels[i] < 255)
+            {
+                hasTransparency = true;
+                break;
+            }
+        }
     }
 
     width = w;
@@ -100,11 +114,22 @@ void Rendering::Texture::fromPixels(unsigned char *pixels, unsigned int width, u
     if (channels == 3)
     {
         this->pixels = toRGBA(pixels, width, height);
+        hasTransparency = false;
     }
     else
     {
         this->pixels = new unsigned char[width * height * channels];
         memcpy(this->pixels, pixels, width * height * channels);
+
+        // check if the image has transparency
+        for (int i = 3; i < width * height; i += 4)
+        {
+            if (this->pixels[i] < 255)
+            {
+                hasTransparency = true;
+                break;
+            }
+        }
     }
 
     this->width = width;
@@ -138,6 +163,11 @@ void Rendering::Texture::fromColor(Color color, unsigned int width, unsigned int
     this->width = width;
     this->height = height;
     this->channels = 4;
+
+    if (color.a() < 1.0f)
+    {
+        hasTransparency = true;
+    }
 }
 
 size_t Rendering::Texture::getId() const
@@ -163,6 +193,11 @@ unsigned int Rendering::Texture::getChannels() const
 unsigned char *Rendering::Texture::getPixels() const
 {
     return pixels;
+}
+
+bool Rendering::Texture::isTransparent() const
+{
+    return hasTransparency;
 }
 
 Rendering::Texture &Rendering::Texture::operator=(const Texture &t)

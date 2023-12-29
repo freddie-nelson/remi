@@ -88,6 +88,7 @@ int Application::init()
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
+        material.setColor(Rendering::Color(t.getZIndex() / 10.0f, 0.0f, 0.0f, t.getZIndex() / 10.0f));
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
 
         material.setTexture(texture);

@@ -138,6 +138,17 @@ namespace Rendering
         unsigned char *getPixels() const;
 
         /**
+         * Gets whether the texture has transparency or not.
+         *
+         * This is true if any of the pixels have an alpha value of less than 255.
+         *
+         * This is only calculated when the texture is created/changed.
+         *
+         * @returns Whether the texture has transparency or not.
+         */
+        bool isTransparent() const;
+
+        /**
          * Copys the pixels, width, height and channels from the given texture into this texture.
          *
          * @param t The texture to copy.
@@ -152,6 +163,8 @@ namespace Rendering
         unsigned int channels;
 
         unsigned char *pixels = nullptr;
+
+        bool hasTransparency = false;
 
         /**
          * Converts the given pixels to RGBA.

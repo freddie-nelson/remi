@@ -63,6 +63,11 @@ void Rendering::Material::setTexture(Rendering::Texture *texture)
     this->texture = texture;
 }
 
+bool Rendering::Material::isTransparent() const
+{
+    return color.a() < 1.0f || texture->isTransparent();
+}
+
 Rendering::Material &Rendering::Material::operator=(const Rendering::Material &m)
 {
     color = m.color;
