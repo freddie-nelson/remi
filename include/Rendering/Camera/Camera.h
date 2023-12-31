@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../Config.h"
-#include "../Core/AABB/AABB.h"
+#include "../../Config.h"
+#include "../../Core/AABB/AABB.h"
+#include "../../Core/Transform.h"
 
 #include <glm/glm.hpp>
 #include <utility>
@@ -18,6 +19,8 @@ namespace Rendering
      * Whereas increasing the camera's near plane above 0 will cause the camera to clip z indexes starting at `Config::MAX_Z_INDEX` and going down to 0.
      *
      * You can think of the clipping as happening in the reverse direction to the z index. Lower z indexes are clipped by the far plane and higher z indexes are clipped by the near plane.
+     *
+     * Increasing the camera's z index will move the camera further away from the scene (into the negative z axis) this will clip the furthest away entities i.e. starting at z index 0.
      */
     class Camera
     {
@@ -106,9 +109,15 @@ namespace Rendering
         /**
          * Gets the view projection matrix.
          *
+         * The width and height of the camera's viewport are affected by the transformation scale.
+         *
+         * The transforms shear is ignored.
+         *
+         * @param t The camera's transformation.
+         *
          * @returns the view projection matrix.
          */
-        glm::mat4 getViewProjectionMatrix() const;
+        glm::mat4 getViewProjectionMatrix(const Core::Transform &t) const;
 
         /**
          * Gets the AABB of the camera.
@@ -119,14 +128,22 @@ namespace Rendering
          */
         const Core::AABB &getAABB() const;
 
+        /**
+         * Gets the AABB of the camera after it has been scaled and translated by the given transformation.
+         *
+         * This is the AABB of the camera's viewport with no rotation.
+         *
+         * @param t The transformation to scale and translate the AABB by.
+         *
+         * @returns the AABB of the camera after it has been scaled and translated by the given transformation.
+         */
+        Core::AABB getScaledAndTranslatedAabb(const Core::Transform &t) const;
+
     private:
         float width;
         float height;
         float near;
         float far;
-
-        mutable bool isViewProjectionMatrixDirty = true;
-        mutable glm::mat4 viewProjectionMatrix;
 
         Core::AABB aabb;
 

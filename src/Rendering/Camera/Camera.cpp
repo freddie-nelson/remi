@@ -1,7 +1,8 @@
-#include "../../include/Rendering/Camera.h"
+#include "../../../include/Rendering/Camera/Camera.h"
 
 #include <glm/gtc/matrix_transform.hpp>
-#include "glm/gtx/string_cast.hpp"
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <stdexcept>
 #include <iostream>
 
@@ -84,29 +85,32 @@ std::pair<float, float> Rendering::Camera::getViewportSize() const
     return std::make_pair(width, height);
 }
 
-glm::mat4 Rendering::Camera::getViewProjectionMatrix() const
+glm::mat4 Rendering::Camera::getViewProjectionMatrix(const Core::Transform &t) const
 {
-    if (!isViewProjectionMatrixDirty)
-        return viewProjectionMatrix;
+    glm::vec3 centre = glm::vec3(t.getTranslation(), -t.getZIndex());
+    glm::vec3 up = glm::rotate(glm::vec3(0.0f, 1.0f, 0.0f), t.getRotation(), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    glm::vec3 centre = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-
-    auto &min = aabb.getMin();
-    auto &max = aabb.getMax();
+    auto min = aabb.getMin() * t.getScale();
+    auto max = aabb.getMax() * t.getScale();
 
     // camera is at 0.0f on the z axis looking towards z = far (looks towards positive z)
-    glm::mat4 viewMatrix = glm::lookAt(centre, glm::vec3(centre.x, centre.y, far), up);
+    glm::mat4 viewMatrix = glm::lookAt(centre, glm::vec3(centre.x, centre.y, far + 1.0f), up);
     glm::mat4 projectionMatrix = glm::ortho(min.x, max.x, min.y, max.y, near, far);
 
-    viewProjectionMatrix = projectionMatrix * viewMatrix;
-
-    return viewProjectionMatrix;
+    return projectionMatrix * viewMatrix;
 }
 
 const Core::AABB &Rendering::Camera::getAABB() const
 {
     return aabb;
+}
+
+Core::AABB Rendering::Camera::getScaledAndTranslatedAabb(const Core::Transform &t) const
+{
+    auto min = aabb.getMin() * t.getScale();
+    auto max = aabb.getMax() * t.getScale();
+
+    return Core::AABB(min + t.getTranslation(), max + t.getTranslation());
 }
 
 void Rendering::Camera::updateAABB()

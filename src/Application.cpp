@@ -6,6 +6,8 @@
 #include "../include/Core/Transform.h"
 #include "../include/Core/BoundingCircle.h"
 #include "../include/Rendering/Renderable.h"
+#include "../include/Rendering/Camera/Camera.h"
+#include "../include/Rendering/Camera/ActiveCamera.h"
 
 #include <math.h>
 #include <random>
@@ -64,14 +66,21 @@ int Application::init()
     // renderer->setClearColor(clearColor);
 
     // window->syncRendererSize(false);
+    // renderer->syncActiveCameraSize(true);
+
+    // create camera
+    auto camera = registry.create();
+    registry.add(camera, Rendering::Camera(window->getWidth(), window->getHeight()));
+    registry.add(camera, Core::Transform());
+    registry.add(camera, Rendering::ActiveCamera());
 
     // create texture
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // create entities
     int entityCount = 1000;
-    int xRange = (initialWindowWidth * entityCount / 500);
-    int yRange = (initialWindowHeight * entityCount / 500);
+    int xRange = (initialWindowWidth * std::sqrt(entityCount) / 10);
+    int yRange = (initialWindowHeight * std::sqrt(entityCount) / 10);
 
     for (int i = 0; i < entityCount; i++)
     {
@@ -88,7 +97,7 @@ int Application::init()
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
-        material.setColor(Rendering::Color(t.getZIndex() / 10.0f, 0.0f, 0.0f, t.getZIndex() / 10.0f));
+        material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, (t.getZIndex() + 1) / 10.0f));
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
 
         material.setTexture(texture);
@@ -147,7 +156,7 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     std::cout << "\rdt: " << dt << "          ";
 
     // move camera
-    auto &camera = renderer->getCamera();
+    auto camera = renderer->getActiveCamera(registry);
 
     double n = Rendering::timeSinceEpochMillisec() / 1000.0;
     float camX = sin(n) * 200.0f;
@@ -157,13 +166,16 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     // camera.rotate(std::numbers::pi * 0.5f * dt);
 
     // rotate all entities with a transform component
-    auto entities = registry.view<Core::Transform>();
+    // auto entities = registry.view<Core::Transform>();
 
-    for (auto &e : entities)
-    {
-        auto &t = registry.get<Core::Transform>(e);
-        t.rotate(-std::numbers::pi * 0.5f * dt);
-    }
+    // for (auto &e : entities)
+    // {
+    //     if (e == camera)
+    //         continue;
+
+    //     auto &t = registry.get<Core::Transform>(e);
+    //     t.rotate(-std::numbers::pi * 0.5f * dt);
+    // }
 
     render(renderer);
 }

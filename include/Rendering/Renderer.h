@@ -3,7 +3,6 @@
 #include "./Material/Material.h"
 #include "./Mesh/Mesh.h"
 #include "./Shader/Shader.h"
-#include "./Camera.h"
 #include "../Core/Transform.h"
 #include "./Texture/TextureManager.h"
 #include "../ECS/System.h"
@@ -96,9 +95,10 @@ namespace Rendering
          * This does not cull entities outside the camera's view.
          *
          * @param registry The registry to read components from.
+         * @param camera The camera to use for rendering.
          * @param entity The entity to render, this entity must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
-        void entity(const ECS::Registry &registry, ECS::Entity &entity);
+        void entity(const ECS::Registry &registry, const ECS::Entity camera, ECS::Entity &entity);
 
         /**
          * Renders the given entities using instanced rendering.
@@ -108,10 +108,11 @@ namespace Rendering
          * This does not cull entities outside the camera's view.
          *
          * @param registry The registry to read components from.
+         * @param camera The camera to use for rendering.
          * @param mesh The mesh to use for each entity.
          * @param instances The entities to render, these entities must have atleast a Core::Transform and a Rendering::Material component.
          */
-        void instance(const ECS::Registry &registry, const Rendering::Mesh2D &mesh, const std::vector<ECS::Entity> &instances);
+        void instance(const ECS::Registry &registry, const ECS::Entity camera, const Rendering::Mesh2D &mesh, const std::vector<ECS::Entity> &instances);
 
         /**
          * Batches the given entities and draws them to the screen.
@@ -119,9 +120,10 @@ namespace Rendering
          * This does not cull entities outside the camera's view.
          *
          * @param registry The registry to read components from.
+         * @param camera The camera to use for rendering.
          * @param renderables The entities to render, these entities must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
-        void batch(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables);
+        void batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables);
 
         /**
          * Sorts the given renderables by their z index.
@@ -230,41 +232,46 @@ namespace Rendering
         std::pair<int, int> getWindowSize() const;
 
         /**
-         * Sets the camera to use for rendering.
+         * Gets the active camera entity.
          *
-         * @param camera The camera to use for rendering.
+         * The active camera is used to render the scene in `update`.
+         *
+         * @param registry The registry to get the camera from.
+         *
+         * @returns The active camera entity.
+         *
+         * @throws std::runtime_error if there is no active camera.
+         * @throws std::runtime_error if there is more than one active camera.
+         * @throws std::runtime_error if the active camera does not have a Camera component.
+         * @throws std::runtime_error if the active camera does not have a Transform component.
          */
-        void setCamera(Camera &camera);
+        ECS::Entity getActiveCamera(const ECS::Registry &registry) const;
 
         /**
-         * Returns a reference to the camera used for rendering.
+         * Gets the AABB sufficient for culling entities outside the camera's view.
          *
-         * @returns The camera used for rendering.
+         * @param registry The registry to get the camera's components from.
+         * @param camera The camera to get the culling AABB for.
+         *
+         * @returns The AABB sufficient for culling entities outside the camera's view.
          */
-        Camera &getCamera();
+        Core::AABB getCullingAABB(const ECS::Registry &registry, const ECS::Entity camera) const;
 
         /**
-         * Sets whether the renderer should update the camera size to match the renderer size, always.
+         * Sets whether the renderer should update the active camera size to match the renderer size on update.
          *
          * By default, this is false.
          *
-         * @param sync Whether to sync the camera size to the renderer size.
+         * @param sync Whether to sync the active camera size to the renderer size.
          */
-        void syncCameraSize(bool sync);
+        void syncActiveCameraSize(bool sync);
 
         /**
-         * Returns whether the renderer is syncing the camera size to the renderer size.
+         * Returns whether the renderer is syncing the active camera size to the renderer size.
          *
-         * @returns Whether the renderer is syncing the camera size to the renderer size.
+         * @returns Whether the renderer is syncing the active camera size to the renderer size.
          */
-        bool getSyncCameraSize() const;
-
-        /**
-         * Updates the view projection matrix from the camera.
-         *
-         * Should be called at the start of each frame.
-         */
-        void updateViewProjectionMatrix();
+        bool getSyncActiveCameraSize() const;
 
     private:
         int width;
@@ -285,7 +292,7 @@ namespace Rendering
         /**
          * Prunes the AABB trees.
          *
-         * This involves removing entities that are no longer in the registry.
+         * This involves removing entities no longer have a Renderable component, or are no longer in the registry.
          *
          * @param registry The registry to prune against.
          */
@@ -327,14 +334,39 @@ namespace Rendering
         size_t getRenderables(const ECS::Registry &registry, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
 
         /**
-         * The view projection matrix.
+         * Binds the textures of the given renderables.
          *
-         * Should be updated at the start of each frame from the camera.
+         * This function may error if all the textures cannot fit into the atlases.
+         *
+         * This function will avoid binding the same texture multiple times.
+         *
+         * @param registry The registry to read components from.
+         * @param renderables The renderables to bind textures for.
+         *
+         * @returns A map of the texture ids to the bound textures.
          */
-        glm::mat4 viewProjectionMatrix;
+        std::unordered_map<TextureId, TextureManager::BoundTexture> bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables);
 
-        bool syncCameraSizeWithRenderer = false;
-        Camera camera;
+        /**
+         * Whether the renderer should sync the active camera size to the renderer size.
+         *
+         * By default, this is false.
+         *
+         * When this is true, the renderer will modify the active camera's viewport size to match the renderer's size.
+         */
+        bool syncActiveCameraSizeWithRenderer = false;
+
+        /**
+         * Gets the view projection matrix for the given camera.
+         *
+         * Assumes the camera has a Camera and Transform component.
+         *
+         * @param registry The registry to read components from.
+         * @param camera The camera to get the view projection matrix for.
+         *
+         * @returns The view projection matrix for the given camera.
+         */
+        glm::mat4 getViewProjectionMatrix(const ECS::Registry &registry, const ECS::Entity camera) const;
 
         TextureManager textureManager;
 

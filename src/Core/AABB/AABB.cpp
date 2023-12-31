@@ -155,6 +155,15 @@ bool Core::AABB::overlaps(const AABB &other) const
     return max.x >= otherMin.x && min.x <= otherMax.x && max.y >= otherMin.y && min.y <= otherMax.y;
 }
 
+Core::AABB Core::AABB::transform(const Core::Transform &t) const
+{
+    auto m = t.getTransformationMatrix();
+    auto tMin = m * glm::vec4(min, 0, 1);
+    auto tMax = m * glm::vec4(max, 0, 1);
+
+    return AABB(glm::vec2(tMin), glm::vec2(tMax));
+}
+
 void Core::AABB::updateCentre()
 {
     centre = (min + max) / 2.0f;

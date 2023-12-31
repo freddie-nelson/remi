@@ -35,7 +35,7 @@ namespace Rendering
          * @param windowWidth The width of the window.
          * @param windowHeight The height of the window.
          */
-        Window(std::string windowTitle, int windowWidth, int windowHeight);
+        Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight);
 
         /**
          * Destroys the window.
@@ -44,6 +44,11 @@ namespace Rendering
 
         /**
          * Initializes the window.
+         *
+         * This will crash if the opengl version is not supported.
+         *
+         * @param openglMajorVersion The major version of OpenGL to use.
+         * @param openglMinorVersion The minor version of OpenGL to use.
          *
          * @returns The error code, 0 if no error.
          */
@@ -56,6 +61,12 @@ namespace Rendering
 
         /**
          * Runs the window.
+         *
+         * This will run the main loop until the window is closed.
+         *
+         * @param frameCallback The callback to call each frame.
+         *
+         * @returns The error code, 0 if no error.
          */
         int run(WindowFrameCallback frameCallback);
 
@@ -80,23 +91,29 @@ namespace Rendering
 
         /**
          * Returns the max fps that the window should update at.
+         *
+         * @returns The max fps that the window should update at.
          */
-        int getFps() const;
+        unsigned int getFps() const;
 
         /**
          * Sets the max fps that the window should update at.
+         *
+         * @param fps The max fps that the window should update at.
          */
-        void setFps(int fps);
+        void setFps(unsigned int fps);
 
         /**
          * Returns the time in milliseconds that a frame should take.
+         *
+         * @returns The time in milliseconds that a frame should take.
          */
-        int getFrameTime() const;
+        unsigned int getFrameTime() const;
 
         /**
          * Returns the width and height of the window.
          */
-        std::pair<int, int> getSize() const;
+        std::pair<unsigned int, unsigned int> getSize() const;
 
         /**
          * Sets the width and height of the window.
@@ -104,7 +121,35 @@ namespace Rendering
          * @param width The width of the window.
          * @param height The height of the window.
          */
-        void setSize(int width, int height);
+        void setSize(unsigned int width, unsigned int height);
+
+        /**
+         * Gets the width of the window.
+         *
+         * @returns The width of the window.
+         */
+        unsigned int getWidth() const;
+
+        /**
+         * Sets the width of the window.
+         *
+         * @param width The width of the window.
+         */
+        void setWidth(unsigned int width);
+
+        /**
+         * Gets the height of the window.
+         *
+         * @returns The height of the window.
+         */
+        unsigned int getHeight() const;
+
+        /**
+         * Sets the height of the window.
+         *
+         * @param height The height of the window.
+         */
+        void setHeight(unsigned int height);
 
         /**
          * Returns the position of the window.
@@ -147,10 +192,10 @@ namespace Rendering
 
     private:
         std::string windowTitle;
-        int initialWindowWidth;
-        int initialWindowHeight;
+        unsigned int initialWindowWidth;
+        unsigned int initialWindowHeight;
 
-        int fps = 60;
+        unsigned int fps = 60;
         bool showWindow = true;
         bool syncRendererSizeWithWindow = true;
 

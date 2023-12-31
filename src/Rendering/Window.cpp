@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <thread>
 
-Rendering::Window::Window(std::string windowTitle, int windowWidth, int windowHeight)
+Rendering::Window::Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight)
     : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight)
 {
     if (!glfwInit())
@@ -105,7 +105,6 @@ int Rendering::Window::run(WindowFrameCallback frameCallback)
 
         // clear renderer
         renderer->clear();
-        renderer->updateViewProjectionMatrix();
 
         // call user frame callback
         frameCallback(dt, renderer);
@@ -148,42 +147,74 @@ void Rendering::Window::hide()
         glfwHideWindow(glfwWindow);
 }
 
-int Rendering::Window::getFps() const
+unsigned int Rendering::Window::getFps() const
 {
     return fps;
 }
 
-void Rendering::Window::setFps(int fps)
+void Rendering::Window::setFps(unsigned int fps)
 {
-    if (fps <= 0)
+    if (fps == 0)
     {
-        throw std::invalid_argument("fps must be greater than 0");
+        throw std::invalid_argument("fps cannot be 0.");
     }
 
     this->fps = fps;
 }
 
-int Rendering::Window::getFrameTime() const
+unsigned int Rendering::Window::getFrameTime() const
 {
     return 1000 / fps;
 }
 
-std::pair<int, int> Rendering::Window::getSize() const
+std::pair<unsigned int, unsigned int> Rendering::Window::getSize() const
 {
-    int width, height;
-    glfwGetFramebufferSize(glfwWindow, &width, &height);
+    auto width = getWidth();
+    auto height = getHeight();
 
     return std::make_pair(width, height);
 }
 
-void Rendering::Window::setSize(int width, int height)
+void Rendering::Window::setSize(unsigned int width, unsigned int height)
 {
-    if (width <= 0 || height <= 0)
+    setWidth(width);
+    setHeight(height);
+}
+
+unsigned int Rendering::Window::getWidth() const
+{
+    int width, height;
+    glfwGetFramebufferSize(glfwWindow, &width, &height);
+
+    return width;
+}
+
+void Rendering::Window::setWidth(unsigned int width)
+{
+    if (width <= 0)
     {
-        throw std::invalid_argument("width and height must be greater than 0.");
+        throw std::invalid_argument("width must be greater than 0.");
     }
 
-    glfwSetWindowSize(glfwWindow, width, height);
+    glfwSetWindowSize(glfwWindow, width, getHeight());
+}
+
+unsigned int Rendering::Window::getHeight() const
+{
+    int width, height;
+    glfwGetFramebufferSize(glfwWindow, &width, &height);
+
+    return height;
+}
+
+void Rendering::Window::setHeight(unsigned int height)
+{
+    if (height <= 0)
+    {
+        throw std::invalid_argument("height must be greater than 0.");
+    }
+
+    glfwSetWindowSize(glfwWindow, getWidth(), height);
 }
 
 std::pair<int, int> Rendering::Window::getPosition() const

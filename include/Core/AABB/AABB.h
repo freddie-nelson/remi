@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Transform.h"
+
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -154,6 +156,15 @@ namespace Core
          * @returns True if the given AABB overlaps with this AABB, false otherwise.
          */
         bool overlaps(const AABB &other) const;
+
+        /**
+         * Creates a transformed AABB from this AABB.
+         *
+         * @param t The transformation to apply.
+         *
+         * @returns The transformed AABB.
+         */
+        AABB transform(const Core::Transform &t) const;
 
     private:
         /**

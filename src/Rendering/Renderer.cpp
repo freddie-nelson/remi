@@ -7,6 +7,8 @@
 #include "../../include/Core/BoundingCircle.h"
 #include "../../include/Rendering/Utility/Timestep.h"
 #include "../../include/Rendering/Renderable.h"
+#include "../../include/Rendering/Camera/ActiveCamera.h"
+#include "../../include/Rendering/Camera/Camera.h"
 
 #include "../../include/externals/glad/gl.h"
 #include <iostream>
@@ -16,7 +18,7 @@
 #include <utility>
 #include <algorithm>
 
-Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height), camera(Camera(width, height))
+Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height)
 {
     setSize(width, height);
 }
@@ -60,12 +62,19 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
         return;
     }
 
-    auto now = Rendering::timeSinceEpochMillisec();
+    // auto now = Rendering::timeSinceEpochMillisec();
 
-    auto cameraAabb = camera.getAABB();
-    auto cameraBoundingCircle = Core::BoundingCircle(cameraAabb);
-    auto fatCameraAabb = Core::AABB(cameraBoundingCircle.getCentre(), cameraBoundingCircle.getRadius());
+    auto activeCamera = getActiveCamera(registry);
 
+    if (syncActiveCameraSizeWithRenderer)
+    {
+        auto &camera = registry.get<Camera>(activeCamera);
+        camera.setViewportSize(width, height);
+    }
+
+    auto fatCameraAabb = getCullingAABB(registry, activeCamera);
+
+    // cull entities outside camera's viewport to get renderables
     std::vector<ECS::Entity> renderables;
 
     // cull static renderables
@@ -83,7 +92,7 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
         framesSinceLastTreePrune = 0;
     }
 
-    std::cout << "cull time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+    // std::cout << "cull time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
     // exit if no renderables
     if (renderables.size() == 0)
@@ -91,7 +100,7 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
         return;
     }
 
-    now = Rendering::timeSinceEpochMillisec();
+    // now = Rendering::timeSinceEpochMillisec();
 
     // split renderables
     std::vector<ECS::Entity> opaqueRenderables;
@@ -102,6 +111,7 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
         for (auto &e : renderables)
         {
             auto &material = registry.get<Material>(e);
+
             if (material.isTransparent())
             {
                 transparentRenderables.push_back(e);
@@ -121,14 +131,14 @@ void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
         opaqueRenderables = renderables;
     }
 
-    std::cout << "sort time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+    // std::cout << "sort time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
     // batch render
     if (opaqueRenderables.size() > 0)
-        batch(registry, opaqueRenderables);
+        batch(registry, activeCamera, opaqueRenderables);
 
     if (transparentRenderables.size() > 0)
-        batch(registry, transparentRenderables);
+        batch(registry, activeCamera, transparentRenderables);
 }
 
 void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer) const
@@ -157,7 +167,7 @@ void Rendering::Renderer::present() const
     glfwSwapBuffers(glfwWindow);
 }
 
-void Rendering::Renderer::entity(const ECS::Registry &registry, ECS::Entity &entity)
+void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entity camera, ECS::Entity &entity)
 {
     // mesh data
     auto &mesh = registry.get<Mesh2D>(entity);
@@ -181,6 +191,9 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, ECS::Entity &ent
     // transform
     auto &transform = registry.get<Core::Transform>(entity);
     auto &transformMatrix = transform.getTransformationMatrix();
+
+    // view projection matrix
+    auto viewProjectionMatrix = getViewProjectionMatrix(registry, camera);
 
     meshShader.use();
 
@@ -210,7 +223,7 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, ECS::Entity &ent
     meshShader.unbind();
 };
 
-void Rendering::Renderer::instance(const ECS::Registry &registry, const Mesh2D &m, const std::vector<ECS::Entity> &instances)
+void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Entity camera, const Mesh2D &m, const std::vector<ECS::Entity> &instances)
 {
     const auto instanceCount = instances.size();
 
@@ -232,6 +245,8 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const Mesh2D &
     std::vector<glm::vec2> textureSize(instanceCount);
     std::vector<glm::vec4> color(instanceCount);
 
+    auto boundTextures = bindTextures(registry, instances);
+
     for (int i = 0; i < instanceCount; i++)
     {
         auto &t = registry.get<Core::Transform>(instances[i]);
@@ -240,13 +255,16 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const Mesh2D &
         transform[i] = t.getTransformationMatrix();
 
         auto texture = material.getTexture();
-        auto boundTexture = textureManager.bind(texture);
+        const auto &boundTexture = boundTextures[texture->getId()];
 
         textureAtlasPos[i] = boundTexture.posInAtlas;
         textureUnit[i] = boundTexture.textureUnit;
         textureSize[i] = boundTexture.textureSize;
         color[i] = material.getColor().getColor();
     }
+
+    // view projection matrix
+    auto viewProjectionMatrix = getViewProjectionMatrix(registry, camera);
 
     instancedMeshShader.use();
 
@@ -281,9 +299,9 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const Mesh2D &
     instancedMeshShader.unbind();
 };
 
-void Rendering::Renderer::batch(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables)
+void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables)
 {
-    auto now = Rendering::timeSinceEpochMillisec();
+    // auto now = Rendering::timeSinceEpochMillisec();
 
     // get number of vertices and indices
     size_t verticesCount = 0;
@@ -314,6 +332,8 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const std::vector
     int verticesOffset = 0;
     int indicesOffset = 0;
 
+    auto boundTextures = bindTextures(registry, renderables);
+
     // fill arrays with mesh and material data
     for (auto &e : renderables)
     {
@@ -326,7 +346,7 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const std::vector
         const auto color = material.getColor().getColor();
 
         const auto texture = material.getTexture();
-        const auto boundTexture = textureManager.bind(texture);
+        const auto &boundTexture = boundTextures[texture->getId()];
 
         const std::vector<glm::vec2> &vertices = mesh.getVertices();
         const std::vector<unsigned int> &indices = mesh.getIndices();
@@ -354,9 +374,12 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const std::vector
         indicesOffset += indices.size();
     }
 
-    std::cout << "batch time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+    // view projection matrix
+    auto viewProjectionMatrix = getViewProjectionMatrix(registry, camera);
 
-    now = Rendering::timeSinceEpochMillisec();
+    // std::cout << "batch time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+
+    // now = Rendering::timeSinceEpochMillisec();
 
     // set up shader variables
     // and draw
@@ -380,7 +403,7 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const std::vector
     batchedMeshShader.draw(GL_TRIANGLES, indicesCount);
     batchedMeshShader.unbind();
 
-    std::cout << "draw time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+    // std::cout << "draw time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 }
 
 void Rendering::Renderer::sortRenderables(const ECS::Registry &registry, std::vector<ECS::Entity> &renderables)
@@ -464,11 +487,6 @@ void Rendering::Renderer::setSize(int w, int h)
     height = h;
 
     glViewport(0, 0, width, height);
-
-    if (syncCameraSizeWithRenderer)
-    {
-        camera.setViewportSize(width, height);
-    }
 }
 
 std::pair<int, int> Rendering::Renderer::getSize() const
@@ -484,29 +502,60 @@ std::pair<int, int> Rendering::Renderer::getWindowSize() const
     return std::make_pair(width, height);
 }
 
-Rendering::Camera &Rendering::Renderer::getCamera()
+ECS::Entity Rendering::Renderer::getActiveCamera(const ECS::Registry &registry) const
 {
-    return camera;
+    auto activeCameras = registry.view<ActiveCamera>();
+    if (activeCameras.size() == 0)
+    {
+        throw std::runtime_error("Renderer (getActiveCamera): no active camera.");
+    }
+    else if (activeCameras.size() > 1)
+    {
+        throw std::runtime_error("Renderer (getActiveCamera): more than one active camera.");
+    }
+
+    if (registry.has<Camera>(activeCameras[0]) && registry.has<Core::Transform>(activeCameras[0]))
+    {
+        return activeCameras[0];
+    }
+    else
+    {
+        throw std::runtime_error("Renderer (getActiveCamera): active camera does not have a camera and/or transform component.");
+    }
 }
 
-void Rendering::Renderer::setCamera(Camera &camera)
+Core::AABB Rendering::Renderer::getCullingAABB(const ECS::Registry &registry, const ECS::Entity camera) const
 {
-    this->camera = camera;
+    auto &cameraComponent = registry.get<Camera>(camera);
+    auto &cameraTransform = registry.get<Core::Transform>(camera);
+
+    auto cameraAabb = cameraComponent.getAABB();
+
+    Core::AABB fatCameraAabb;
+
+    // if camera is rotated use bounding circle aabb
+    if (cameraTransform.getRotation() != 0)
+    {
+        auto cameraBoundingCircle = Core::BoundingCircle(cameraAabb, cameraTransform);
+        fatCameraAabb = Core::AABB(cameraBoundingCircle.getCentre(), cameraBoundingCircle.getRadius());
+    }
+    else
+    {
+        // otherwise scaled and translated aabb is sufficient
+        fatCameraAabb = cameraComponent.getScaledAndTranslatedAabb(cameraTransform);
+    }
+
+    return fatCameraAabb;
 }
 
-void Rendering::Renderer::syncCameraSize(bool sync)
+void Rendering::Renderer::syncActiveCameraSize(bool sync)
 {
-    syncCameraSizeWithRenderer = sync;
+    syncActiveCameraSizeWithRenderer = sync;
 }
 
-bool Rendering::Renderer::getSyncCameraSize() const
+bool Rendering::Renderer::getSyncActiveCameraSize() const
 {
-    return syncCameraSizeWithRenderer;
-}
-
-void Rendering::Renderer::updateViewProjectionMatrix()
-{
-    viewProjectionMatrix = camera.getViewProjectionMatrix();
+    return syncActiveCameraSizeWithRenderer;
 }
 
 void Rendering::Renderer::pruneTrees(const ECS::Registry &registry)
@@ -618,4 +667,35 @@ size_t Rendering::Renderer::getRenderables(const ECS::Registry &registry, const 
     }
 
     return otherCount;
+}
+
+std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture> Rendering::Renderer::bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables)
+{
+    std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture> boundTextures;
+
+    for (auto &e : renderables)
+    {
+        auto &material = registry.get<Material>(e);
+        auto texture = material.getTexture();
+
+        if (texture == nullptr)
+        {
+            continue;
+        }
+
+        if (!boundTextures.contains(texture->getId()))
+        {
+            boundTextures.emplace(texture->getId(), textureManager.bind(texture));
+        }
+    }
+
+    return boundTextures;
+}
+
+glm::mat4 Rendering::Renderer::getViewProjectionMatrix(const ECS::Registry &registry, const ECS::Entity camera) const
+{
+    auto &cameraComponent = registry.get<Camera>(camera);
+    auto &cameraTransform = registry.get<Core::Transform>(camera);
+
+    return cameraComponent.getViewProjectionMatrix(cameraTransform);
 }
