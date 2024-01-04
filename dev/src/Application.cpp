@@ -1,13 +1,14 @@
-#include "../include/Application.h"
-#include "../include/Globals.h"
-#include "../include/Rendering/Mesh/Polygons.h"
-#include "../include/Rendering/Material/Material.h"
-#include "../include/Rendering/Utility/Timestep.h"
-#include "../include/Core/Transform.h"
-#include "../include/Core/BoundingCircle.h"
-#include "../include/Rendering/Renderable.h"
-#include "../include/Rendering/Camera/Camera.h"
-#include "../include/Rendering/Camera/ActiveCamera.h"
+#include "./include/Application.h"
+#include "./include/Globals.h"
+
+#include <blaze++/Rendering/Mesh/Polygons.h>
+#include <blaze++/Rendering/Material/Material.h>
+#include <blaze++/Rendering/Utility/Timestep.h>
+#include <blaze++/Core/Transform.h>
+#include <blaze++/Core/BoundingCircle.h>
+#include <blaze++/Rendering/Renderable.h>
+#include <blaze++/Rendering/Camera/Camera.h>
+#include <blaze++/Rendering/Camera/ActiveCamera.h>
 
 #include <math.h>
 #include <random>
@@ -74,11 +75,13 @@ int Application::init()
     registry.add(camera, Core::Transform());
     registry.add(camera, Rendering::ActiveCamera());
 
+    std::cout << "camera: " << camera << std::endl;
+
     // create texture
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // create entities
-    int entityCount = 1000;
+    int entityCount = 1;
     int xRange = (initialWindowWidth * std::sqrt(entityCount) / 10);
     int yRange = (initialWindowHeight * std::sqrt(entityCount) / 10);
 
@@ -94,9 +97,9 @@ int Application::init()
         t.setZIndex(rand() % 10);
         t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
 
-        auto r = (rand() % 255) / 255.0f;
-        auto g = (rand() % 255) / 255.0f;
-        auto b = (rand() % 255) / 255.0f;
+        // auto r = (rand() % 255) / 255.0f;
+        // auto g = (rand() % 255) / 255.0f;
+        // auto b = (rand() % 255) / 255.0f;
         material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, (t.getZIndex() + 1) / 10.0f));
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
 
@@ -158,24 +161,24 @@ void Application::update(float dt, Rendering::Renderer *renderer)
     // move camera
     auto camera = renderer->getActiveCamera(registry);
 
-    double n = Rendering::timeSinceEpochMillisec() / 1000.0;
-    float camX = sin(n) * 200.0f;
-    float camY = cos(n) * 200.0f;
+    // double n = Rendering::timeSinceEpochMillisec() / 1000.0;
+    // float camX = sin(n) * 200.0f;
+    // float camY = cos(n) * 200.0f;
 
     // camera.setCentre(glm::vec2{camX, camY});
     // camera.rotate(std::numbers::pi * 0.5f * dt);
 
-    // rotate all entities with a transform component
-    // auto entities = registry.view<Core::Transform>();
+    // rotate all entities with a transform component except camera
+    auto entities = registry.view<Core::Transform>();
 
-    // for (auto &e : entities)
-    // {
-    //     if (e == camera)
-    //         continue;
+    for (auto &e : entities)
+    {
+        if (e == camera)
+            continue;
 
-    //     auto &t = registry.get<Core::Transform>(e);
-    //     t.rotate(-std::numbers::pi * 0.5f * dt);
-    // }
+        auto &t = registry.get<Core::Transform>(e);
+        t.rotate(-std::numbers::pi * 0.5f * dt);
+    }
 
     render(renderer);
 }

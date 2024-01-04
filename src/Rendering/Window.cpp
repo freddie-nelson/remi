@@ -2,7 +2,7 @@
 #include "../../include/Rendering/Utility/Timestep.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 
-#include "../../include/externals/glad/gl.h"
+#include <glad/gl.h>
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -267,8 +267,8 @@ GLFWwindow *Rendering::Window::createGLFWWindow(int openglMajorVersion, int open
     glfwWindow = glfwCreateWindow(initialWindowWidth, initialWindowHeight, windowTitle.c_str(), monitor, NULL);
     if (!glfwWindow)
     {
-        const char **error;
-        glfwGetError(error);
+        const char *error;
+        glfwGetError(&error);
         std::cout << "Failed to create glfw window. Error: " << *error << std::endl;
 
         glfwTerminate();
@@ -317,7 +317,7 @@ std::vector<std::pair<Rendering::Window::OpenGLContext *, GLFWmonitor *>> Render
     int monitorCount;
     auto monitors = glfwGetMonitors(&monitorCount);
 
-    for (size_t i = 0; i < monitorCount; i++)
+    for (int i = 0; i < monitorCount; i++)
     {
         auto m = monitors[i];
 

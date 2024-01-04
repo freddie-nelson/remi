@@ -1,8 +1,8 @@
 #pragma once
 
-#include "./Rendering/Renderer.h"
-#include "./Rendering/Window.h"
-#include "./ECS/Registry.h"
+#include <blaze++/Rendering/Renderer.h>
+#include <blaze++/Rendering/Window.h>
+#include <blaze++/ECS/Registry.h>
 
 #include <string>
 

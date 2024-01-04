@@ -262,6 +262,8 @@ namespace ECS
         template <typename T>
         void viewHelper(TypeList<T> t, std::unordered_set<Entity> &entitySet, int depth = 0) const
         {
+            std::cout << ComponentIdGenerator::id<T> << std::endl;
+
             // no possible matches
             if (!hasComponentPool<T>())
             {

@@ -10,7 +10,7 @@
 #include "../../include/Rendering/Camera/ActiveCamera.h"
 #include "../../include/Rendering/Camera/Camera.h"
 
-#include "../../include/externals/glad/gl.h"
+#include <glad/gl.h>
 #include <iostream>
 #include <memory>
 #include <math.h>
@@ -18,8 +18,9 @@
 #include <utility>
 #include <algorithm>
 
-Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height) : glfwWindow(glfwWindow), width(width), height(height)
+Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height)
 {
+    this->glfwWindow = glfwWindow;
     setSize(width, height);
 }
 
@@ -247,7 +248,7 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
 
     auto boundTextures = bindTextures(registry, instances);
 
-    for (int i = 0; i < instanceCount; i++)
+    for (size_t i = 0; i < instanceCount; i++)
     {
         auto &t = registry.get<Core::Transform>(instances[i]);
         auto &material = registry.get<Material>(instances[i]);
@@ -352,7 +353,7 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
         const std::vector<unsigned int> &indices = mesh.getIndices();
         const std::vector<glm::vec2> &uvs = mesh.getUvs();
 
-        for (int i = 0; i < vertices.size(); i++)
+        for (size_t i = 0; i < vertices.size(); i++)
         {
             batchedVertices[verticesOffset + i] = transformMatrix * glm::vec4(vertices[i], 0.0f, 1.0f);
 
@@ -365,7 +366,7 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
             batchedColors[verticesOffset + i] = color;
         }
 
-        for (int i = 0; i < indices.size(); i++)
+        for (size_t i = 0; i < indices.size(); i++)
         {
             batchedIndices[indicesOffset + i] = indices[i] + verticesOffset;
         }
@@ -505,6 +506,12 @@ std::pair<int, int> Rendering::Renderer::getWindowSize() const
 ECS::Entity Rendering::Renderer::getActiveCamera(const ECS::Registry &registry) const
 {
     auto activeCameras = registry.view<ActiveCamera>();
+
+    for (auto &e : activeCameras)
+    {
+        std::cout << e << std::endl;
+    }
+
     if (activeCameras.size() == 0)
     {
         throw std::runtime_error("Renderer (getActiveCamera): no active camera.");

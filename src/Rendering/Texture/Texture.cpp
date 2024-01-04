@@ -1,7 +1,7 @@
 #include "../../../include/Rendering/Texture/Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../../../include/externals/stb/stb_image.h"
+#include <stb/stb_image.h>
 
 #include <stdexcept>
 
@@ -126,7 +126,7 @@ void Rendering::Texture::fromPixels(unsigned char *pixels, unsigned int width, u
         // check if the image has transparency
         hasTransparency = false;
 
-        for (int i = 3; i < width * height; i += 4)
+        for (unsigned int i = 3; i < width * height; i += 4)
         {
             if (this->pixels[i] < 255)
             {
@@ -156,7 +156,7 @@ void Rendering::Texture::fromColor(Color color, unsigned int width, unsigned int
     auto c = color.getColor();
     this->pixels = new unsigned char[width * height * 4];
 
-    for (int i = 0; i < width * height; i++)
+    for (unsigned int i = 0; i < width * height; i++)
     {
         pixels[i * 4] = c.r * 255;
         pixels[i * 4 + 1] = c.g * 255;
@@ -212,7 +212,7 @@ unsigned char *Rendering::Texture::toRGBA(unsigned char *pixels, unsigned int wi
 {
     unsigned char *rgba = new unsigned char[width * height * 4];
 
-    for (int i = 0; i < width * height; i++)
+    for (unsigned int i = 0; i < width * height; i++)
     {
         rgba[i * 4] = pixels[i * 3];
         rgba[i * 4 + 1] = pixels[i * 3 + 1];

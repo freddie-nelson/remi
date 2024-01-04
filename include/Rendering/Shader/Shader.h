@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../include/externals/glad/gl.h"
+#include <glad/gl.h>
 #include <string>
 #include <unordered_map>
 #include <stdexcept>
@@ -170,7 +170,7 @@ namespace Rendering
                 attribValues[name].indices = nullptr;
             }
 
-            int location = getAttribLocation(name);
+            // int location = getAttribLocation(name);
             unsigned int VBO = attribValues.contains(name) ? attribValues[name].VBO : 0;
             unsigned int EBO = attribValues.contains(name) ? attribValues[name].EBO : 0;
 

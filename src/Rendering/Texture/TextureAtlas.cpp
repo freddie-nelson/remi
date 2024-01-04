@@ -1,6 +1,6 @@
 #include "../../../include/Rendering/Texture/TextureAtlas.h"
 
-#include "../../../include/externals/glad/gl.h"
+#include <glad/gl.h>
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
@@ -8,10 +8,12 @@
 #include <cstring>
 #include <math.h>
 
-unsigned int atlasSize = -1;
+unsigned int atlasSize = 0;
+bool atlasSizeSet = false;
+
 unsigned int Rendering::TextureAtlas::getAtlasSize()
 {
-    if (atlasSize != -1)
+    if (atlasSizeSet)
     {
         return atlasSize;
     }
@@ -20,6 +22,7 @@ unsigned int Rendering::TextureAtlas::getAtlasSize()
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
 
     atlasSize = std::min(TextureAtlas::MAX_ATLAS_SIZE, static_cast<unsigned int>(maxTextureSize * TextureAtlas::ATLAS_SIZE_MULTIPLIER));
+    atlasSizeSet = true;
 
     return atlasSize;
 }
@@ -67,7 +70,7 @@ glm::vec2 Rendering::TextureAtlas::add(const Texture *texture)
     {
         pack();
     }
-    catch (std::runtime_error e)
+    catch (std::runtime_error &e)
     {
         // remove the texture from the atlas and repack
         textures.erase(texId);

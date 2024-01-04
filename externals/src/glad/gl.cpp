@@ -1,7 +1,7 @@
 /**
  * SPDX-License-Identifier: (WTFPL OR CC0-1.0) AND Apache-2.0
  */
-#include "../../../include/externals/glad/gl.h"
+#include <glad/gl.h>
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -34,7 +34,7 @@ Rendering::IndexedVertices Rendering::createRegularPolygon(float radius, unsigne
     float angle = -std::numbers::pi / 2; // start at top
     float angleIncrement = 2 * std::numbers::pi / sides;
 
-    for (int i = 0; i < sides; i++)
+    for (size_t i = 0; i < sides; i++)
     {
         vertices.push_back(glm::vec2{
             radius * std::cos(angle),

@@ -1,4 +1,9 @@
 .vscode
 .VSCodeCounter
-lib/*.dll
+
+# meson
+lib
 build
+subprojects/*
+!subprojects/wrapdb.json
+main

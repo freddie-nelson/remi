@@ -3,7 +3,7 @@
 #include "../../../include/Rendering/Utility/GlmHelpers.h"
 #include "../../../include/Rendering/Utility/OpenGLHelpers.h"
 
-#include "../../../include/externals/glad/gl.h"
+#include <glad/gl.h>
 #include <stdexcept>
 #include <iostream>
 #include <glm/glm.hpp>
@@ -258,7 +258,7 @@ bool Rendering::Shader::inUse()
     int currentProgramId;
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgramId);
 
-    return currentProgramId == programId;
+    return static_cast<unsigned int>(currentProgramId) == programId;
 }
 
 bool Rendering::Shader::compileShaderSource(const std::string &source, unsigned int shaderType, unsigned int &shader)
@@ -444,7 +444,7 @@ void Rendering::Shader::useUniform(const std::string &name)
     case GL_SAMPLER_2D:
     {
         auto v = *static_cast<int *>(value);
-        if (v < 0 || v > glGetMaxTextureUnits())
+        if (v < 0 || v > static_cast<int>(glGetMaxTextureUnits()))
         {
             throw std::invalid_argument("Sampler2D uniform value must be between 0 and " + std::to_string(glGetMaxTextureUnits()) + ".");
         }

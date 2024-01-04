@@ -123,7 +123,7 @@ void Rendering::Mesh2D::setUvsFromAABB()
     auto width = aabb.getWidth();
     auto height = aabb.getHeight();
     auto min = aabb.getMin();
-    auto max = aabb.getMax();
+    // auto max = aabb.getMax();
 
     uvs.clear();
 

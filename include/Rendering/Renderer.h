@@ -56,7 +56,7 @@ namespace Rendering
         /**
          * Destroys the renderer.
          */
-        ~Renderer();
+        virtual ~Renderer();
 
         /**
          * Initializes the renderer.
