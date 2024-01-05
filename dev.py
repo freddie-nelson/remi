@@ -38,8 +38,8 @@ for file in os.listdir(lib_path):
     shutil.copy(path, new_path)
 
 # uninstall blaze
-print("Uninstalling blaze...")
-os.system(f"python {uninstall_script}")
+# print("Uninstalling blaze...")
+# os.system(f"python {uninstall_script}")
 
 # run dev
 print("Running dev...")
