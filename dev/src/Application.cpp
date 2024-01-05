@@ -75,19 +75,18 @@ int Application::init()
     registry.add(camera, Core::Transform());
     registry.add(camera, Rendering::ActiveCamera());
 
-    std::cout << "camera: " << camera << std::endl;
-
     // create texture
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // create entities
-    int entityCount = 1;
+    int entityCount = 1000;
     int xRange = (initialWindowWidth * std::sqrt(entityCount) / 10);
     int yRange = (initialWindowHeight * std::sqrt(entityCount) / 10);
 
     for (int i = 0; i < entityCount; i++)
     {
         auto e = registry.create();
+
         // auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
         auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 50 + 25), static_cast<unsigned int>(rand() % 13 + 3)));
         auto &t = registry.add(e, Core::Transform());

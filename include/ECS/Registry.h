@@ -104,6 +104,9 @@ namespace ECS
         template <typename T>
         T &add(Entity entity, T component)
         {
+            // std::cout << "adding to " << entity << std::endl;
+            // std::cout << "type name: " << typeid(T).name() << ", type id: " << ComponentIdGenerator::id<T> << std::endl;
+
             if (!hasComponentPool<T>())
             {
                 createComponentPool<T>();
@@ -262,7 +265,8 @@ namespace ECS
         template <typename T>
         void viewHelper(TypeList<T> t, std::unordered_set<Entity> &entitySet, int depth = 0) const
         {
-            std::cout << ComponentIdGenerator::id<T> << std::endl;
+            // std::cout << "viewHelper: " << depth << std::endl;
+            // std::cout << "type name: " << typeid(T).name() << ", type id: " << ComponentIdGenerator::id<T> << std::endl;
 
             // no possible matches
             if (!hasComponentPool<T>())

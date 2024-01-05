@@ -507,11 +507,6 @@ ECS::Entity Rendering::Renderer::getActiveCamera(const ECS::Registry &registry) 
 {
     auto activeCameras = registry.view<ActiveCamera>();
 
-    for (auto &e : activeCameras)
-    {
-        std::cout << e << std::endl;
-    }
-
     if (activeCameras.size() == 0)
     {
         throw std::runtime_error("Renderer (getActiveCamera): no active camera.");
