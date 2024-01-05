@@ -37,6 +37,10 @@ for file in os.listdir(lib_path):
 
     shutil.copy(path, new_path)
 
+# uninstall blaze
+print("Uninstalling blaze...")
+os.system(f"python {uninstall_script}")
+
 # run dev
 print("Running dev...")
 
@@ -44,4 +48,5 @@ if os.path.exists(os.path.join(dev_build_path, "dev.exe")):
     os.system(f"cd {dev_build_path} && dev.exe")
 else:
     os.system(f"cd {dev_build_path} && dev")
+
 
