@@ -258,6 +258,24 @@ namespace Rendering
         Core::AABB getCullingAABB(const ECS::Registry &registry, const ECS::Entity camera) const;
 
         /**
+         * Sets whether the renderer should sync it's size with the window size.
+         *
+         * By default, this is true.
+         *
+         * When true, the renderer will set it's size to the window size on update.
+         *
+         * @param sync Whether to sync the renderer's size with the window size.
+         */
+        void syncSizeWithWindow(bool sync);
+
+        /**
+         * Gets whether the renderer is syncing it's size with the window size.
+         *
+         * @returns Whether the renderer is syncing it's size with the window size.
+         */
+        bool getSyncSizeWithWindow() const;
+
+        /**
          * Sets whether the renderer should update the active camera size to match the renderer size on update.
          *
          * By default, this is false.
@@ -278,16 +296,16 @@ namespace Rendering
         int height;
 
         /**
-         * The number of frames to wait before pruning the AABB tree.
+         * The number of updates to wait before pruning the AABB tree.
          *
          * Pruning involves removing entities that are no longer in the registry.
          */
         unsigned int treePruneFrequency = 60;
 
         /**
-         * The number of frames since the last prune.
+         * The number of updates since the last prune.
          */
-        unsigned int framesSinceLastTreePrune = 0;
+        unsigned int updatesSinceLastTreePrune = 0;
 
         /**
          * Prunes the AABB trees.
@@ -346,6 +364,15 @@ namespace Rendering
          * @returns A map of the texture ids to the bound textures.
          */
         std::unordered_map<TextureId, TextureManager::BoundTexture> bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables);
+
+        /**
+         * Whether the renderer should sync it's size with the window size.
+         *
+         * By default, this is true.
+         *
+         * When true, the renderer will set it's size to the window size on update.
+         */
+        bool syncRendererSizeWithWindow = true;
 
         /**
          * Whether the renderer should sync the active camera size to the renderer size.

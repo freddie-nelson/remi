@@ -54,6 +54,12 @@ void Rendering::Renderer::init()
 
 void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
+    if (syncRendererSizeWithWindow)
+    {
+        auto [width, height] = getWindowSize();
+        setSize(width, height);
+    }
+
     auto &entities = registry.view<Mesh2D, Core::Transform, Material, Renderable>();
 
     // exit if no entities
@@ -85,11 +91,11 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
         getRenderables(registry, entities, fatCameraAabb, true, renderables);
 
     // prune trees
-    framesSinceLastTreePrune++;
-    if (framesSinceLastTreePrune == treePruneFrequency)
+    updatesSinceLastTreePrune++;
+    if (updatesSinceLastTreePrune == treePruneFrequency)
     {
         pruneTrees(registry);
-        framesSinceLastTreePrune = 0;
+        updatesSinceLastTreePrune = 0;
     }
 
     // std::cout << "cull time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
@@ -547,6 +553,16 @@ Core::AABB Rendering::Renderer::getCullingAABB(const ECS::Registry &registry, co
     }
 
     return fatCameraAabb;
+}
+
+void Rendering::Renderer::syncSizeWithWindow(bool sync)
+{
+    syncRendererSizeWithWindow = sync;
+}
+
+bool Rendering::Renderer::getSyncSizeWithWindow() const
+{
+    return syncRendererSizeWithWindow;
 }
 
 void Rendering::Renderer::syncActiveCameraSize(bool sync)

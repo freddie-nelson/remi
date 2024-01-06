@@ -24,7 +24,7 @@ blz::Engine::~Engine()
 
 void blz::Engine::run()
 {
-    std::cout << "Running engine..." << std::endl;
+    // std::cout << "Running engine..." << std::endl;
 
     // create timestep at current time
     Core::Timestep tick;
