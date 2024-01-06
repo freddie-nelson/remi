@@ -14,11 +14,17 @@ uninstall_script = os.path.join(dir_path, "uninstall.py")
 
 # build and install blaze
 print("Building and installing blaze...")
-os.system(f"python {install_script}")
+exit_code = os.system(f"python {install_script}")
+if exit_code != 0:
+    print("Failed to build and install blaze!")
+    exit(exit_code)
 
 # build dev
 print("Building dev...")
-os.system(f"cd {dev_build_path} && meson compile")
+exit_code = os.system(f"cd {dev_build_path} && meson compile")
+if exit_code != 0:
+    print("Failed to build dev!")
+    exit(exit_code)
 
 # copy assets
 print("Copying assets...")

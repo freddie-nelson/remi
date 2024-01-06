@@ -5,7 +5,10 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 build_path = os.path.join(dir_path, "build")
 
 # build and install blaze
-os.system(f"cd {build_path} && meson compile && meson install")
+exit_code = os.system(f"cd {build_path} && meson compile && meson install")
+if exit_code != 0:
+    print("Failed to build and install blaze!")
+    exit(exit_code)
 
 # install into mingw64
 install_path = os.path.join(dir_path, "lib")
