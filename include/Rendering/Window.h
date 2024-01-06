@@ -7,6 +7,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <glm/vec2.hpp>
+
 #include <string>
 #include <functional>
 
@@ -78,7 +80,7 @@ namespace Rendering
         /**
          * Returns the width and height of the window.
          */
-        std::pair<unsigned int, unsigned int> getSize() const;
+        glm::uvec2 getSize() const;
 
         /**
          * Sets the width and height of the window.
@@ -123,7 +125,7 @@ namespace Rendering
          *
          * @returns The position of the window.
          */
-        std::pair<int, int> getPosition() const;
+        glm::ivec2 getPosition() const;
 
         /**
          * Sets the position of the window.

@@ -56,8 +56,8 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
 {
     if (syncRendererSizeWithWindow)
     {
-        auto [width, height] = getWindowSize();
-        setSize(width, height);
+        auto size = getWindowSize();
+        setSize(size.x, size.y);
     }
 
     auto &entities = registry.view<Mesh2D, Core::Transform, Material, Renderable>();
@@ -495,17 +495,17 @@ void Rendering::Renderer::setSize(int w, int h)
     glViewport(0, 0, width, height);
 }
 
-std::pair<int, int> Rendering::Renderer::getSize() const
+glm::uvec2 Rendering::Renderer::getSize() const
 {
-    return std::make_pair(width, height);
+    return glm::uvec2(width, height);
 }
 
-std::pair<int, int> Rendering::Renderer::getWindowSize() const
+glm::uvec2 Rendering::Renderer::getWindowSize() const
 {
     int width, height;
     glfwGetFramebufferSize(glfwWindow, &width, &height);
 
-    return std::make_pair(width, height);
+    return glm::uvec2(width, height);
 }
 
 ECS::Entity Rendering::Renderer::getActiveCamera(const ECS::Registry &registry) const

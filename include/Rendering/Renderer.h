@@ -222,14 +222,14 @@ namespace Rendering
          *
          * @returns The width and height of the renderer.
          */
-        std::pair<int, int> getSize() const;
+        glm::uvec2 getSize() const;
 
         /**
          * Returns the width and height of the attached GLFWwindow.
          *
          * @returns The width and height of the attached GLFWwindow.
          */
-        std::pair<int, int> getWindowSize() const;
+        glm::uvec2 getWindowSize() const;
 
         /**
          * Gets the active camera entity.

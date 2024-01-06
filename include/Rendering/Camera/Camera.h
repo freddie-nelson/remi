@@ -76,7 +76,7 @@ namespace Rendering
          *
          * @returns the size of the camera viewport.
          */
-        std::pair<float, float> getViewportSize() const;
+        glm::vec2 getViewportSize() const;
 
         /**
          * Sets the z cut off for the near plane.

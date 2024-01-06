@@ -80,9 +80,9 @@ void Rendering::Camera::setViewportSize(float width, float height)
     setHeight(height);
 }
 
-std::pair<float, float> Rendering::Camera::getViewportSize() const
+glm::vec2 Rendering::Camera::getViewportSize() const
 {
-    return std::make_pair(width, height);
+    return glm::vec2(width, height);
 }
 
 glm::mat4 Rendering::Camera::getViewProjectionMatrix(const Core::Transform &t) const

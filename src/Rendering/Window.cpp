@@ -85,12 +85,12 @@ void Rendering::Window::hide()
         glfwHideWindow(glfwWindow);
 }
 
-std::pair<unsigned int, unsigned int> Rendering::Window::getSize() const
+glm::uvec2 Rendering::Window::getSize() const
 {
     auto width = getWidth();
     auto height = getHeight();
 
-    return std::make_pair(width, height);
+    return glm::uvec2(width, height);
 }
 
 void Rendering::Window::setSize(unsigned int width, unsigned int height)
@@ -135,12 +135,12 @@ void Rendering::Window::setHeight(unsigned int height)
     glfwSetWindowSize(glfwWindow, getWidth(), height);
 }
 
-std::pair<int, int> Rendering::Window::getPosition() const
+glm::ivec2 Rendering::Window::getPosition() const
 {
     int x, y;
     glfwGetWindowPos(glfwWindow, &x, &y);
 
-    return std::make_pair(x, y);
+    return glm::ivec2(x, y);
 }
 
 void Rendering::Window::setPosition(int x, int y)
