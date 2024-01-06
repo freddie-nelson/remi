@@ -30,7 +30,7 @@ core_src += ['src/Core/AABB/AABB.cpp']
 ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp']
 
 # input
-input_src = ['src/Input/Mouse.cpp']
+input_src = ['src/Input/Mouse.cpp', 'src/Input/Keyboard.cpp']
 
 # rendering
 rendering_src = ['src/Rendering/Renderer.cpp'] 

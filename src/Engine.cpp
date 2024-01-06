@@ -15,10 +15,12 @@ blz::Engine::Engine(EngineConfig config)
     registry = new ECS::Registry();
 
     mouse = new Input::Mouse(window->getGLFWWindow());
+    keyboard = new Input::Keyboard(window->getGLFWWindow());
 }
 
 blz::Engine::~Engine()
 {
+    delete keyboard;
     delete mouse;
     delete registry;
     delete renderer;
@@ -137,4 +139,9 @@ ECS::Registry *const blz::Engine::getRegistry()
 Input::Mouse *const blz::Engine::getMouse()
 {
     return mouse;
+}
+
+Input::Keyboard *const blz::Engine::getKeyboard()
+{
+    return keyboard;
 }

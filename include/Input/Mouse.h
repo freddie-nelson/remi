@@ -121,6 +121,11 @@ namespace Input
          */
         bool buttons[5];
 
+        /**
+         * The list of mouse instances created.
+         *
+         * Used in callbacks to update each instances state.
+         */
         static std::vector<Mouse *> instances;
 
         static void mousePositionCallback(GLFWwindow *window, double x, double y);

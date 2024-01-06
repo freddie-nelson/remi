@@ -5,6 +5,7 @@
 #include "Core/Window.h"
 #include "ECS/Registry.h"
 #include "Input/Mouse.h"
+#include "Input/Keyboard.h"
 
 namespace blz
 {
@@ -172,6 +173,15 @@ namespace blz
          */
         Input::Mouse *const getMouse();
 
+        /**
+         * Gets the keyboard of the engine.
+         *
+         * This is the keyboard that is used to get the keyboard key states.
+         *
+         * @returns The keyboard of the engine.
+         */
+        Input::Keyboard *const getKeyboard();
+
     private:
         EngineConfig config;
 
@@ -181,6 +191,7 @@ namespace blz
         ECS::Registry *registry;
 
         Input::Mouse *mouse;
+        Input::Keyboard *keyboard;
 
         /**
          * Systems that are updated every frame.

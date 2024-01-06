@@ -69,7 +69,7 @@ std::vector<Input::Mouse *> Input::Mouse::instances;
 
 void Input::Mouse::mousePositionCallback(GLFWwindow *window, double x, double y)
 {
-    std::cout << "Mouse position: " << x << ", " << y << std::endl;
+    // std::cout << "Mouse position: " << x << ", " << y << std::endl;
 
     for (auto instance : instances)
     {
@@ -80,7 +80,7 @@ void Input::Mouse::mousePositionCallback(GLFWwindow *window, double x, double y)
 
 void Input::Mouse::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
-    std::cout << "Mouse button: " << button << ", " << action << ", " << mods << std::endl;
+    // std::cout << "Mouse button: " << button << ", " << action << ", " << mods << std::endl;
 
     for (auto instance : instances)
     {
