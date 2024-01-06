@@ -5,7 +5,6 @@
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 #include "../../include/Config.h"
 #include "../../include/Core/BoundingCircle.h"
-#include "../../include/Rendering/Utility/Timestep.h"
 #include "../../include/Rendering/Renderable.h"
 #include "../../include/Rendering/Camera/ActiveCamera.h"
 #include "../../include/Rendering/Camera/Camera.h"
@@ -53,7 +52,7 @@ void Rendering::Renderer::init()
     }
 }
 
-void Rendering::Renderer::update(const ECS::Registry &registry, float dt)
+void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
     auto &entities = registry.view<Mesh2D, Core::Transform, Material, Renderable>();
 

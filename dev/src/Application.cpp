@@ -3,7 +3,7 @@
 
 #include <blaze++/Rendering/Mesh/Polygons.h>
 #include <blaze++/Rendering/Material/Material.h>
-#include <blaze++/Rendering/Utility/Timestep.h>
+#include <blaze++/Core/Timestep.h>
 #include <blaze++/Core/Transform.h>
 #include <blaze++/Core/BoundingCircle.h>
 #include <blaze++/Rendering/Renderable.h>
@@ -17,7 +17,7 @@
 #include <chrono>
 #include <thread>
 
-Application::Application(std::string windowTitle, int windowWidth, int windowHeight) : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight)
+Application::Application()
 {
 }
 
@@ -26,43 +26,34 @@ Application::~Application()
     destroy();
 }
 
-int Application::run()
+void Application::run()
 {
-    const int initCode = init();
-    if (initCode != 0)
-    {
-        return initCode;
-    }
+    // init application
+    init();
 
-    return window->run(std::bind(&Application::update, this, std::placeholders::_1, std::placeholders::_2));
+    // run engine
+    engine->run();
 }
 
-struct Position
+void Application::init()
 {
-    float x;
-    float y;
-};
+    // init engine
+    blz::EngineConfig config;
+    config.openglMajorVersion = 4;
+    config.openglMinorVersion = 3;
 
-struct Velocity
-{
-    float x;
-    float y;
-};
+    engine = new blz::Engine(config);
 
-int Application::init()
-{
-    // init window
-    window = new Rendering::Window(windowTitle, initialWindowWidth, initialWindowHeight);
-    if (window->init(4, 3) != 0)
-    {
-        std::cout << "Failed to initialize window." << std::endl;
-        return 1;
-    }
+    // add this system to the engine
+    engine->addSystem(this);
+
+    auto window = engine->getWindow();
+    auto renderer = engine->getRenderer();
+    auto registry = engine->getRegistry();
 
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
 
-    auto renderer = window->getRenderer();
     renderer->enableAlphaBlending(true);
     // renderer->setClearColor(clearColor);
 
@@ -70,28 +61,28 @@ int Application::init()
     // renderer->syncActiveCameraSize(true);
 
     // create camera
-    auto camera = registry.create();
-    registry.add(camera, Rendering::Camera(window->getWidth(), window->getHeight()));
-    registry.add(camera, Core::Transform());
-    registry.add(camera, Rendering::ActiveCamera());
+    auto camera = registry->create();
+    registry->add(camera, Rendering::Camera(window->getWidth(), window->getHeight()));
+    registry->add(camera, Core::Transform());
+    registry->add(camera, Rendering::ActiveCamera());
 
     // create texture
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // create entities
     int entityCount = 1000;
-    int xRange = (initialWindowWidth * std::sqrt(entityCount) / 10);
-    int yRange = (initialWindowHeight * std::sqrt(entityCount) / 10);
+    int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
+    int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
 
     for (int i = 0; i < entityCount; i++)
     {
-        auto e = registry.create();
+        auto e = registry->create();
 
-        // auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
-        auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>(rand() % 50 + 25), static_cast<unsigned int>(rand() % 13 + 3)));
-        auto &t = registry.add(e, Core::Transform());
-        auto &material = registry.add(e, Rendering::Material());
-        auto &renderable = registry.add(e, Rendering::Renderable{true, true});
+        // auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
+        auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>(rand() % 50 + 25), static_cast<unsigned int>(rand() % 13 + 3)));
+        auto &t = registry->add(e, Core::Transform());
+        auto &material = registry->add(e, Rendering::Material());
+        auto &renderable = registry->add(e, Rendering::Renderable{true, true});
 
         t.setZIndex(rand() % 10);
         t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
@@ -104,58 +95,19 @@ int Application::init()
 
         material.setTexture(texture);
     }
-
-    // ECS test
-    // auto e0 = registry.create();
-    // registry.add<Position>(e0, {0.0f, 0.0f});
-    // registry.add<Velocity>(e0, {1.0f, 1.0f});
-
-    // auto e1 = registry.create();
-    // registry.add<Position>(e1, {1.0f, 1.0f});
-
-    // auto e2 = registry.create();
-    // registry.add<Position>(e2, {2.0f, 2.0f});
-    // registry.add<Velocity>(e2, {2.0f, 2.0f});
-
-    // std::cout << "Entities with position: " << std::endl;
-    // auto entities = registry.view<Position>();
-    // for (auto &e : entities)
-    // {
-    //     auto &p = registry.get<Position>(e);
-    //     std::cout << e << ": p: " << p.x << ", " << p.y << std::endl;
-    // }
-
-    // std::cout << "Entities with velocity: " << std::endl;
-    // entities = registry.view<Velocity>();
-    // for (auto &e : entities)
-    // {
-    //     auto &v = registry.get<Velocity>(e);
-    //     std::cout << e << ": v: " << v.x << ", " << v.y << std::endl;
-    // }
-
-    // std::cout << "Entities with position and velocity: " << std::endl;
-    // entities = registry.view<Position, Velocity>();
-    // for (auto &e : entities)
-    // {
-    //     std::cout << e << std::endl;
-    //     auto &p = registry.get<Position>(e);
-    //     auto &v = registry.get<Velocity>(e);
-    //     std::cout << e << ": p: " << p.x << ", " << p.y << ", v: " << v.x << ", " << v.y << std::endl;
-    // }
-
-    return 0;
 }
 
 void Application::destroy()
 {
-    delete window;
-    delete this;
+    delete engine;
 }
 
-void Application::update(float dt, Rendering::Renderer *renderer)
+void Application::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
     // print timestep info
-    std::cout << "\rdt: " << dt << "          ";
+    std::cout << "\rdt: " << timestep.getSeconds() << "          ";
+
+    auto renderer = engine->getRenderer();
 
     // move camera
     auto camera = renderer->getActiveCamera(registry);
@@ -176,71 +128,6 @@ void Application::update(float dt, Rendering::Renderer *renderer)
             continue;
 
         auto &t = registry.get<Core::Transform>(e);
-        t.rotate(-std::numbers::pi * 0.5f * dt);
+        t.rotate(-std::numbers::pi * 0.5f * timestep.getSeconds());
     }
-
-    render(renderer);
-}
-
-void Application::render(Rendering::Renderer *renderer)
-{
-    // auto resolution = window->getSize();
-
-    // render all entities with a mesh, transform and color component
-    // auto now = Rendering::timeSinceEpochMillisec();
-    // auto &renderables = registry.view<Rendering::Mesh2D, Core::Transform, Rendering::Material>();
-    // std::cout << "registry search time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
-
-    // auto &cameraAABB = renderer->getCamera().getAABB();
-    // auto cameraBoundingCircle = Core::BoundingCircle(cameraAABB);
-    // Core::BoundingCircle entityBoundingCircle(glm::vec2(0), 0);
-
-    // std::vector<Rendering::Mesh2D *> meshs(renderables.size());
-    // std::vector<Core::Transform *> transforms(renderables.size());
-    // std::vector<Rendering::Material *> materials(renderables.size());
-
-    // now = Rendering::timeSinceEpochMillisec();
-    // size_t j = 0;
-
-    // for (size_t i = 0; i < renderables.size(); i++)
-    // {
-    //     auto &m = registry.get<Rendering::Mesh2D>(renderables[i]);
-    //     auto &t = registry.get<Core::Transform>(renderables[i]);
-
-    //     entityBoundingCircle.set(m.getAABB(), t);
-    //     if (!cameraBoundingCircle.intersects(entityBoundingCircle))
-    //     {
-    //         continue;
-    //     }
-
-    //     meshs[j] = &m;
-    //     transforms[j] = &t;
-
-    //     auto &mat = registry.get<Rendering::Material>(renderables[i]);
-    //     materials[j] = &mat;
-
-    //     j++;
-    // }
-
-    // meshs.resize(j);
-    // transforms.resize(j);
-    // materials.resize(j);
-
-    // std::cout << "registry get time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
-
-    // // single mesh
-    // // for (size_t i = 0; i < renderables.size(); i++)
-    // // {
-    // //     renderer->mesh(meshs[i], transforms[i], materials[i]);
-    // // }
-
-    // // instancing
-    // // renderer->instancedMesh(meshs[0], transforms, materials);
-
-    // // batching
-    // renderer->batchedMesh(meshs, transforms, materials);
-
-    // std::cout << "rendered " << j << " of " << renderables.size() << " entities." << std::endl;
-
-    renderer->update(registry, 0);
 }

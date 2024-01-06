@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Renderer.h"
+#include "../ECS/System.h"
+#include "../ECS/Registry.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -15,15 +17,9 @@ namespace Rendering
     /**
      * The window is responsible for creating and managing the window.
      *
-     * It is also responsible for polling events and running the main loop.
-     *
-     * The window will also create and manage the Renderer.
-     *
      * The window must be initialized before it can be used.
-     *
-     * By default the window runs at 60 fps.
      */
-    class Window
+    class Window : public ECS::System
     {
     public:
         /**
@@ -34,13 +30,14 @@ namespace Rendering
          * @param windowTitle The title of the window.
          * @param windowWidth The width of the window.
          * @param windowHeight The height of the window.
+         * @param fullscreen Whether to create the window in fullscreen mode.
          */
-        Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight);
+        Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, bool fullscreen = false);
 
         /**
          * Destroys the window.
          */
-        ~Window();
+        virtual ~Window();
 
         /**
          * Initializes the window.
@@ -50,9 +47,10 @@ namespace Rendering
          * @param openglMajorVersion The major version of OpenGL to use.
          * @param openglMinorVersion The minor version of OpenGL to use.
          *
-         * @returns The error code, 0 if no error.
+         * @throws std::runtime_error if the window failed to initialize.
+         * @throws std::invalid_argument if the opengl version is not supported.
          */
-        int init(unsigned int openglMajorVersion = 4, unsigned int openglMinorVersion = 6);
+        void init(unsigned int openglMajorVersion = 4, unsigned int openglMinorVersion = 6);
 
         /**
          * Destroys the window, freeing all resources and closing the window.
@@ -60,24 +58,12 @@ namespace Rendering
         void destroy();
 
         /**
-         * Runs the window.
+         * Updates the window
          *
-         * This will run the main loop until the window is closed.
-         *
-         * @param frameCallback The callback to call each frame.
-         *
-         * @returns The error code, 0 if no error.
+         * @param registry The registry to update with.
+         * @param timestep The timestep since the last update.
          */
-        int run(WindowFrameCallback frameCallback);
-
-        /**
-         * Stops the `run` loop if it is running.
-         *
-         * This will not close the window.
-         *
-         * When stopped the window will only poll events, to prevent the window from freezing. This **will** call event listeners.
-         */
-        void stop();
+        void update(const ECS::Registry &registry, const Core::Timestep &timestep) override;
 
         /**
          * Shows the window.
@@ -88,27 +74,6 @@ namespace Rendering
          * Hides the window.
          */
         void hide();
-
-        /**
-         * Returns the max fps that the window should update at.
-         *
-         * @returns The max fps that the window should update at.
-         */
-        unsigned int getFps() const;
-
-        /**
-         * Sets the max fps that the window should update at.
-         *
-         * @param fps The max fps that the window should update at.
-         */
-        void setFps(unsigned int fps);
-
-        /**
-         * Returns the time in milliseconds that a frame should take.
-         *
-         * @returns The time in milliseconds that a frame should take.
-         */
-        unsigned int getFrameTime() const;
 
         /**
          * Returns the width and height of the window.
@@ -171,38 +136,21 @@ namespace Rendering
         void setPosition(int x, int y);
 
         /**
-         * Sets whether the renderer should be resized when the window is resized.
+         * Returns the GLFW window.
          *
-         * By default, this is true.
-         *
-         * The renderer will be resized at the start of each frame.
-         *
-         * @param sync Whether to sync the renderer size with the window size.
+         * @returns The GLFW window.
          */
-        void syncRendererSize(bool sync);
-
-        /**
-         * Returns whether the renderer is resized when the window is resized.
-         *
-         * @returns Whether the renderer is resized when the window is resized.
-         */
-        bool getSyncRendererSize() const;
-
-        Renderer *getRenderer() const;
+        GLFWwindow *getGLFWWindow() const;
 
     private:
         std::string windowTitle;
         unsigned int initialWindowWidth;
         unsigned int initialWindowHeight;
+        bool isFullscreen;
 
-        unsigned int fps = 60;
         bool showWindow = true;
-        bool syncRendererSizeWithWindow = true;
 
         GLFWwindow *glfwWindow;
-        Rendering::Renderer *renderer;
-
-        bool running = false;
 
         /**
          * Creates a GLFW window.

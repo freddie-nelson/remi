@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Core/Timestep.h"
 #include "Registry.h"
 
 namespace ECS
@@ -9,6 +10,8 @@ namespace ECS
     public:
         virtual ~System() = default;
 
-        virtual void update(const Registry &registry, float dt) = 0;
+        virtual void update(const Registry &registry, const Core::Timestep &timestep){};
+
+        virtual void fixedUpdate(const Registry &registry, const Core::Timestep &timestep){};
     };
 }

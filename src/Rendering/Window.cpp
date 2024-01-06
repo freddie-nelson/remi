@@ -1,5 +1,4 @@
 #include "../../include/Rendering/Window.h"
-#include "../../include/Rendering/Utility/Timestep.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 
 #include <glad/gl.h>
@@ -7,8 +6,8 @@
 #include <stdexcept>
 #include <thread>
 
-Rendering::Window::Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight)
-    : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight)
+Rendering::Window::Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, bool fullscreen)
+    : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight), isFullscreen(fullscreen)
 {
     if (!glfwInit())
     {
@@ -21,28 +20,31 @@ Rendering::Window::~Window()
     destroy();
 }
 
-int Rendering::Window::init(unsigned int openglMajorVersion, unsigned int openglMinorVersion)
+void Rendering::Window::init(unsigned int openglMajorVersion, unsigned int openglMinorVersion)
 {
     if (openglMajorVersion < 3)
     {
-        std::cout << "OpenGL major version must be greater than or equal to 3." << std::endl;
-        return 1;
+        throw std::invalid_argument("openglMajorVersion must be greater than or equal to 3.");
     }
     else if (openglMajorVersion == 3 && openglMinorVersion < 3)
     {
-        std::cout << "OpenGL minor version must be greater than or equal to 3.3." << std::endl;
-        return 1;
+        throw std::invalid_argument("openglMinorVersion must be greater than or equal to 3.3.");
     }
     else if (openglMajorVersion == 4 && openglMinorVersion > 6)
     {
-        std::cout << "OpenGL minor version must be less than or equal to 4.6." << std::endl;
-        return 1;
+        throw std::invalid_argument("openglMinorVersion must be less than or equal to 4.6.");
     }
 
-    glfwWindow = createGLFWWindow(openglMajorVersion, openglMinorVersion, true);
+    GLFWmonitor *monitor = nullptr;
+    if (isFullscreen)
+    {
+        monitor = glfwGetPrimaryMonitor();
+    }
+
+    glfwWindow = createGLFWWindow(openglMajorVersion, openglMinorVersion, true, monitor);
     if (!glfwWindow)
     {
-        return 1;
+        throw std::runtime_error("Failed to create GLFW window.");
     }
 
     std::cout
@@ -54,81 +56,17 @@ int Rendering::Window::init(unsigned int openglMajorVersion, unsigned int opengl
     // Output the opengl version
     std::cout << "OpenGL version: " << context->versionString << std::endl;
     std::cout << "OpenGL vendor: " << context->vendor << std::endl;
-
-    renderer = new Rendering::Renderer(glfwWindow, initialWindowWidth, initialWindowHeight);
-    renderer->init();
-
-    return 0;
 }
 
 void Rendering::Window::destroy()
 {
-    running = false;
-
-    delete renderer;
-
     glfwDestroyWindow(glfwWindow);
     glfwTerminate();
 }
 
-int Rendering::Window::run(WindowFrameCallback frameCallback)
+void Rendering::Window::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
-    // TODO change dt to timestep struct or class
-    const int desiredFrameTime = getFrameTime();
-    auto lastUpdateTime = timeSinceEpochMillisec() - desiredFrameTime;
-
-    running = true;
-
-    while (true)
-    {
-        if (syncRendererSizeWithWindow)
-        {
-            auto size = getSize();
-            renderer->setSize(size.first, size.second);
-        }
-
-        // when not running, just poll events
-        // this is to prevent the window from freezing
-        if (!running)
-        {
-            pollEvents();
-            continue;
-        }
-
-        // update timestep
-        const auto now = timeSinceEpochMillisec();
-        const auto diff = now - lastUpdateTime;
-        lastUpdateTime = now;
-
-        // calculate dt in seconds
-        const float dt = (float)diff / 1000.0f;
-
-        // clear renderer
-        renderer->clear();
-
-        // call user frame callback
-        frameCallback(dt, renderer);
-
-        // wait for renderer events to be processed
-        pollEvents();
-
-        // present rendered image
-        renderer->present();
-
-        // wait until frame time is reached
-        const auto frameEndTime = now + desiredFrameTime;
-        while (timeSinceEpochMillisec() < frameEndTime)
-        {
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
-        }
-    }
-
-    return 0;
-}
-
-void Rendering::Window::stop()
-{
-    running = false;
+    pollEvents();
 }
 
 void Rendering::Window::show()
@@ -145,26 +83,6 @@ void Rendering::Window::hide()
 
     if (glfwWindow)
         glfwHideWindow(glfwWindow);
-}
-
-unsigned int Rendering::Window::getFps() const
-{
-    return fps;
-}
-
-void Rendering::Window::setFps(unsigned int fps)
-{
-    if (fps == 0)
-    {
-        throw std::invalid_argument("fps cannot be 0.");
-    }
-
-    this->fps = fps;
-}
-
-unsigned int Rendering::Window::getFrameTime() const
-{
-    return 1000 / fps;
 }
 
 std::pair<unsigned int, unsigned int> Rendering::Window::getSize() const
@@ -235,19 +153,9 @@ void Rendering::Window::setPosition(int x, int y)
     glfwSetWindowPos(glfwWindow, x, y);
 }
 
-void Rendering::Window::syncRendererSize(bool sync)
+GLFWwindow *Rendering::Window::getGLFWWindow() const
 {
-    syncRendererSizeWithWindow = sync;
-}
-
-bool Rendering::Window::getSyncRendererSize() const
-{
-    return syncRendererSizeWithWindow;
-}
-
-Rendering::Renderer *Rendering::Window::getRenderer() const
-{
-    return renderer;
+    return glfwWindow;
 }
 
 GLFWwindow *Rendering::Window::createGLFWWindow(int openglMajorVersion, int openglMinorVersion, bool debugContext, GLFWmonitor *monitor)
@@ -267,8 +175,8 @@ GLFWwindow *Rendering::Window::createGLFWWindow(int openglMajorVersion, int open
     glfwWindow = glfwCreateWindow(initialWindowWidth, initialWindowHeight, windowTitle.c_str(), monitor, NULL);
     if (!glfwWindow)
     {
-        const char *error;
-        glfwGetError(&error);
+        const char **error = nullptr;
+        glfwGetError(error);
         std::cout << "Failed to create glfw window. Error: " << *error << std::endl;
 
         glfwTerminate();
@@ -348,5 +256,6 @@ void Rendering::Window::pollEvents()
     if (glfwWindowShouldClose(glfwWindow))
     {
         destroy();
+        exit(0);
     }
 }

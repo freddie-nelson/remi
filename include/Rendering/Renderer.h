@@ -39,7 +39,7 @@ namespace Rendering
      *
      * The renderer also contains a TextureManager for managing textures.
      */
-    class Renderer : ECS::System
+    class Renderer : public ECS::System
     {
     public:
         /**
@@ -75,9 +75,9 @@ namespace Rendering
          * This also sorts the renderables by their z index, when alpha blending is enabled.
          *
          * @param registry The registry to render from.
-         * @param dt The time since the last frame.
+         * @param timestep The timestep since the last update.
          */
-        void update(const ECS::Registry &registry, float dt) override;
+        void update(const ECS::Registry &registry, const Core::Timestep &timestep) override;
 
         /**
          * Clears the render buffers.

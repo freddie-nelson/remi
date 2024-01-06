@@ -23,7 +23,7 @@ install_subdir('externals/src/glad', install_dir : lib_dir / 'src/glad', strip_d
 #
 
 # core
-core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp']
+core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/Timestep.cpp']
 core_src += ['src/Core/AABB/AABB.cpp']
 
 # ecs
@@ -38,7 +38,9 @@ rendering_src += ['src/Rendering/Shader/Shader.cpp']
 rendering_src += ['src/Rendering/Texture/Texture.cpp', 'src/Rendering/Texture/TextureAtlas.cpp', 'src/Rendering/Texture/TextureManager.cpp']
 rendering_src += ['src/Rendering/Utility/FileHandling.cpp', 'src/Rendering/Utility/OpenGLHelpers.cpp']
 
-all_src = core_src + ecs_src + rendering_src
+engine_src = ['src/Engine.cpp']
+
+all_src = core_src + ecs_src + rendering_src + engine_src
 
 engine = library('blaze++', all_src, dependencies : dependencies, include_directories : incdir, link_with : [glad], install : true, install_dir : lib_dir / 'lib', link_args : link_args)
 

@@ -3,29 +3,23 @@
 #include <blaze++/Rendering/Renderer.h>
 #include <blaze++/Rendering/Window.h>
 #include <blaze++/ECS/Registry.h>
+#include <blaze++/Engine.h>
 
 #include <string>
 
-class Application
+class Application : public ECS::System
 {
 public:
-    Application(std::string windowTitle, int windowWidth, int windowHeight);
+    Application();
     ~Application();
 
-    int run();
+    void run();
 
 private:
-    std::string windowTitle;
-    int initialWindowWidth;
-    int initialWindowHeight;
+    blz::Engine *engine;
 
-    Rendering::Window *window;
-
-    int init();
+    void init();
     void destroy();
 
-    ECS::Registry registry;
-
-    void update(float dt, Rendering::Renderer *renderer);
-    void render(Rendering::Renderer *renderer);
+    void update(const ECS::Registry &registry, const Core::Timestep &timestep);
 };
