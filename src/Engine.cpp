@@ -4,7 +4,7 @@ blz::Engine::Engine(EngineConfig config)
 {
     this->config = config;
 
-    window = new Rendering::Window(config.windowTitle, config.windowWidth, config.windowHeight, config.windowFullscreen);
+    window = new Core::Window(config.windowTitle, config.windowWidth, config.windowHeight, config.windowFullscreen);
     window->init(config.openglMajorVersion, config.openglMinorVersion);
     addSystem(window);
 
@@ -106,7 +106,7 @@ blz::EngineConfig &blz::Engine::getConfig()
     return config;
 }
 
-Rendering::Window *const blz::Engine::getWindow()
+Core::Window *const blz::Engine::getWindow()
 {
     return window;
 }

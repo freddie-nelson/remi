@@ -23,14 +23,14 @@ install_subdir('externals/src/glad', install_dir : lib_dir / 'src/glad', strip_d
 #
 
 # core
-core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/Timestep.cpp']
+core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/Timestep.cpp', 'src/Core/Window.cpp']
 core_src += ['src/Core/AABB/AABB.cpp']
 
 # ecs
 ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp']
 
 # rendering
-rendering_src = ['src/Rendering/Renderer.cpp', 'src/Rendering/Window.cpp'] 
+rendering_src = ['src/Rendering/Renderer.cpp'] 
 rendering_src += ['src/Rendering/Camera/Camera.cpp']
 rendering_src += ['src/Rendering/Material/Color.cpp', 'src/Rendering/Material/Material.cpp']
 rendering_src += ['src/Rendering/Mesh/Mesh.cpp', 'src/Rendering/Mesh/Polygons.cpp', 'src/Rendering/Mesh/Triangulate.cpp']

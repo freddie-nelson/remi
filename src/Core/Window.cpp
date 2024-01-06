@@ -1,4 +1,4 @@
-#include "../../include/Rendering/Window.h"
+#include "../../include/Core/Window.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 
 #include <glad/gl.h>
@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <thread>
 
-Rendering::Window::Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, bool fullscreen)
+Core::Window::Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, bool fullscreen)
     : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight), isFullscreen(fullscreen)
 {
     if (!glfwInit())
@@ -15,12 +15,12 @@ Rendering::Window::Window(std::string windowTitle, unsigned int windowWidth, uns
     }
 }
 
-Rendering::Window::~Window()
+Core::Window::~Window()
 {
     destroy();
 }
 
-void Rendering::Window::init(unsigned int openglMajorVersion, unsigned int openglMinorVersion)
+void Core::Window::init(unsigned int openglMajorVersion, unsigned int openglMinorVersion)
 {
     if (openglMajorVersion < 3)
     {
@@ -58,18 +58,18 @@ void Rendering::Window::init(unsigned int openglMajorVersion, unsigned int openg
     std::cout << "OpenGL vendor: " << context->vendor << std::endl;
 }
 
-void Rendering::Window::destroy()
+void Core::Window::destroy()
 {
     glfwDestroyWindow(glfwWindow);
     glfwTerminate();
 }
 
-void Rendering::Window::update(const ECS::Registry &registry, const Core::Timestep &timestep)
+void Core::Window::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
     pollEvents();
 }
 
-void Rendering::Window::show()
+void Core::Window::show()
 {
     showWindow = true;
 
@@ -77,7 +77,7 @@ void Rendering::Window::show()
         glfwShowWindow(glfwWindow);
 }
 
-void Rendering::Window::hide()
+void Core::Window::hide()
 {
     showWindow = false;
 
@@ -85,7 +85,7 @@ void Rendering::Window::hide()
         glfwHideWindow(glfwWindow);
 }
 
-glm::uvec2 Rendering::Window::getSize() const
+glm::uvec2 Core::Window::getSize() const
 {
     auto width = getWidth();
     auto height = getHeight();
@@ -93,13 +93,13 @@ glm::uvec2 Rendering::Window::getSize() const
     return glm::uvec2(width, height);
 }
 
-void Rendering::Window::setSize(unsigned int width, unsigned int height)
+void Core::Window::setSize(unsigned int width, unsigned int height)
 {
     setWidth(width);
     setHeight(height);
 }
 
-unsigned int Rendering::Window::getWidth() const
+unsigned int Core::Window::getWidth() const
 {
     int width, height;
     glfwGetFramebufferSize(glfwWindow, &width, &height);
@@ -107,7 +107,7 @@ unsigned int Rendering::Window::getWidth() const
     return width;
 }
 
-void Rendering::Window::setWidth(unsigned int width)
+void Core::Window::setWidth(unsigned int width)
 {
     if (width <= 0)
     {
@@ -117,7 +117,7 @@ void Rendering::Window::setWidth(unsigned int width)
     glfwSetWindowSize(glfwWindow, width, getHeight());
 }
 
-unsigned int Rendering::Window::getHeight() const
+unsigned int Core::Window::getHeight() const
 {
     int width, height;
     glfwGetFramebufferSize(glfwWindow, &width, &height);
@@ -125,7 +125,7 @@ unsigned int Rendering::Window::getHeight() const
     return height;
 }
 
-void Rendering::Window::setHeight(unsigned int height)
+void Core::Window::setHeight(unsigned int height)
 {
     if (height <= 0)
     {
@@ -135,7 +135,7 @@ void Rendering::Window::setHeight(unsigned int height)
     glfwSetWindowSize(glfwWindow, getWidth(), height);
 }
 
-glm::ivec2 Rendering::Window::getPosition() const
+glm::ivec2 Core::Window::getPosition() const
 {
     int x, y;
     glfwGetWindowPos(glfwWindow, &x, &y);
@@ -143,7 +143,7 @@ glm::ivec2 Rendering::Window::getPosition() const
     return glm::ivec2(x, y);
 }
 
-void Rendering::Window::setPosition(int x, int y)
+void Core::Window::setPosition(int x, int y)
 {
     if (x < 0 || y < 0)
     {
@@ -153,12 +153,12 @@ void Rendering::Window::setPosition(int x, int y)
     glfwSetWindowPos(glfwWindow, x, y);
 }
 
-GLFWwindow *Rendering::Window::getGLFWWindow() const
+GLFWwindow *Core::Window::getGLFWWindow() const
 {
     return glfwWindow;
 }
 
-GLFWwindow *Rendering::Window::createGLFWWindow(int openglMajorVersion, int openglMinorVersion, bool debugContext, GLFWmonitor *monitor)
+GLFWwindow *Core::Window::createGLFWWindow(int openglMajorVersion, int openglMinorVersion, bool debugContext, GLFWmonitor *monitor)
 {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, openglMajorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, openglMinorVersion);
@@ -186,7 +186,7 @@ GLFWwindow *Rendering::Window::createGLFWWindow(int openglMajorVersion, int open
     return glfwWindow;
 }
 
-Rendering::Window::OpenGLContext *Rendering::Window::createOpenGLContext(GLFWwindow *window)
+Core::Window::OpenGLContext *Core::Window::createOpenGLContext(GLFWwindow *window)
 {
     glfwMakeContextCurrent(window);
 
@@ -207,7 +207,7 @@ Rendering::Window::OpenGLContext *Rendering::Window::createOpenGLContext(GLFWwin
     {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(glDebugOutput, nullptr);
+        glDebugMessageCallback(Rendering::glDebugOutput, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
     else
@@ -218,7 +218,7 @@ Rendering::Window::OpenGLContext *Rendering::Window::createOpenGLContext(GLFWwin
     return new OpenGLContext{GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version), std::string((const char *)glGetString(GL_VERSION)), std::string((const char *)glGetString(GL_VENDOR)), (flags & GL_CONTEXT_FLAG_DEBUG_BIT) != 0};
 }
 
-std::vector<std::pair<Rendering::Window::OpenGLContext *, GLFWmonitor *>> Rendering::Window::getAllSupportedOpenGLContexts(int openglMajorVersion, int openglMinorVersion, bool debugContext)
+std::vector<std::pair<Core::Window::OpenGLContext *, GLFWmonitor *>> Core::Window::getAllSupportedOpenGLContexts(int openglMajorVersion, int openglMinorVersion, bool debugContext)
 {
     std::vector<std::pair<OpenGLContext *, GLFWmonitor *>> contexts;
 
@@ -249,7 +249,7 @@ std::vector<std::pair<Rendering::Window::OpenGLContext *, GLFWmonitor *>> Render
     return contexts;
 }
 
-void Rendering::Window::pollEvents()
+void Core::Window::pollEvents()
 {
     glfwPollEvents();
 

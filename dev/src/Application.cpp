@@ -41,6 +41,7 @@ void Application::init()
     blz::EngineConfig config;
     config.openglMajorVersion = 4;
     config.openglMinorVersion = 3;
+    config.updatesPerSecond = 60;
 
     engine = new blz::Engine(config);
 

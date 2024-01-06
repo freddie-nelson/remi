@@ -2,7 +2,7 @@
 
 #include "Core/Timestep.h"
 #include "Rendering/Renderer.h"
-#include "Rendering/Window.h"
+#include "Core/Window.h"
 #include "ECS/Registry.h"
 
 namespace blz
@@ -142,7 +142,7 @@ namespace blz
          *
          * @returns The window of the engine.
          */
-        Rendering::Window *const getWindow();
+        Core::Window *const getWindow();
 
         /**
          * Gets the renderer of the engine.
@@ -165,7 +165,7 @@ namespace blz
     private:
         EngineConfig config;
 
-        Rendering::Window *window;
+        Core::Window *window;
         Rendering::Renderer *renderer;
 
         ECS::Registry *registry;

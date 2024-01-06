@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Renderer.h"
 #include "../ECS/System.h"
 #include "../ECS/Registry.h"
 
@@ -12,10 +11,8 @@
 #include <string>
 #include <functional>
 
-namespace Rendering
+namespace Core
 {
-    using WindowFrameCallback = std::function<void(float, Renderer *)>;
-
     /**
      * The window is responsible for creating and managing the window.
      *
