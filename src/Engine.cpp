@@ -13,10 +13,13 @@ blz::Engine::Engine(EngineConfig config)
     addSystem(renderer);
 
     registry = new ECS::Registry();
+
+    mouse = new Input::Mouse(window->getGLFWWindow());
 }
 
 blz::Engine::~Engine()
 {
+    delete mouse;
     delete registry;
     delete renderer;
     delete window;
@@ -37,6 +40,7 @@ void blz::Engine::run()
 
     while (true)
     {
+
         timeSinceLastFixedUpdate += tick.getMicroseconds();
         timeSinceLastUpdate += tick.getMicroseconds();
 
@@ -70,6 +74,15 @@ void blz::Engine::run()
 
             // present renderer
             renderer->present();
+
+            // poll for new events after frame has been rendered
+            glfwPollEvents();
+
+            // check if window should close
+            if (glfwWindowShouldClose(window->getGLFWWindow()))
+            {
+                break;
+            }
 
             timeSinceLastUpdate = 0;
         }
@@ -119,4 +132,9 @@ Rendering::Renderer *const blz::Engine::getRenderer()
 ECS::Registry *const blz::Engine::getRegistry()
 {
     return registry;
+}
+
+Input::Mouse *const blz::Engine::getMouse()
+{
+    return mouse;
 }

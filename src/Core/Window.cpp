@@ -66,7 +66,6 @@ void Core::Window::destroy()
 
 void Core::Window::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
-    pollEvents();
 }
 
 void Core::Window::show()
@@ -247,15 +246,4 @@ std::vector<std::pair<Core::Window::OpenGLContext *, GLFWmonitor *>> Core::Windo
     }
 
     return contexts;
-}
-
-void Core::Window::pollEvents()
-{
-    glfwPollEvents();
-
-    if (glfwWindowShouldClose(glfwWindow))
-    {
-        destroy();
-        exit(0);
-    }
 }

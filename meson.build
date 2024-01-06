@@ -29,6 +29,9 @@ core_src += ['src/Core/AABB/AABB.cpp']
 # ecs
 ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp']
 
+# input
+input_src = ['src/Input/Mouse.cpp']
+
 # rendering
 rendering_src = ['src/Rendering/Renderer.cpp'] 
 rendering_src += ['src/Rendering/Camera/Camera.cpp']
@@ -40,7 +43,7 @@ rendering_src += ['src/Rendering/Utility/FileHandling.cpp', 'src/Rendering/Utili
 
 engine_src = ['src/Engine.cpp']
 
-all_src = core_src + ecs_src + rendering_src + engine_src
+all_src = core_src + ecs_src + input_src + rendering_src + engine_src
 
 engine = library('blaze++', all_src, dependencies : dependencies, include_directories : incdir, link_with : [glad], install : true, install_dir : lib_dir / 'lib', link_args : link_args)
 

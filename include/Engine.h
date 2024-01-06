@@ -4,6 +4,7 @@
 #include "Rendering/Renderer.h"
 #include "Core/Window.h"
 #include "ECS/Registry.h"
+#include "Input/Mouse.h"
 
 namespace blz
 {
@@ -162,6 +163,15 @@ namespace blz
          */
         ECS::Registry *const getRegistry();
 
+        /**
+         * Gets the mouse of the engine.
+         *
+         * This is the mouse that is used to get the mouse position and button states.
+         *
+         * @returns The mouse of the engine.
+         */
+        Input::Mouse *const getMouse();
+
     private:
         EngineConfig config;
 
@@ -169,6 +179,8 @@ namespace blz
         Rendering::Renderer *renderer;
 
         ECS::Registry *registry;
+
+        Input::Mouse *mouse;
 
         /**
          * Systems that are updated every frame.

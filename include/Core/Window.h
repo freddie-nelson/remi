@@ -195,10 +195,5 @@ namespace Core
          * @warning Doesn't really work, it will return the same context for each monitor.
          */
         std::vector<std::pair<OpenGLContext *, GLFWmonitor *>> getAllSupportedOpenGLContexts(int openglMajorVersion, int openglMinorVersion, bool debugContext);
-
-        /**
-         * Polls events from the window.
-         */
-        void pollEvents();
     };
 }
