@@ -149,6 +149,14 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     if (keyboard->isPressed(Input::Key::ARROW_RIGHT))
         t.rotate(-camRotSpeed * timestep.getSeconds());
 
+    // zoom camera
+    float camZoomSpeed = 1.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
+
+    if (keyboard->isPressed(Input::Key::ARROW_UP))
+        t.scale(1.0f - camZoomSpeed * timestep.getSeconds());
+    if (keyboard->isPressed(Input::Key::ARROW_DOWN))
+        t.scale(1.0f + camZoomSpeed * timestep.getSeconds());
+
     // rotate all entities with a transform component except camera
     // auto entities = registry.view<Core::Transform>();
 
