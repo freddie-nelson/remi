@@ -407,5 +407,7 @@ namespace Rendering
         Color clearColor = Color(0.0f);
 
         GLFWwindow *glfwWindow;
+
+        GLenum bufferDrawType = GL_STREAM_DRAW;
     };
 }

@@ -128,6 +128,7 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
             }
         }
 
+        //! fix inconsistent ordering of entities causing z fighting appearance
         // sort transparent renderables by z index (back to front)
         // for correct alpha blending
         sortRenderables(registry, transparentRenderables);
@@ -219,10 +220,10 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     meshShader.setUniform("uMeshTransform", const_cast<glm::mat4 *>(&transformMatrix));
 
     // mesh data
-    meshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    meshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
+    meshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
+    meshShader.setIndices("aPos", &indices[0], indices.size(), bufferDrawType);
 
-    meshShader.setAttrib("aTexCoord", uvsPointer, uvs.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    meshShader.setAttrib("aTexCoord", uvsPointer, uvs.size() * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
 
     // draw
     meshShader.draw(GL_TRIANGLES, indices.size());
@@ -281,25 +282,25 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
 
     // instanced arrays
     float *atlasPosArr = (float *)glm::value_ptr(textureAtlasPos[0]);
-    instancedMeshShader.setAttrib("aTextureAtlasPos", atlasPosArr, instanceCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
+    instancedMeshShader.setAttrib("aTextureAtlasPos", atlasPosArr, instanceCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType, 1);
 
     unsigned int *textureUnitArr = &textureUnit[0];
-    instancedMeshShader.setAttrib("aTextureUnit", textureUnitArr, instanceCount, 1, GL_UNSIGNED_INT, false, 0, GL_DYNAMIC_DRAW, 1);
+    instancedMeshShader.setAttrib("aTextureUnit", textureUnitArr, instanceCount, 1, GL_UNSIGNED_INT, false, 0, bufferDrawType, 1);
 
     float *textureSizeArr = (float *)glm::value_ptr(textureSize[0]);
-    instancedMeshShader.setAttrib("aTextureSize", textureSizeArr, instanceCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
+    instancedMeshShader.setAttrib("aTextureSize", textureSizeArr, instanceCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType, 1);
 
     float *colorArr = (float *)glm::value_ptr(color[0]);
-    instancedMeshShader.setAttrib("aColor", colorArr, instanceCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1);
+    instancedMeshShader.setAttrib("aColor", colorArr, instanceCount * 4, 4, GL_FLOAT, false, 0, bufferDrawType, 1);
 
     float *transformArr = (float *)glm::value_ptr(transform[0]);
-    instancedMeshShader.setAttrib("aTransform", transformArr, instanceCount * 16, 16, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW, 1, 4);
+    instancedMeshShader.setAttrib("aTransform", transformArr, instanceCount * 16, 16, GL_FLOAT, false, 0, bufferDrawType, 1, 4);
 
     // vertices and indices
-    instancedMeshShader.setAttrib("aPos", vertexArr, vertices.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    instancedMeshShader.setIndices("aPos", &indices[0], indices.size(), GL_DYNAMIC_DRAW);
+    instancedMeshShader.setAttrib("aPos", vertexArr, vertices.size() * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
+    instancedMeshShader.setIndices("aPos", &indices[0], indices.size(), bufferDrawType);
 
-    instancedMeshShader.setAttrib("aTexCoord", uvArr, uvs.size() * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    instancedMeshShader.setAttrib("aTexCoord", uvArr, uvs.size() * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
 
     instancedMeshShader.drawInstanced(instanceCount, GL_TRIANGLES, indices.size());
     instancedMeshShader.unbind();
@@ -396,15 +397,15 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
     auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
     batchedMeshShader.setUniform("uTextureAtlasSize", &atlasSize);
 
-    batchedMeshShader.setAttrib("aTextureAtlasPos", (float *)glm::value_ptr(batchedAtlasPos[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    batchedMeshShader.setAttrib("aTextureUnit", &batchedTextureUnits[0], verticesCount, 1, GL_UNSIGNED_INT, false, 0, GL_DYNAMIC_DRAW);
-    batchedMeshShader.setAttrib("aTextureSize", (float *)glm::value_ptr(batchedTextureSizes[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    batchedMeshShader.setAttrib("aTexCoord", (float *)glm::value_ptr(batchedTexCoords[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aTextureAtlasPos", (float *)glm::value_ptr(batchedAtlasPos[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
+    batchedMeshShader.setAttrib("aTextureUnit", &batchedTextureUnits[0], verticesCount, 1, GL_UNSIGNED_INT, false, 0, bufferDrawType);
+    batchedMeshShader.setAttrib("aTextureSize", (float *)glm::value_ptr(batchedTextureSizes[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
+    batchedMeshShader.setAttrib("aTexCoord", (float *)glm::value_ptr(batchedTexCoords[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
 
-    batchedMeshShader.setAttrib("aColor", (float *)glm::value_ptr(batchedColors[0]), verticesCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aColor", (float *)glm::value_ptr(batchedColors[0]), verticesCount * 4, 4, GL_FLOAT, false, 0, bufferDrawType);
 
-    batchedMeshShader.setAttrib("aPos", (float *)glm::value_ptr(batchedVertices[0]), verticesCount * 4, 4, GL_FLOAT, false, 0, GL_DYNAMIC_DRAW);
-    batchedMeshShader.setIndices("aPos", &batchedIndices[0], indicesCount, GL_DYNAMIC_DRAW);
+    batchedMeshShader.setAttrib("aPos", (float *)glm::value_ptr(batchedVertices[0]), verticesCount * 4, 4, GL_FLOAT, false, 0, bufferDrawType);
+    batchedMeshShader.setIndices("aPos", &batchedIndices[0], indicesCount, bufferDrawType);
 
     batchedMeshShader.draw(GL_TRIANGLES, indicesCount);
     batchedMeshShader.unbind();
