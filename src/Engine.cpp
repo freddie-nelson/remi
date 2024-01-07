@@ -31,18 +31,24 @@ void blz::Engine::run()
 {
     // std::cout << "Running engine..." << std::endl;
 
+    const double timeBetweenFixedUpdatesSeconds = 1.0 / config.fixedUpdatesPerSecond;
+    const Core::Time timeBetweenFixedUpdates = timeBetweenFixedUpdatesSeconds * 1000.0 * 1000.0;
+
+    Core::Time timeSinceLastFixedUpdate = 0;
+
+    const double timeBetweenUpdatesSeconds = 1.0 / config.updatesPerSecond;
+    const Core::Time timeBetweenUpdates = timeBetweenUpdatesSeconds * 1000.0 * 1000.0;
+
+    Core::Time timeSinceLastUpdate = 0;
+
+    std::cout << "Time between fixed updates: " << timeBetweenFixedUpdates << std::endl;
+    std::cout << "Time between updates: " << timeBetweenUpdates << std::endl;
+
     // create timestep at current time
     Core::Timestep tick;
 
-    const Core::Time timeBetweenFixedUpdates = config.fixedUpdatesPerSecond / (1000.0 * 1000.0);
-    Core::Time timeSinceLastFixedUpdate = 0;
-
-    const Core::Time timeBetweenUpdates = config.updatesPerSecond / (1000.0 * 1000.0);
-    Core::Time timeSinceLastUpdate = 0;
-
     while (true)
     {
-
         timeSinceLastFixedUpdate += tick.getMicroseconds();
         timeSinceLastUpdate += tick.getMicroseconds();
 

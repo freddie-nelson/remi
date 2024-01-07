@@ -41,7 +41,7 @@ void Application::init()
     blz::EngineConfig config;
     config.openglMajorVersion = 4;
     config.openglMinorVersion = 3;
-    config.updatesPerSecond = 60;
+    config.updatesPerSecond = 1000;
 
     engine = new blz::Engine(config);
 
@@ -55,7 +55,7 @@ void Application::init()
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
 
-    renderer->enableAlphaBlending(true);
+    renderer->enableAlphaBlending(false);
     // renderer->setClearColor(clearColor);
 
     // window->syncRendererSize(false);
@@ -88,10 +88,11 @@ void Application::init()
         t.setZIndex(rand() % 10);
         t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
 
-        // auto r = (rand() % 255) / 255.0f;
-        // auto g = (rand() % 255) / 255.0f;
-        // auto b = (rand() % 255) / 255.0f;
-        material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, (t.getZIndex() + 1) / 10.0f));
+        auto r = (rand() % 255) / 255.0f;
+        auto g = (rand() % 255) / 255.0f;
+        auto b = (rand() % 255) / 255.0f;
+        // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, (t.getZIndex() + 1) / 10.0f));
+        material.setColor(Rendering::Color(r, g, b, (t.getZIndex() + 1) / 10.0f));
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
 
         material.setTexture(texture);
@@ -103,10 +104,19 @@ void Application::destroy()
     delete engine;
 }
 
+unsigned long long totalFps = 0;
+unsigned long long frames = 0;
+
 void Application::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
     // print timestep info
-    std::cout << "\rdt: " << timestep.getSeconds() << "          ";
+    auto fps = 1.0f / timestep.getSeconds();
+    totalFps += fps;
+    frames++;
+
+    auto averageFps = totalFps / frames;
+
+    std::cout << "\rdt: " << timestep.getSeconds() << ", fps: " << 1.0f / timestep.getSeconds() << ", average fps: " << averageFps << "        " << std::endl;
 
     auto renderer = engine->getRenderer();
 
@@ -116,7 +126,7 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     auto camera = renderer->getActiveCamera(registry);
     auto &t = registry.get<Core::Transform>(camera);
 
-    float camSpeed = 100.0f;
+    float camSpeed = 150.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
     glm::vec2 camMove(0.0f);
 
     if (keyboard->isPressed(Input::Key::W))
@@ -130,15 +140,23 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
 
     t.translate(camMove * static_cast<float>(timestep.getSeconds()));
 
+    // rotate camera
+    float camRotSpeed = 1.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
+
+    if (keyboard->isPressed(Input::Key::ARROW_LEFT))
+        t.rotate(camRotSpeed * timestep.getSeconds());
+    if (keyboard->isPressed(Input::Key::ARROW_RIGHT))
+        t.rotate(-camRotSpeed * timestep.getSeconds());
+
     // rotate all entities with a transform component except camera
-    auto entities = registry.view<Core::Transform>();
+    // auto entities = registry.view<Core::Transform>();
 
-    for (auto &e : entities)
-    {
-        if (e == camera)
-            continue;
+    // for (auto &e : entities)
+    // {
+    //     if (e == camera)
+    //         continue;
 
-        auto &t = registry.get<Core::Transform>(e);
-        t.rotate(-std::numbers::pi * 0.5f * timestep.getSeconds());
-    }
+    //     auto &t = registry.get<Core::Transform>(e);
+    //     t.rotate(-std::numbers::pi * 0.5f * timestep.getSeconds());
+    // }
 }

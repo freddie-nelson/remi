@@ -152,6 +152,11 @@ void Core::Window::setPosition(int x, int y)
     glfwSetWindowPos(glfwWindow, x, y);
 }
 
+void Core::Window::toggleVsync(bool enable)
+{
+    glfwSwapInterval(enable ? 1 : 0);
+}
+
 GLFWwindow *Core::Window::getGLFWWindow() const
 {
     return glfwWindow;
@@ -198,7 +203,7 @@ Core::Window::OpenGLContext *Core::Window::createOpenGLContext(GLFWwindow *windo
 
     std::cout << "OpenGL version loaded: " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
 
-    glfwSwapInterval(1);
+    toggleVsync(false);
 
     int flags;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);

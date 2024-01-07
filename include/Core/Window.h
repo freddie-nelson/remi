@@ -135,6 +135,17 @@ namespace Core
         void setPosition(int x, int y);
 
         /**
+         * Enables or disables vsync.
+         *
+         * By default vsync is disabled.
+         *
+         * This may not work on all platforms.
+         *
+         * @param enable Whether to enable or disable vsync.
+         */
+        void toggleVsync(bool enable);
+
+        /**
          * Returns the GLFW window.
          *
          * @returns The GLFW window.
