@@ -206,19 +206,27 @@ void Rendering::TextureAtlas::pack()
         // copy the texture to the atlas
         for (unsigned int y = 0; y < texHeight; y++)
         {
-            for (unsigned int x = 0; x < texWidth; x++)
-            {
-                unsigned int texIndex = (y * texWidth + x) * 4;
+            unsigned int texRow = y * texWidth * 4;
+            unsigned int atlasRow = (curY + y) * width * 4;
 
-                unsigned int atlasX = curX + x;
-                unsigned int atlasY = curY + y;
-                unsigned int atlasIndex = (atlasY * width + atlasX) * 4;
+            auto texPixelsRow = &texPixels[texRow];
+            auto pixelsRow = &pixels[atlasRow];
 
-                pixels[atlasIndex] = texPixels[texIndex];
-                pixels[atlasIndex + 1] = texPixels[texIndex + 1];
-                pixels[atlasIndex + 2] = texPixels[texIndex + 2];
-                pixels[atlasIndex + 3] = texPixels[texIndex + 3];
-            }
+            memcpy(pixelsRow, texPixelsRow, texWidth * 4);
+
+            //     for (unsigned int x = 0; x < texWidth; x++)
+            // {
+            //     unsigned int texIndex = (y * texWidth + x) * 4;
+
+            //     unsigned int atlasX = curX + x;
+            //     unsigned int atlasY = curY + y;
+            //     unsigned int atlasIndex = (atlasY * width + atlasX) * 4;
+
+            //     pixels[atlasIndex] = texPixels[texIndex];
+            //     pixels[atlasIndex + 1] = texPixels[texIndex + 1];
+            //     pixels[atlasIndex + 2] = texPixels[texIndex + 2];
+            //     pixels[atlasIndex + 3] = texPixels[texIndex + 3];
+            // }
         }
 
         // save the position of the texture
