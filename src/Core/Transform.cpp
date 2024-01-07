@@ -151,7 +151,7 @@ const glm::mat4 &Core::Transform::getTransformationMatrix() const
     // translation
     transformationMatrix[3][0] = translation.x;
     transformationMatrix[3][1] = translation.y;
-    transformationMatrix[3][2] = Config::MAX_Z_INDEX - zIndex;
+    transformationMatrix[3][2] = static_cast<int>(zIndex) - static_cast<int>(Config::MAX_Z_INDEX);
 
     isTransformDirty = false;
 

@@ -87,14 +87,14 @@ glm::vec2 Rendering::Camera::getViewportSize() const
 
 glm::mat4 Rendering::Camera::getViewProjectionMatrix(const Core::Transform &t) const
 {
-    glm::vec3 centre = glm::vec3(t.getTranslation(), -t.getZIndex());
+    glm::vec3 centre = glm::vec3(t.getTranslation(), t.getZIndex());
     glm::vec3 up = glm::rotate(glm::vec3(0.0f, 1.0f, 0.0f), t.getRotation(), glm::vec3(0.0f, 0.0f, 1.0f));
 
     auto min = aabb.getMin() * t.getScale();
     auto max = aabb.getMax() * t.getScale();
 
-    // camera is at 0.0f on the z axis looking towards z = far (looks towards positive z)
-    glm::mat4 viewMatrix = glm::lookAt(centre, glm::vec3(centre.x, centre.y, far + 1.0f), up);
+    // camera is at +zIndex on the z axis looking towards z = -far - 1 (looks towards negative z)
+    glm::mat4 viewMatrix = glm::lookAt(centre, glm::vec3(centre.x, centre.y, -far - 1.0f), up);
     glm::mat4 projectionMatrix = glm::ortho(min.x, max.x, min.y, max.y, near, far);
 
     return projectionMatrix * viewMatrix;

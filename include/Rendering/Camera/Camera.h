@@ -12,7 +12,7 @@ namespace Rendering
     /**
      * Represents an orthographic camera.
      *
-     * The camera points towards the postive z axis.
+     * The camera points towards the negative z axis.
      *
      * NOTE:
      * Reducing the camera's far plane below `Config::MAX_Z_INDEX + 1` will cause the camera to clip z indexes starting at 0 and going up to `Config::MAX_Z_INDEX`.
@@ -20,7 +20,7 @@ namespace Rendering
      *
      * You can think of the clipping as happening in the reverse direction to the z index. Lower z indexes are clipped by the far plane and higher z indexes are clipped by the near plane.
      *
-     * Increasing the camera's z index will move the camera further away from the scene (into the negative z axis) this will clip the furthest away entities i.e. starting at z index 0.
+     * Increasing the camera's z index will move the camera further away from the scene (into the positive z axis) this will clip the furthest away entities i.e. starting at z index 0.
      */
     class Camera
     {
