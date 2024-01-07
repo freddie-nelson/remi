@@ -14,6 +14,12 @@ Input::Mouse::Mouse(GLFWwindow *window)
     }
 
     Input::Mouse::instances.push_back(this);
+
+    // set initial values
+    for (int i = 0; i < MouseButton::__LAST_MOUSE_BUTTON__; i++)
+    {
+        buttons[i] = false;
+    }
 }
 
 Input::Mouse::~Mouse()

@@ -17,7 +17,9 @@ namespace Input
         RIGHT,
         MIDDLE,
         BACK,
-        FORWARD
+        FORWARD,
+
+        __LAST_MOUSE_BUTTON__ = MouseButton::FORWARD
     };
 
     /**

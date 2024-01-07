@@ -47,6 +47,13 @@ Input::Keyboard::Keyboard(GLFWwindow *window)
     }
 
     Input::Keyboard::instances.push_back(this);
+
+    // set initial values
+    for (int i = 0; i < Key::__LAST_KEY__; i++)
+    {
+        this->keys[i] = false;
+        this->mods[i] = 0;
+    }
 }
 
 Input::Keyboard::~Keyboard()
