@@ -16,6 +16,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <utility>
 #include <algorithm>
+#include <map>
 
 Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height)
 {
@@ -128,7 +129,6 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
             }
         }
 
-        //! fix inconsistent ordering of entities causing z fighting appearance
         // sort transparent renderables by z index (back to front)
         // for correct alpha blending
         sortRenderables(registry, transparentRenderables);
@@ -415,15 +415,40 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
 
 void Rendering::Renderer::sortRenderables(const ECS::Registry &registry, std::vector<ECS::Entity> &renderables)
 {
-    std::unordered_map<ECS::Entity, unsigned int> zIndices;
+    std::map<unsigned int, std::vector<ECS::Entity>> layers;
+
     for (auto &e : renderables)
     {
         auto &transform = registry.get<Core::Transform>(e);
-        zIndices.emplace(e, transform.getZIndex());
+        auto zIndex = transform.getZIndex();
+
+        if (!layers.contains(zIndex))
+        {
+            layers.emplace(zIndex, std::vector<ECS::Entity>());
+        }
+
+        layers[zIndex].push_back(e);
     }
 
-    std::sort(renderables.begin(), renderables.end(), [&zIndices](const ECS::Entity &a, const ECS::Entity &b)
-              { return zIndices[a] < zIndices[b]; });
+    renderables.clear();
+
+    for (auto &layer : layers)
+    {
+        for (auto &e : layer.second)
+        {
+            renderables.push_back(e);
+        }
+    }
+
+    // first renderable should be at lowest index and last renderable at highest index
+
+    // auto first = renderables.front();
+    // auto &firstTransform = registry.get<Core::Transform>(first);
+
+    // auto last = renderables.back();
+    // auto &lastTransform = registry.get<Core::Transform>(last);
+
+    // std::cout << "first: " << firstTransform.getZIndex() << ", last: " << lastTransform.getZIndex() << std::endl;
 }
 
 void Rendering::Renderer::setClearColor(const Color &color)

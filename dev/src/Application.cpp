@@ -55,7 +55,7 @@ void Application::init()
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
 
-    renderer->enableAlphaBlending(false);
+    renderer->enableAlphaBlending(true);
     // renderer->setClearColor(clearColor);
 
     // window->syncRendererSize(false);
@@ -74,6 +74,7 @@ void Application::init()
     int entityCount = 1000;
     int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
     int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
+    int zRange = 10;
 
     for (int i = 0; i < entityCount; i++)
     {
@@ -85,14 +86,14 @@ void Application::init()
         auto &material = registry->add(e, Rendering::Material());
         auto &renderable = registry->add(e, Rendering::Renderable{true, true});
 
-        t.setZIndex(rand() % 10);
+        t.setZIndex(rand() % zRange);
         t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
 
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, (t.getZIndex() + 1) / 10.0f));
-        material.setColor(Rendering::Color(r, g, b, (t.getZIndex() + 1) / 10.0f));
+        material.setColor(Rendering::Color(r, g, b, (t.getZIndex() + 1) / static_cast<float>(zRange)));
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
 
         material.setTexture(texture);
