@@ -1,8 +1,10 @@
 #include "../include/Engine.h"
+#include "../include/Config.h"
 
 blz::Engine::Engine(EngineConfig config)
 {
     this->config = config;
+    Config::MAX_Z_INDEX = config.maxZIndex;
 
     window = new Core::Window(config.windowTitle, config.windowWidth, config.windowHeight, config.windowFullscreen);
     window->init(config.openglMajorVersion, config.openglMinorVersion);

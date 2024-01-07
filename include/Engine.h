@@ -72,6 +72,15 @@ namespace blz
          * The maximum number of fixed system updates per second.
          */
         unsigned int fixedUpdatesPerSecond = 60;
+
+        /**
+         * The maximum z index an entity can have.
+         *
+         * This is the number of layers that can be used.
+         *
+         * A higher number may result in worse performance.
+         */
+        unsigned int maxZIndex = 128;
     };
 
     /**
