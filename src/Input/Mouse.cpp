@@ -40,6 +40,11 @@ glm::vec2 Input::Mouse::getPosition()
     return position;
 }
 
+glm::vec2 Input::Mouse::getScroll()
+{
+    return scroll;
+}
+
 bool Input::Mouse::isPressed(MouseButton button)
 {
     return buttons[button];

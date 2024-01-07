@@ -65,6 +65,13 @@ namespace Input
         glm::vec2 getPosition();
 
         /**
+         * Get the mouse scroll offset.
+         *
+         * @return The mouse scroll offset in pixels.
+         */
+        glm::vec2 getScroll();
+
+        /**
          * Check if a mouse button is pressed.
          *
          * @param button The mouse button to check.
