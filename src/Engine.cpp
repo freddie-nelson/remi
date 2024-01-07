@@ -47,6 +47,9 @@ void blz::Engine::run()
     // create timestep at current time
     Core::Timestep tick;
 
+    // poll for events before first update
+    glfwPollEvents();
+
     while (true)
     {
         timeSinceLastFixedUpdate += tick.getMicroseconds();
