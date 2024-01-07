@@ -111,14 +111,24 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     auto renderer = engine->getRenderer();
 
     // move camera
+    auto keyboard = engine->getKeyboard();
+
     auto camera = renderer->getActiveCamera(registry);
+    auto &t = registry.get<Core::Transform>(camera);
 
-    // double n = Rendering::timeSinceEpochMillisec() / 1000.0;
-    // float camX = sin(n) * 200.0f;
-    // float camY = cos(n) * 200.0f;
+    float camSpeed = 100.0f;
+    glm::vec2 camMove(0.0f);
 
-    // camera.setCentre(glm::vec2{camX, camY});
-    // camera.rotate(std::numbers::pi * 0.5f * dt);
+    if (keyboard->isPressed(Input::Key::W))
+        camMove.y += camSpeed;
+    if (keyboard->isPressed(Input::Key::S))
+        camMove.y -= camSpeed;
+    if (keyboard->isPressed(Input::Key::A))
+        camMove.x -= camSpeed;
+    if (keyboard->isPressed(Input::Key::D))
+        camMove.x += camSpeed;
+
+    t.translate(camMove * static_cast<float>(timestep.getSeconds()));
 
     // rotate all entities with a transform component except camera
     auto entities = registry.view<Core::Transform>();
