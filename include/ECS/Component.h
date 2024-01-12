@@ -4,24 +4,22 @@
 
 namespace ECS
 {
-#if (SIZE_MAX == UINT16_MAX)
-    using ComponentId = unsigned short;
-#elif (SIZE_MAX == UINT32_MAX)
-    using ComponentId = unsigned int;
-#elif (SIZE_MAX == UINT64_MAX)
-    using ComponentId = long long unsigned int;
-#else
-#error "Could not determine size_t size"
-#endif
+    using ComponentId = unsigned long long;
+
+    /**
+     * Generates a unique id for a component.
+     *
+     * @param typeName The name of the type of the component
+     *
+     * @returns The component id
+     */
+    ComponentId generate(const char *typeName);
 
     /**
      * Generates unique ids for components.
      */
     class ComponentIdGenerator
     {
-    private:
-        // inline static ComponentId nextId = 0;
-
     public:
         /**
          * Generates a unique id using the hash code of the type.
@@ -31,6 +29,6 @@ namespace ECS
          *       therefore have different ids for the same component.
          */
         template <typename T>
-        inline static const ComponentId id = typeid(T).hash_code();
+        inline static const ComponentId id = generate(typeid(T).name());
     };
 }

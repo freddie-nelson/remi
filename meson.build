@@ -27,7 +27,7 @@ core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/T
 core_src += ['src/Core/AABB/AABB.cpp']
 
 # ecs
-ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp']
+ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp', 'src/ECS/Component.cpp']
 
 # input
 input_src = ['src/Input/Mouse.cpp', 'src/Input/Keyboard.cpp']
