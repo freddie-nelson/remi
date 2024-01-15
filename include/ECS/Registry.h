@@ -235,11 +235,6 @@ namespace ECS
             {
                 auto &[components, view] = *it;
 
-                for (auto &component : components)
-                {
-                    std::cout << component << std::endl;
-                }
-
                 if (components.contains(componentId))
                 {
                     // erase and update iterator to next element

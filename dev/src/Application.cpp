@@ -117,7 +117,7 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
 
     auto averageFps = totalFps / frames;
 
-    std::cout << "\rdt: " << timestep.getSeconds() << ", fps: " << 1.0f / timestep.getSeconds() << ", average fps: " << averageFps << "        " << std::endl;
+    // std::cout << "\rdt: " << timestep.getSeconds() << ", fps: " << 1.0f / timestep.getSeconds() << ", average fps: " << averageFps << "        " << std::endl;
 
     auto renderer = engine->getRenderer();
 

@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 Rendering::Shader::Shader()
 {
@@ -355,6 +356,9 @@ void Rendering::Shader::useUniform(const std::string &name)
     case GL_FLOAT_VEC2:
     {
         auto v = *static_cast<glm::vec2 *>(value);
+        std::cout << "uniform name: " << name << std::endl;
+        std::cout << "v: " << v[0] << ", " << v[1] << std::endl;
+        std::cout << "location: " << location << std::endl;
         glUniform2f(location, v[0], v[1]);
         break;
     }
@@ -443,6 +447,9 @@ void Rendering::Shader::useUniform(const std::string &name)
     case GL_FLOAT_MAT4:
     {
         auto v = *static_cast<glm::mat4 *>(value);
+        std::cout << "using uniform: " << name << std::endl;
+        std::cout << "v: " << glm::to_string(v) << std::endl;
+        std::cout << "location: " << location << std::endl;
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(v));
         break;
     }
@@ -741,16 +748,16 @@ int Rendering::Shader::getUniformLocation(const std::string &name, bool isUnifor
 
     //? workaround weird opengl bug? TODO: fix - was driver related?
     //? keeping anyway just in case, robustness is good
-    std::string uniformAtLocation = getUniformName(location);
+    // std::string uniformAtLocation = getUniformName(location);
 
-    // std::cout << "name: " << name << std::endl;
-    // std::cout << "arrayName: " << otherName << std::endl;
-    // std::cout << "uniformAtLocation: " << uniformAtLocation << std::endl;
+    // // std::cout << "name: " << name << std::endl;
+    // // std::cout << "arrayName: " << otherName << std::endl;
+    // // std::cout << "uniformAtLocation: " << uniformAtLocation << std::endl;
 
-    if (uniformAtLocation != name && uniformAtLocation != otherName)
-    {
-        location = findUniformLocation(name, isUniformArray);
-    }
+    // if (uniformAtLocation != name && uniformAtLocation != otherName)
+    // {
+    //     location = findUniformLocation(name, isUniformArray);
+    // }
 
     return location;
 }

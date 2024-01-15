@@ -280,6 +280,9 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
     auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
     instancedMeshShader.setUniform("uTextureAtlasSize", &atlasSize);
 
+    auto &textures = textureManager.getTexturesUniform();
+    batchedMeshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
+
     // instanced arrays
     float *atlasPosArr = (float *)glm::value_ptr(textureAtlasPos[0]);
     instancedMeshShader.setAttrib("aTextureAtlasPos", atlasPosArr, instanceCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType, 1);
@@ -396,6 +399,9 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
 
     auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
     batchedMeshShader.setUniform("uTextureAtlasSize", &atlasSize);
+
+    auto &textures = textureManager.getTexturesUniform();
+    batchedMeshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
 
     batchedMeshShader.setAttrib("aTextureAtlasPos", (float *)glm::value_ptr(batchedAtlasPos[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
     batchedMeshShader.setAttrib("aTextureUnit", &batchedTextureUnits[0], verticesCount, 1, GL_UNSIGNED_INT, false, 0, bufferDrawType);

@@ -28,7 +28,7 @@ if cross_target == 'wasm'
     link_args += includes
     cpp_args += includes
 
-    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1', '-sTOTAL_MEMORY=1024MB', '-sASSERTIONS=1', '-sSAFE_HEAP=1']
+    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1', '-sTOTAL_MEMORY=1024MB', '-sASSERTIONS=1', '-sSAFE_HEAP=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
 
     # link_args += ['--embed-file ' + join_paths(meson.current_source_dir(), 'assets')]
 
