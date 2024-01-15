@@ -6,4 +6,12 @@ lib
 build
 subprojects/*
 !subprojects/wrapdb.json
+!subprojects/*.wrap
 main
+
+dev/lib
+dev/externals
+dev/subprojects/*
+!dev/subprojects/wrapdb.json
+!dev/subprojects/*.wrap
+externals/include/boost

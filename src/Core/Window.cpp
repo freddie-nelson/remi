@@ -1,7 +1,7 @@
 #include "../../include/Core/Window.h"
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
+#include "../../include/gl.h"
 
-#include <glad/gl.h>
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -179,8 +179,14 @@ GLFWwindow *Core::Window::createGLFWWindow(int openglMajorVersion, int openglMin
     glfwWindow = glfwCreateWindow(initialWindowWidth, initialWindowHeight, windowTitle.c_str(), monitor, NULL);
     if (!glfwWindow)
     {
+#ifdef __EMSCRIPTEN__
+        const char *msg = "Cannot get exact error on wasm.";
+        const char **error = &msg;
+#else
         const char **error = nullptr;
         glfwGetError(error);
+#endif
+
         std::cout << "Failed to create glfw window. Error: " << *error << std::endl;
 
         glfwTerminate();
@@ -194,32 +200,40 @@ Core::Window::OpenGLContext *Core::Window::createOpenGLContext(GLFWwindow *windo
 {
     glfwMakeContextCurrent(window);
 
-    int version = gladLoadGL(glfwGetProcAddress);
+#ifndef __EMSCRIPTEN__
+    int version = gladLoadGL();
     if (version == 0)
     {
         std::cout << "Failed to initialize OpenGL context." << std::endl;
         return nullptr;
     }
 
-    std::cout << "OpenGL version loaded: " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
+    // std::cout << "OpenGL version loaded: " << GLAD_VERSION_MAJOR(version) << "." << GLAD_VERSION_MINOR(version) << std::endl;
+#endif
 
     toggleVsync(false);
 
-    int flags;
-    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
-    {
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(Rendering::glDebugOutput, nullptr);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-    }
-    else
-    {
-        std::cout << "No debug context." << std::endl;
-    }
+    // int flags;
+    // glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    // if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    // {
+    //     glEnable(GL_DEBUG_OUTPUT);
+    //     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    //     glDebugMessageCallback(Rendering::glDebugOutput, nullptr);
+    //     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    // }
+    // else
+    // {
+    //     std::cout << "No debug context." << std::endl;
+    // }
 
-    return new OpenGLContext{GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version), std::string((const char *)glGetString(GL_VERSION)), std::string((const char *)glGetString(GL_VENDOR)), (flags & GL_CONTEXT_FLAG_DEBUG_BIT) != 0};
+    int major;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+
+    int minor;
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+    return new OpenGLContext{major, minor, std::string((const char *)glGetString(GL_VERSION)), std::string((const char *)glGetString(GL_VENDOR)), false};
 }
 
 std::vector<std::pair<Core::Window::OpenGLContext *, GLFWmonitor *>> Core::Window::getAllSupportedOpenGLContexts(int openglMajorVersion, int openglMinorVersion, bool debugContext)

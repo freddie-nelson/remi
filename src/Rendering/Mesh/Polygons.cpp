@@ -1,6 +1,7 @@
 #include "../../../include/Rendering/Mesh/Polygons.h"
 #include "../../../include/Rendering/Mesh/Triangulate.h"
 
+#include <numbers>
 #include <math.h>
 
 Rendering::IndexedVertices Rendering::createPolygon(const std::vector<glm::vec2> &vertices, bool centered)

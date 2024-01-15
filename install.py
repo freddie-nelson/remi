@@ -10,11 +10,18 @@ if exit_code != 0:
     print("Failed to build and install blaze!")
     exit(exit_code)
 
+
 # install into mingw64
 install_path = os.path.join(dir_path, "lib")
 install_lib_path = os.path.join(install_path, "lib")
 install_include_path = os.path.join(install_path, "include")
 install_pkgconfig_file = os.path.join(install_lib_path, "pkgconfig/blaze++.pc")
+
+if not os.path.exists(install_lib_path):
+    print("No install output found!")
+    print("May be non issue depending on target platform.")
+    print("Exiting install script...")
+    exit(0)
 
 # msys64_envs = ["mingw64", "ucrt64"]
 msys64_envs = ["mingw64"]

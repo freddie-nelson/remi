@@ -1,6 +1,10 @@
 #include "../include/Engine.h"
 #include "../include/Config.h"
 
+#ifdef __EMSCRIPTEN__
+#include "../include/emscriptenHelpers.h"
+#endif
+
 blz::Engine::Engine(EngineConfig config)
 {
     this->config = config;
@@ -31,78 +35,36 @@ blz::Engine::~Engine()
 
 void blz::Engine::run()
 {
-    // std::cout << "Running engine..." << std::endl;
+    MainLoopArgs *args = new MainLoopArgs();
 
-    const double timeBetweenFixedUpdatesSeconds = 1.0 / config.fixedUpdatesPerSecond;
-    const Core::Time timeBetweenFixedUpdates = timeBetweenFixedUpdatesSeconds * 1000.0 * 1000.0;
+    args->timeBetweenFixedUpdatesSeconds = 1.0 / config.fixedUpdatesPerSecond;
+    args->timeBetweenFixedUpdates = args->timeBetweenFixedUpdatesSeconds * 1000.0 * 1000.0;
 
-    Core::Time timeSinceLastFixedUpdate = 0;
+    args->timeSinceLastFixedUpdate = 0;
 
-    const double timeBetweenUpdatesSeconds = 1.0 / config.updatesPerSecond;
-    const Core::Time timeBetweenUpdates = timeBetweenUpdatesSeconds * 1000.0 * 1000.0;
+    args->timeBetweenUpdatesSeconds = 1.0 / config.updatesPerSecond;
+    args->timeBetweenUpdates = args->timeBetweenUpdatesSeconds * 1000.0 * 1000.0;
 
-    Core::Time timeSinceLastUpdate = 0;
+    args->timeSinceLastUpdate = 0;
 
-    std::cout << "Time between fixed updates: " << timeBetweenFixedUpdates << std::endl;
-    std::cout << "Time between updates: " << timeBetweenUpdates << std::endl;
+    std::cout << "Time between fixed updates: " << args->timeBetweenFixedUpdates << std::endl;
+    std::cout << "Time between updates: " << args->timeBetweenUpdates << std::endl;
 
     // create timestep at current time
-    Core::Timestep tick;
+    args->tick = Core::Timestep();
 
     // poll for events before first update
     glfwPollEvents();
 
+#ifdef __EMSCRIPTEN__
+    std::function<void()> mainLoopWrapper = std::bind(&Engine::mainLoop, this, args);
+    emscriptenSetMainLoop(mainLoopWrapper, 0, true);
+#else
     while (true)
     {
-        timeSinceLastFixedUpdate += tick.getMicroseconds();
-        timeSinceLastUpdate += tick.getMicroseconds();
-
-        // run fixed updates
-        if (timeSinceLastFixedUpdate >= timeBetweenFixedUpdates)
-        {
-            Core::Timestep fixedTimestep(0);
-            fixedTimestep.update(timeBetweenFixedUpdates);
-
-            for (auto system : systems)
-            {
-                system->fixedUpdate(*registry, fixedTimestep);
-            }
-
-            timeSinceLastFixedUpdate = 0;
-        }
-
-        // run updates
-        if (timeSinceLastUpdate >= timeBetweenUpdates)
-        {
-            Core::Timestep timestep(0);
-            timestep.update(timeSinceLastUpdate);
-
-            // clear renderer
-            renderer->clear();
-
-            for (auto system : systems)
-            {
-                system->update(*registry, timestep);
-            }
-
-            // present renderer
-            renderer->present();
-
-            // poll for new events after frame has been rendered
-            glfwPollEvents();
-
-            // check if window should close
-            if (glfwWindowShouldClose(window->getGLFWWindow()))
-            {
-                break;
-            }
-
-            timeSinceLastUpdate = 0;
-        }
-
-        // update ticker
-        tick.update();
+        mainLoop(args);
     }
+#endif
 }
 
 void blz::Engine::addSystem(ECS::System *system)
@@ -155,4 +117,63 @@ Input::Mouse *const blz::Engine::getMouse()
 Input::Keyboard *const blz::Engine::getKeyboard()
 {
     return keyboard;
+}
+
+void blz::Engine::mainLoop(MainLoopArgs *args)
+{
+    auto &[timeBetweenFixedUpdatesSeconds, timeBetweenFixedUpdates, timeSinceLastFixedUpdate, timeBetweenUpdatesSeconds, timeBetweenUpdates, timeSinceLastUpdate, tick] = *args;
+
+    timeSinceLastFixedUpdate += tick.getMicroseconds();
+    timeSinceLastUpdate += tick.getMicroseconds();
+
+    // run fixed updates
+    if (timeSinceLastFixedUpdate >= timeBetweenFixedUpdates)
+    {
+        Core::Timestep fixedTimestep(0);
+        fixedTimestep.update(timeBetweenFixedUpdates);
+
+        for (auto system : systems)
+        {
+            system->fixedUpdate(*registry, fixedTimestep);
+        }
+
+        timeSinceLastFixedUpdate = 0;
+    }
+
+    // run updates
+    if (timeSinceLastUpdate >= timeBetweenUpdates)
+    {
+        Core::Timestep timestep(0);
+        timestep.update(timeSinceLastUpdate);
+
+        // clear renderer
+        renderer->clear();
+
+        for (auto system : systems)
+        {
+            system->update(*registry, timestep);
+        }
+
+        // present renderer
+        renderer->present();
+
+        // poll for new events after frame has been rendered
+        glfwPollEvents();
+
+        // check if window should close
+        if (glfwWindowShouldClose(window->getGLFWWindow()))
+        {
+#ifdef __EMSCRIPTEN__
+            emscripten_cancel_main_loop();
+            return;
+#else
+            return;
+#endif
+        }
+
+        timeSinceLastUpdate = 0;
+    }
+
+    // update ticker
+    tick.update();
 }

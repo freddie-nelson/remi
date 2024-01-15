@@ -8,8 +8,8 @@
 #include "../../include/Rendering/Renderable.h"
 #include "../../include/Rendering/Camera/ActiveCamera.h"
 #include "../../include/Rendering/Camera/Camera.h"
+#include "../../include/gl.h"
 
-#include <glad/gl.h>
 #include <iostream>
 #include <memory>
 #include <math.h>

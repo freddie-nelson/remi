@@ -65,7 +65,7 @@ namespace ECS
         {
             if (maxId > ECS_SPARSE_SET_MAX_ID)
             {
-                throw std::runtime_error("SparseSet (SparseSet): Max ID is greater than " + ECS_SPARSE_SET_MAX_ID);
+                throw std::runtime_error("SparseSet (SparseSet): Max ID is greater than " + std::to_string(ECS_SPARSE_SET_MAX_ID));
             }
 
             this->maxId = maxId;

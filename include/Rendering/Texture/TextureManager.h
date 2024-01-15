@@ -2,8 +2,8 @@
 
 #include "Texture.h"
 #include "TextureAtlas.h"
+#include "../../gl.h"
 
-#include <glad/gl.h>
 #include <unordered_map>
 #include <vector>
 

@@ -1,6 +1,7 @@
 #include "../../include/Core/Transform.h"
 #include "../../include/Config.h"
 
+#include <string>
 #include <stdexcept>
 
 Core::Transform::Transform(glm::vec2 translation, glm::vec2 scale, glm::vec2 shear, float rotation, unsigned int zIndex)

@@ -2,8 +2,8 @@
 #include "../../../include/Rendering/Utility/FileHandling.h"
 #include "../../../include/Rendering/Utility/GlmHelpers.h"
 #include "../../../include/Rendering/Utility/OpenGLHelpers.h"
+#include "../../../include/gl.h"
 
-#include <glad/gl.h>
 #include <stdexcept>
 #include <iostream>
 #include <glm/glm.hpp>
@@ -855,7 +855,7 @@ void Rendering::Shader::checkUniformSetRules(const std::string &name, bool isUni
 
 void Rendering::Shader::checkDrawModeValid(unsigned int drawMode)
 {
-    if (drawMode != GL_POINTS && drawMode != GL_LINE_STRIP && drawMode != GL_LINE_LOOP && drawMode != GL_LINES && drawMode != GL_LINE_STRIP_ADJACENCY && drawMode != GL_LINES_ADJACENCY && drawMode != GL_TRIANGLE_STRIP && drawMode != GL_TRIANGLE_FAN && drawMode != GL_TRIANGLES && drawMode != GL_TRIANGLE_STRIP_ADJACENCY && drawMode != GL_TRIANGLES_ADJACENCY && drawMode != GL_PATCHES)
+    if (drawMode != GL_POINTS && drawMode != GL_LINE_STRIP && drawMode != GL_LINE_LOOP && drawMode != GL_LINES && drawMode != GL_LINE_STRIP_ADJACENCY && drawMode != GL_LINES_ADJACENCY && drawMode != GL_TRIANGLE_STRIP && drawMode != GL_TRIANGLE_FAN && drawMode != GL_TRIANGLES && drawMode != GL_TRIANGLE_STRIP_ADJACENCY && drawMode != GL_TRIANGLES_ADJACENCY)
     {
         throw std::invalid_argument("drawMode must be one of the following: GL_POINTS, GL_LINE_STRIP, GL_LINE_LOOP, GL_LINES, GL_LINE_STRIP_ADJACENCY, GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_TRIANGLES, GL_TRIANGLE_STRIP_ADJACENCY, GL_TRIANGLES_ADJACENCY, GL_PATCHES");
     }

@@ -32,11 +32,11 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
     }
 
     return {
-        texture : texture,
-        textureSize : glm::vec2(texture->getWidth(), texture->getHeight()),
-        posInAtlas : atlases[atlasIndex].get(texture->getId()),
-        atlasSize : glm::vec2(atlases[atlasIndex].getWidth(), atlases[atlasIndex].getHeight()),
-        textureUnit : atlasIndex,
+        .texture = texture,
+        .textureSize = glm::vec2(texture->getWidth(), texture->getHeight()),
+        .posInAtlas = atlases[atlasIndex].get(texture->getId()),
+        .atlasSize = glm::vec2(atlases[atlasIndex].getWidth(), atlases[atlasIndex].getHeight()),
+        .textureUnit = atlasIndex,
     };
 }
 

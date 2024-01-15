@@ -1,7 +1,6 @@
 #pragma once
 
 #include <blaze++/Rendering/Renderer.h>
-#include <blaze++/Rendering/Window.h>
 #include <blaze++/ECS/Registry.h>
 #include <blaze++/Engine.h>
 

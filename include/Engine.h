@@ -52,7 +52,7 @@ namespace blz
          *
          * Changing this after engine creation will not change the OpenGL version of the window.
          */
-        unsigned int openglMajorVersion = 4;
+        unsigned int openglMajorVersion = 3;
 
         /**
          * The minor version of OpenGL to use.
@@ -61,7 +61,7 @@ namespace blz
          *
          * Changing this after engine creation will not change the OpenGL version of the window.
          */
-        unsigned int openglMinorVersion = 6;
+        unsigned int openglMinorVersion = 0;
 
         /**
          * The maximum number of non fixed system updates per second.
@@ -206,5 +206,28 @@ namespace blz
          * Systems that are updated every frame.
          */
         std::vector<ECS::System *> systems;
+
+        /**
+         * The data that is passed to the main loop.
+         */
+        struct MainLoopArgs
+        {
+            double timeBetweenFixedUpdatesSeconds;
+            Core::Time timeBetweenFixedUpdates;
+            Core::Time timeSinceLastFixedUpdate;
+
+            double timeBetweenUpdatesSeconds;
+            Core::Time timeBetweenUpdates;
+            Core::Time timeSinceLastUpdate;
+
+            Core::Timestep tick;
+        };
+
+        /**
+         * The main loop for the run function.
+         *
+         * @param args The arguments for the main loop.
+         */
+        void mainLoop(MainLoopArgs *args);
     };
 }

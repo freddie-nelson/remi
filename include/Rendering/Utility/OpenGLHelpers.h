@@ -1,6 +1,7 @@
 #pragma once
 
-#include <glad/gl.h>
+#include "../../gl.h"
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
@@ -9,8 +10,8 @@ namespace Rendering
     /**
      * Defines the OpenGL debug callback function.
      */
-    void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
-                                GLsizei length, const char *message, const void *userParam);
+    // void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
+    //                             GLsizei length, const char *message, const void *userParam);
 
     /**
      * Checks if the given OpenGL type is an int type.

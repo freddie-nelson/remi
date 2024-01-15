@@ -1,5 +1,5 @@
 #include "../../../include/Rendering/Mesh/Triangulate.h"
-#include "../../../include/Rendering/Utility/GLMHelpers.h"
+#include "../../../include/Rendering/Utility/GlmHelpers.h"
 
 #include <stdexcept>
 #include <list>
@@ -249,8 +249,8 @@ Rendering::IndexedVertices Rendering::triangulate(const std::vector<glm::vec2> &
         }
 
         return {
-            vertices : meshVertices,
-            indices : meshIndices
+            .vertices = meshVertices,
+            .indices = meshIndices,
         };
     }
 
@@ -263,10 +263,10 @@ Rendering::IndexedVertices Rendering::triangulate(const std::vector<glm::vec2> &
     for (auto &vertex : vertices)
     {
         verticesList.push_back(TriangulationVertex{
-            vertex : vertex,
-            isConvex : false,
-            isReflex : false,
-            isEar : false
+            .vertex = vertex,
+            .isConvex = false,
+            .isReflex = false,
+            .isEar = false,
         });
     }
 

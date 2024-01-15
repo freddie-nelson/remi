@@ -1,6 +1,6 @@
 #include "../../../include/Rendering/Texture/TextureAtlas.h"
+#include "../../../include/gl.h"
 
-#include <glad/gl.h>
 #include <stdexcept>
 #include <vector>
 #include <algorithm>

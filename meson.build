@@ -1,22 +1,60 @@
-project('blaze++', 'cpp', default_options : ['libdir=' + meson.current_source_dir() / 'lib' / 'lib', 'includedir=' + meson.current_source_dir() / 'lib' / 'include'])
+project('blaze++', 'cpp', 'c', default_options : ['libdir=' + meson.current_source_dir() / 'lib' / 'lib', 'includedir=' + meson.current_source_dir() / 'lib' / 'include'])
 add_project_arguments('-std=c++20', language : 'cpp')
 
+cross_target = meson.get_external_property('cross_target', 'native')
+
+install_libs = true
+# if cross_target == 'native'
+#     install_libs = true
+# endif
+
+install_headers = true
+
 incdir = include_directories('externals/include')
-dependencies = [dependency('glfw3'), dependency('glm'), dependency('boost')]
-
 lib_dir = meson.current_source_dir() / 'lib'
-
-link_args = []
 
 #
 # glad
 #
 
-glad_src = ['externals/src/glad/gl.cpp']
-glad = library('glad', glad_src, include_directories : incdir, install : true, install_dir : lib_dir / 'lib', link_args : link_args)
+glad_src = ['externals/src/glad/glad.c']
+glad_kwargs = {
+    'include_directories' : incdir,
+    'install' : install_libs,
+    'install_dir' : lib_dir / 'lib',
+    'link_args' : [],
+}
 
-install_subdir('externals/include/glad', install_dir : lib_dir / 'include/glad', strip_directory : true)
-install_subdir('externals/src/glad', install_dir : lib_dir / 'src/glad', strip_directory : true)
+if cross_target == 'native'
+    glad = library('glad', glad_src, kwargs : glad_kwargs)
+endif
+
+if cross_target == 'wasm'
+    glad = static_library('glad', glad_src, kwargs : glad_kwargs)
+endif
+
+if install_headers
+    install_subdir('externals/include/glad', install_dir : lib_dir / 'include/glad', strip_directory : true)
+    install_subdir('externals/src/glad', install_dir : lib_dir / 'src/glad', strip_directory : true)
+endif
+
+#
+# configure for cross compilation
+#
+
+dependencies = []
+cpp_args = []
+link_args = []
+link_with = []
+
+if cross_target == 'native'
+    dependencies += [dependency('glfw3'), dependency('boost')]
+    link_with += [glad]
+endif
+
+if cross_target == 'wasm'
+    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sEXPORT_ALL=1']
+endif
 
 #
 # blaze
@@ -41,17 +79,36 @@ rendering_src += ['src/Rendering/Shader/Shader.cpp']
 rendering_src += ['src/Rendering/Texture/Texture.cpp', 'src/Rendering/Texture/TextureAtlas.cpp', 'src/Rendering/Texture/TextureManager.cpp']
 rendering_src += ['src/Rendering/Utility/FileHandling.cpp', 'src/Rendering/Utility/OpenGLHelpers.cpp']
 
-engine_src = ['src/Engine.cpp']
+engine_src = ['src/Engine.cpp', 'src/emscriptenHelpers.cpp']
 
 all_src = core_src + ecs_src + input_src + rendering_src + engine_src
 
-engine = library('blaze++', all_src, dependencies : dependencies, include_directories : incdir, link_with : [glad], install : true, install_dir : lib_dir / 'lib', link_args : link_args)
+engine_kwargs = {
+    'dependencies' : dependencies,
+    'include_directories' : incdir,
+    'link_with' : link_with,
+    'install' : install_libs,
+    'install_dir' : lib_dir / 'lib',
+    'link_args' : link_args,
+    'cpp_args' : cpp_args,
+}
 
-# install src and headers
-install_subdir('src', install_dir : lib_dir / 'src/blaze++', strip_directory : true)
-install_subdir('include', install_dir : lib_dir / 'include/blaze++', strip_directory : true)
+if cross_target == 'native'
+    engine = library('blaze++', all_src, kwargs : engine_kwargs)
+endif
 
-# install pkgconfig
+if cross_target == 'wasm'
+    engine = static_library('blaze++', all_src, kwargs : engine_kwargs)
+endif
 
-pkg = import('pkgconfig')
-pkg.generate(engine, version : '1.0', name : 'blaze++', filebase : 'blaze++', description : 'The blaze game engine.', install_dir : lib_dir / 'lib/pkgconfig', libraries : [glad])
+if install_libs
+    # install pkgconfig
+    pkg = import('pkgconfig')
+    pkg.generate(engine, version : '1.0', name : 'blaze++', filebase : 'blaze++', description : 'The blaze game engine.', install_dir : lib_dir / 'lib/pkgconfig', libraries : [glad])
+endif
+
+if install_headers
+    # install src and headers
+    install_subdir('src', install_dir : lib_dir / 'src/blaze++', strip_directory : true)
+    install_subdir('include', install_dir : lib_dir / 'include/blaze++', strip_directory : true)
+endif
