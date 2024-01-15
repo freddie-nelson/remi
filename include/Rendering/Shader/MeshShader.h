@@ -17,7 +17,9 @@ namespace Rendering
      * - vColor: The color to use.
      */
     const std::string meshVertexShader =
-        "#version 330 core\n"
+        "#version 300 es\n"
+        "\n"
+        "precision mediump float;\n"
         "\n"
         "uniform mat4 uViewProjectionMatrix;\n"
         "\n"
@@ -63,7 +65,9 @@ namespace Rendering
      * - FragColor: The color of the fragment.
      */
     const std::string meshFragShader =
-        "#version 330 core\n"
+        "#version 300 es\n"
+        "\n"
+        "precision mediump float;\n"
         "\n"
         "uniform sampler2D uTextures[__MAX_TEXTURE_UNITS__];\n"
         "\n"
@@ -73,8 +77,10 @@ namespace Rendering
         "\n"
         "out vec4 FragColor;\n"
         "\n"
+        "__getTexture__"
+        "\n"
         "void main()\n"
         "{\n"
-        "   FragColor = texture(uTextures[vTextureUnit], vTexCoord) * vColor;\n"
+        "   FragColor = getTexture(vTextureUnit, vTexCoord) * vColor;\n"
         "}\n";
 }

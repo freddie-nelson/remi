@@ -55,8 +55,14 @@ bool Rendering::Shader::loadFromSource(const std::string &vertex, const std::str
         throw std::runtime_error("Shader has already been loaded. Can only load shaders once.");
     }
 
-    std::string vertexSource = injectShaderVariables(vertex);
-    std::string fragmentSource = injectShaderVariables(fragment);
+    std::string vertexSource = injectShaderVariables(injectShaderFunctions(vertex));
+    std::string fragmentSource = injectShaderVariables(injectShaderFunctions(fragment));
+
+    // std::cout << "vertexSource: " << std::endl;
+    // std::cout << vertexSource << std::endl;
+
+    // std::cout << "fragmentSource: " << std::endl;
+    // std::cout << fragmentSource << std::endl;
 
     // vertex shader
     unsigned int vertexShader;
@@ -855,7 +861,7 @@ void Rendering::Shader::checkUniformSetRules(const std::string &name, bool isUni
 
 void Rendering::Shader::checkDrawModeValid(unsigned int drawMode)
 {
-    if (drawMode != GL_POINTS && drawMode != GL_LINE_STRIP && drawMode != GL_LINE_LOOP && drawMode != GL_LINES && drawMode != GL_LINE_STRIP_ADJACENCY && drawMode != GL_LINES_ADJACENCY && drawMode != GL_TRIANGLE_STRIP && drawMode != GL_TRIANGLE_FAN && drawMode != GL_TRIANGLES && drawMode != GL_TRIANGLE_STRIP_ADJACENCY && drawMode != GL_TRIANGLES_ADJACENCY)
+    if (drawMode != GL_POINTS && drawMode != GL_LINE_STRIP && drawMode != GL_LINE_LOOP && drawMode != GL_LINES && drawMode != GL_TRIANGLE_STRIP && drawMode != GL_TRIANGLE_FAN && drawMode != GL_TRIANGLES)
     {
         throw std::invalid_argument("drawMode must be one of the following: GL_POINTS, GL_LINE_STRIP, GL_LINE_LOOP, GL_LINES, GL_LINE_STRIP_ADJACENCY, GL_LINES_ADJACENCY, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_TRIANGLES, GL_TRIANGLE_STRIP_ADJACENCY, GL_TRIANGLES_ADJACENCY, GL_PATCHES");
     }
@@ -867,6 +873,44 @@ std::string Rendering::Shader::injectShaderVariables(const std::string &source)
 
     // __MAX_TEXTURE_UNITS__
     boost::replace_all(result, std::string("__MAX_TEXTURE_UNITS__"), std::to_string(glGetMaxTextureUnits()));
+
+    return result;
+}
+
+std::string getTextureFunctionStr = "";
+std::string getTextureFunction()
+{
+    if (getTextureFunctionStr != "")
+        return getTextureFunctionStr;
+
+    getTextureFunctionStr = "vec4 getTexture(uint textureUnit, vec2 textureCoord)\n";
+
+    std::string block = "{\n"
+                        "   switch (textureUnit)\n"
+                        "   {\n";
+
+    for (int i = 0; i < Rendering::glGetMaxTextureUnits(); i++)
+    {
+        block += "   case " + std::to_string(i) + "u:\n"
+                                                  "       return texture(uTextures[" +
+                 std::to_string(i) + "], textureCoord);\n";
+    }
+
+    block += "}\n"
+             "   return vec4(1.0f, 0.0f, 1.0f, 1.0f);\n"
+             "}\n";
+
+    getTextureFunctionStr += block;
+
+    return getTextureFunctionStr;
+}
+
+std::string Rendering::Shader::injectShaderFunctions(const std::string &source)
+{
+    std::string result = source;
+
+    // __getTexture__
+    boost::replace_all(result, std::string("__getTexture__"), getTextureFunction());
 
     return result;
 }

@@ -87,7 +87,13 @@ for file in os.listdir(lib_path):
 # run dev
 print("Running dev...")
 
-if os.path.exists(os.path.join(dev_build_path, "dev.exe")):
+if os.path.exists(os.path.join(dev_build_path, "dev.html")):
+    os.remove(os.path.join(dev_build_path, "index.html"))
+    os.rename(os.path.join(dev_build_path, "dev.html"), os.path.join(dev_build_path, "index.html"))
+
+    os.system(f"start http://localhost:8000")
+    os.system(f"cd {dev_build_path} && python -m http.server 8000")
+elif os.path.exists(os.path.join(dev_build_path, "dev.exe")):
     os.system(f"cd {dev_build_path} && dev.exe")
 else:
     os.system(f"cd {dev_build_path} && dev")

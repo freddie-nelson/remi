@@ -5,7 +5,9 @@
 namespace Rendering
 {
     const std::string batchedMeshVertexShader =
-        "#version 330 core\n"
+        "#version 300 es\n"
+        "\n"
+        "precision mediump float;\n"
         "\n"
         "uniform mat4 uViewProjectionMatrix;\n"
         "\n"

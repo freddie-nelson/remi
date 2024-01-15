@@ -387,5 +387,17 @@ namespace Rendering
          * @returns The shader source with the injectable variables replaced.
          */
         std::string injectShaderVariables(const std::string &source);
+
+        /**
+         * Injects the shader functions into the shader source.
+         *
+         * Injects the following functions if specified:
+         * - `__getTexture__` - Gets the texture color from the given texture unit, called with `getTexture(uint textureUnit, vec2 textureCoord)`.
+         *
+         * @param source The shader source.
+         *
+         * @returns The shader source with the shader functions injected.
+         */
+        std::string injectShaderFunctions(const std::string &source);
     };
 }

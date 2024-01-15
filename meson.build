@@ -53,7 +53,7 @@ if cross_target == 'native'
 endif
 
 if cross_target == 'wasm'
-    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sEXPORT_ALL=1']
+    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sEXPORT_ALL=1', '-sBINARYEN_ASYNC_COMPILATION=0', '-sALLOW_MEMORY_GROWTH=1', '-sASSERTIONS=1', '-sSAFE_HEAP=1']
 endif
 
 #

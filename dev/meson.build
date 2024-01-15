@@ -28,7 +28,7 @@ if cross_target == 'wasm'
     link_args += includes
     cpp_args += includes
 
-    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sEXPORT_ALL=1']
+    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sEXPORT_ALL=1', '-sBINARYEN_ASYNC_COMPILATION=0', '-sALLOW_MEMORY_GROWTH=1', '-sASSERTIONS=1', '-sSAFE_HEAP=1']
 
     # must have built blaze for wasm previously
     blaze = cpp_compiler.find_library('blaze++', dirs : join_paths(lib_dir, 'lib'), required : true) 
