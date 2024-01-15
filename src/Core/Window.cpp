@@ -20,20 +20,20 @@ Core::Window::~Window()
     destroy();
 }
 
-void Core::Window::init(unsigned int openglMajorVersion, unsigned int openglMinorVersion)
+void Core::Window::init()
 {
-    if (openglMajorVersion < 3)
-    {
-        throw std::invalid_argument("openglMajorVersion must be greater than or equal to 3.");
-    }
-    else if (openglMajorVersion == 3 && openglMinorVersion < 3)
-    {
-        throw std::invalid_argument("openglMinorVersion must be greater than or equal to 3.3.");
-    }
-    else if (openglMajorVersion == 4 && openglMinorVersion > 6)
-    {
-        throw std::invalid_argument("openglMinorVersion must be less than or equal to 4.6.");
-    }
+    // if (openglMajorVersion < 3)
+    // {
+    //     throw std::invalid_argument("openglMajorVersion must be greater than or equal to 3.");
+    // }
+    // else if (openglMajorVersion == 3 && openglMinorVersion < 3)
+    // {
+    //     throw std::invalid_argument("openglMinorVersion must be greater than or equal to 3.3.");
+    // }
+    // else if (openglMajorVersion == 4 && openglMinorVersion > 6)
+    // {
+    //     throw std::invalid_argument("openglMinorVersion must be less than or equal to 4.6.");
+    // }
 
     GLFWmonitor *monitor = nullptr;
     if (isFullscreen)
@@ -166,7 +166,6 @@ GLFWwindow *Core::Window::createGLFWWindow(int openglMajorVersion, int openglMin
 {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, openglMajorVersion);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, openglMinorVersion);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);

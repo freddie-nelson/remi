@@ -39,8 +39,6 @@ void Application::init()
 {
     // init engine
     blz::EngineConfig config;
-    config.openglMajorVersion = 4;
-    config.openglMinorVersion = 3;
     config.updatesPerSecond = 1000;
 
     engine = new blz::Engine(config);
@@ -70,36 +68,36 @@ void Application::init()
     registry->add(camera, Rendering::ActiveCamera());
 
     // create texture
-    Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
+    // Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // create entities
-    int entityCount = 1000;
+    int entityCount = 10;
     int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
     int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
     int zRange = 10;
 
-    // for (int i = 0; i < entityCount; i++)
-    // {
-    //     auto e = registry->create();
+    for (int i = 0; i < entityCount; i++)
+    {
+        auto e = registry->create();
 
-    //     // auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
-    //     auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>(rand() % 50 + 25), static_cast<unsigned int>(rand() % 13 + 3)));
-    //     auto &t = registry->add(e, Core::Transform());
-    //     auto &material = registry->add(e, Rendering::Material());
-    //     auto &renderable = registry->add(e, Rendering::Renderable{true, true});
+        // auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
+        auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>(rand() % 50 + 25), static_cast<unsigned int>(rand() % 13 + 3)));
+        auto &t = registry->add(e, Core::Transform());
+        auto &material = registry->add(e, Rendering::Material());
+        auto &renderable = registry->add(e, Rendering::Renderable{true, true});
 
-    //     t.setZIndex(rand() % zRange);
-    //     t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
+        t.setZIndex(rand() % zRange);
+        t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
 
-    //     auto r = (rand() % 255) / 255.0f;
-    //     auto g = (rand() % 255) / 255.0f;
-    //     auto b = (rand() % 255) / 255.0f;
-    //     // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, (t.getZIndex() + 1) / 10.0f));
-    //     material.setColor(Rendering::Color(r, g, b, (t.getZIndex() + 1) / static_cast<float>(zRange)));
-    //     // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
+        auto r = (rand() % 255) / 255.0f;
+        auto g = (rand() % 255) / 255.0f;
+        auto b = (rand() % 255) / 255.0f;
+        // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, (t.getZIndex() + 1) / 10.0f));
+        material.setColor(Rendering::Color(r, g, b, (t.getZIndex() + 1) / static_cast<float>(zRange)));
+        // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
 
-    //     material.setTexture(texture);
-    // }
+        // material.setTexture(texture);
+    }
 }
 
 void Application::destroy()
@@ -141,23 +139,23 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     if (keyboard->isPressed(Input::Key::D))
         camMove.x += camSpeed;
 
-    // t.translate(camMove * static_cast<float>(timestep.getSeconds()));
+    t.translate(camMove * static_cast<float>(timestep.getSeconds()));
 
-    // // rotate camera
-    // float camRotSpeed = 1.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
+    // rotate camera
+    float camRotSpeed = 1.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
 
-    // if (keyboard->isPressed(Input::Key::ARROW_LEFT))
-    //     t.rotate(camRotSpeed * timestep.getSeconds());
-    // if (keyboard->isPressed(Input::Key::ARROW_RIGHT))
-    //     t.rotate(-camRotSpeed * timestep.getSeconds());
+    if (keyboard->isPressed(Input::Key::ARROW_LEFT))
+        t.rotate(camRotSpeed * timestep.getSeconds());
+    if (keyboard->isPressed(Input::Key::ARROW_RIGHT))
+        t.rotate(-camRotSpeed * timestep.getSeconds());
 
-    // // zoom camera
-    // float camZoomSpeed = 1.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
+    // zoom camera
+    float camZoomSpeed = 1.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
 
-    // if (keyboard->isPressed(Input::Key::ARROW_UP))
-    //     t.scale(1.0f - camZoomSpeed * timestep.getSeconds());
-    // if (keyboard->isPressed(Input::Key::ARROW_DOWN))
-    //     t.scale(1.0f + camZoomSpeed * timestep.getSeconds());
+    if (keyboard->isPressed(Input::Key::ARROW_UP))
+        t.scale(1.0f - camZoomSpeed * timestep.getSeconds());
+    if (keyboard->isPressed(Input::Key::ARROW_DOWN))
+        t.scale(1.0f + camZoomSpeed * timestep.getSeconds());
 
     // rotate all entities with a transform component except camera
     // auto entities = registry.view<Core::Transform>();

@@ -70,8 +70,10 @@ namespace ECS
         const std::vector<Entity> &view() const
         {
             std::set<ComponentId> cacheKey = {ComponentIdGenerator::id<Types>...};
+            // std::set<ComponentId> cacheKey;
+            // getCacheKey(TypeList<Types...>{}, cacheKey);
 
-            if (cachedViews.count(cacheKey) != 0)
+            if (cachedViews.contains(cacheKey))
             {
                 // std::cout << "cached" << std::endl;
                 return cachedViews[cacheKey];
@@ -80,9 +82,9 @@ namespace ECS
             std::unordered_set<Entity> entitySet;
             viewHelper<Types...>(TypeList<Types...>{}, entitySet);
 
-            cachedViews[cacheKey] = std::vector<Entity>(entitySet.begin(), entitySet.end());
+            auto cached = cachedViews.emplace(std::move(cacheKey), std::vector<Entity>(entitySet.begin(), entitySet.end()));
 
-            return cachedViews[cacheKey];
+            return cached.first->second;
         }
 
         /**
@@ -227,13 +229,60 @@ namespace ECS
         {
             auto componentId = ComponentIdGenerator::id<T>;
 
-            for (auto &[components, view] : cachedViews)
+            auto it = cachedViews.begin();
+
+            while (it != cachedViews.end())
             {
-                if (components.count(componentId) != 0)
+                auto &[components, view] = *it;
+
+                for (auto &component : components)
                 {
-                    cachedViews.erase(components);
+                    std::cout << component << std::endl;
+                }
+
+                if (components.contains(componentId))
+                {
+                    // erase and update iterator to next element
+                    it = cachedViews.erase(it);
+                }
+                else
+                {
+                    // increment iterator
+                    it++;
                 }
             }
+        }
+
+        /**
+         * Helper function for to get cached views key.
+         *
+         * @param t The type list.
+         * @param key The key to add to.
+         *
+         * @tparam T The type of component.
+         * @tparam Types The remaining types of components.
+         */
+        template <typename T, typename... Types>
+        void getCacheKey(TypeList<T, Types...> t, std::set<ComponentId> &key) const
+        {
+            getCacheKey<T>(TypeList<T>{}, key);
+            getCacheKey<Types...>(TypeList<Types...>{}, key);
+        }
+
+        /**
+         * Helper function for to get cached views key.
+         *
+         * This is the base case for the recursion.
+         *
+         * @param t The type list.
+         * @param key The key to add to.
+         *
+         * @tparam T The type of component.
+         */
+        template <typename T>
+        void getCacheKey(TypeList<T> t, std::set<ComponentId> &key) const
+        {
+            key.insert(ComponentIdGenerator::id<T>);
         }
 
         /**

@@ -5,6 +5,7 @@
 #include <string>
 
 #define ECS_SPARSE_SET_MAX_ID 16777215
+#define ECS_SPARSE_SET_DEFAULT_MAX_ID 65535
 
 namespace ECS
 {
@@ -59,9 +60,9 @@ namespace ECS
          *
          * The max ID cannot be changed after the sparse set is created.
          *
-         * @param maxId The maximum ID of the items we want to store, by default this is 65535. The max value is ECS_SPARSE_SET_MAX_ID.
+         * @param maxId The maximum ID of the items we want to store, by default this is ECS_SPARSE_SET_DEFAULT_MAX_ID (65535). The max value is ECS_SPARSE_SET_MAX_ID.
          */
-        SparseSet(size_t maxId = 65535)
+        SparseSet(size_t maxId = ECS_SPARSE_SET_DEFAULT_MAX_ID)
         {
             if (maxId > ECS_SPARSE_SET_MAX_ID)
             {

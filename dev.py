@@ -88,7 +88,9 @@ for file in os.listdir(lib_path):
 print("Running dev...")
 
 if os.path.exists(os.path.join(dev_build_path, "dev.html")):
-    os.remove(os.path.join(dev_build_path, "index.html"))
+    if os.path.exists(os.path.join(dev_build_path, "index.html")):
+        os.remove(os.path.join(dev_build_path, "index.html"))
+        
     os.rename(os.path.join(dev_build_path, "dev.html"), os.path.join(dev_build_path, "index.html"))
 
     os.system(f"start http://localhost:8000")

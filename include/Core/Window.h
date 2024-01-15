@@ -43,13 +43,10 @@ namespace Core
          *
          * This will crash if the opengl version is not supported.
          *
-         * @param openglMajorVersion The major version of OpenGL to use.
-         * @param openglMinorVersion The minor version of OpenGL to use.
-         *
          * @throws std::runtime_error if the window failed to initialize.
          * @throws std::invalid_argument if the opengl version is not supported.
          */
-        void init(unsigned int openglMajorVersion = 4, unsigned int openglMinorVersion = 6);
+        void init();
 
         /**
          * Destroys the window, freeing all resources and closing the window.
@@ -157,6 +154,13 @@ namespace Core
         unsigned int initialWindowWidth;
         unsigned int initialWindowHeight;
         bool isFullscreen;
+
+        /**
+         * OpenGL ES 3.0 for webgl 2.0 matching.
+         */
+
+        const unsigned int openglMajorVersion = 3;
+        const unsigned int openglMinorVersion = 0;
 
         bool showWindow = true;
 

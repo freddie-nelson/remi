@@ -15,3 +15,5 @@ dev/subprojects/*
 !dev/subprojects/wrapdb.json
 !dev/subprojects/*.wrap
 externals/include/boost
+
+boost.zip
