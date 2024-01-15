@@ -168,6 +168,8 @@ GLFWwindow *Core::Window::createGLFWWindow(int openglMajorVersion, int openglMin
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, openglMinorVersion);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
 
     // enable debug context if opengl version is greater than or equal to 4.3
     if (openglMajorVersion >= 4 && openglMinorVersion >= 3)
@@ -201,7 +203,7 @@ Core::Window::OpenGLContext *Core::Window::createOpenGLContext(GLFWwindow *windo
     glfwMakeContextCurrent(window);
 
 #ifndef __EMSCRIPTEN__
-    int version = gladLoadGL();
+    int version = gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress);
     if (version == 0)
     {
         std::cout << "Failed to initialize OpenGL context." << std::endl;

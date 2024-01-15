@@ -889,7 +889,7 @@ std::string getTextureFunction()
                         "   switch (textureUnit)\n"
                         "   {\n";
 
-    for (int i = 0; i < Rendering::glGetMaxTextureUnits(); i++)
+    for (unsigned int i = 0; i < Rendering::glGetMaxTextureUnits(); i++)
     {
         block += "   case " + std::to_string(i) + "u:\n"
                                                   "       return texture(uTextures[" +

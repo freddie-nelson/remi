@@ -107,26 +107,14 @@ bool Rendering::glIsTypeInt(GLenum type)
     case GL_BOOL_VEC2:
     case GL_BOOL_VEC3:
     case GL_BOOL_VEC4:
-    case GL_INT_SAMPLER_1D:
     case GL_INT_SAMPLER_2D:
     case GL_INT_SAMPLER_3D:
     case GL_INT_SAMPLER_CUBE:
-    case GL_INT_SAMPLER_1D_ARRAY:
     case GL_INT_SAMPLER_2D_ARRAY:
-    case GL_INT_SAMPLER_2D_MULTISAMPLE:
-    case GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
-    case GL_INT_SAMPLER_BUFFER:
-    case GL_INT_SAMPLER_2D_RECT:
-    case GL_UNSIGNED_INT_SAMPLER_1D:
     case GL_UNSIGNED_INT_SAMPLER_2D:
     case GL_UNSIGNED_INT_SAMPLER_3D:
     case GL_UNSIGNED_INT_SAMPLER_CUBE:
-    case GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
     case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
-    case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE:
-    case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
-    case GL_UNSIGNED_INT_SAMPLER_BUFFER:
-    case GL_UNSIGNED_INT_SAMPLER_2D_RECT:
         return true;
     default:
         return false;
@@ -152,10 +140,6 @@ bool Rendering::glIsValidAlphaBlendingFunction(GLenum function)
     case GL_CONSTANT_ALPHA:
     case GL_ONE_MINUS_CONSTANT_ALPHA:
     case GL_SRC_ALPHA_SATURATE:
-    case GL_SRC1_COLOR:
-    case GL_ONE_MINUS_SRC1_COLOR:
-    case GL_SRC1_ALPHA:
-    case GL_ONE_MINUS_SRC1_ALPHA:
         return true;
     default:
         return false;
