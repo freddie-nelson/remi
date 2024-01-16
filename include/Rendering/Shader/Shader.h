@@ -9,6 +9,12 @@
 
 namespace Rendering
 {
+
+    // ! TODO: rewrite shader class
+    // should have other classes for uniforms and vertex attribs
+    // that allow typesafety using templates
+    // also more robust no hacking together random shit
+
     /**
      * Represents a shader.
      *
