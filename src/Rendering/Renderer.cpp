@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <map>
 
+// ! TODO: don't rebuffer data for static meshes
+
 Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height)
 {
     this->glfwWindow = glfwWindow;
@@ -393,7 +395,6 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
 
     // set up shader variables
     // and draw
-    batchedMeshShader.use();
 
     batchedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
 
@@ -402,6 +403,8 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
 
     auto &textures = textureManager.getTexturesUniform();
     batchedMeshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
+
+    batchedMeshShader.use();
 
     batchedMeshShader.setAttrib("aTextureAtlasPos", (float *)glm::value_ptr(batchedAtlasPos[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
     batchedMeshShader.setAttrib("aTextureUnit", &batchedTextureUnits[0], verticesCount, 1, GL_UNSIGNED_INT, false, 0, bufferDrawType);

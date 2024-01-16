@@ -112,13 +112,15 @@ void Rendering::Shader::use()
         throw std::runtime_error("Shader must be loaded before it can be used.");
     }
 
+    // std::cout << "using shader: " << programId << std::endl;
+
     glUseProgram(programId);
 
     // updateUniforms = true;
     // updateUniformArrays = true;
     // updateAttributesAndUniforms();
 
-    glBindVertexArray(VAO);
+    // glBindVertexArray(VAO);
 }
 
 void Rendering::Shader::unbind()
@@ -457,6 +459,8 @@ void Rendering::Shader::useUniform(const std::string &name)
     case GL_SAMPLER_2D:
     {
         auto v = *static_cast<int *>(value);
+        std::cout << "using uniform: " << name << std::endl;
+        std::cout << "v: " << v << std::endl;
         if (v < 0 || v > static_cast<int>(glGetMaxTextureUnits()))
         {
             throw std::invalid_argument("Sampler2D uniform value must be between 0 and " + std::to_string(glGetMaxTextureUnits()) + ".");
@@ -519,10 +523,22 @@ void Rendering::Shader::useUniformArray(const std::string &name)
     }
 
     // INTS
+    case GL_SAMPLER_2D:
     case GL_INT:
     {
         auto v = static_cast<int *>(value);
         glUniform1iv(location, length, v);
+
+        std::cout << "using uniform: " << name << ", location: " << location << std::endl;
+        std::cout << "v: ";
+        for (size_t i = 0; i < glGetMaxTextureUnits(); i++)
+        {
+            std::cout << v[i] << ", ";
+        }
+
+        std::cout << std::endl;
+
+        break;
         break;
     }
     case GL_INT_VEC2:
@@ -587,13 +603,6 @@ void Rendering::Shader::useUniformArray(const std::string &name)
     {
         auto v = *static_cast<glm::mat4 *>(value);
         glUniformMatrix4fv(location, length, GL_FALSE, glm::value_ptr(v));
-        break;
-    }
-
-    case GL_SAMPLER_2D:
-    {
-        auto v = static_cast<int *>(value);
-        glUniform1iv(location, length, v);
         break;
     }
 
@@ -731,7 +740,12 @@ int Rendering::Shader::getUniformLocation(const std::string &name, bool isUnifor
         throw std::runtime_error("Shader has not been loaded.");
     }
 
-    int location = glGetUniformLocation(programId, name.c_str());
+    std::string realName = isUniformArray && !name.ends_with("]") ? name + "[0]" : name;
+
+    int location = glGetUniformLocation(programId, realName.c_str());
+    // std::cout << "name: " << name << std::endl;
+    // std::cout << "location: " << location << std::endl;
+
     std::string otherName = isUniformArray ? name + "[0]" : name;
 
     if (location == -1 && isUniformArray)
@@ -748,16 +762,22 @@ int Rendering::Shader::getUniformLocation(const std::string &name, bool isUnifor
 
     //? workaround weird opengl bug? TODO: fix - was driver related?
     //? keeping anyway just in case, robustness is good
-    // std::string uniformAtLocation = getUniformName(location);
+    // std::cout << "name: " << realName << std::endl;
+    // std::cout << "arrayName: " << otherName << std::endl;
 
-    // // std::cout << "name: " << name << std::endl;
-    // // std::cout << "arrayName: " << otherName << std::endl;
-    // // std::cout << "uniformAtLocation: " << uniformAtLocation << std::endl;
+    std::string uniformAtLocation = getUniformName(location, true);
 
-    // if (uniformAtLocation != name && uniformAtLocation != otherName)
-    // {
-    //     location = findUniformLocation(name, isUniformArray);
-    // }
+    while (uniformAtLocation == "")
+    {
+        uniformAtLocation = getUniformName(location, true);
+    }
+
+    // std::cout << "uniformAtLocation: " << uniformAtLocation << std::endl;
+
+    if (uniformAtLocation != realName && uniformAtLocation != otherName && uniformAtLocation != name)
+    {
+        location = findUniformLocation(realName, isUniformArray);
+    }
 
     return location;
 }
@@ -793,7 +813,7 @@ unsigned int Rendering::Shader::getUniformType(const std::string &name, bool isU
     return type;
 }
 
-std::string Rendering::Shader::getUniformName(unsigned int location)
+std::string Rendering::Shader::getUniformName(unsigned int location, bool safe)
 {
 
     GLint bufsize;
@@ -809,7 +829,7 @@ std::string Rendering::Shader::getUniformName(unsigned int location)
     glGetActiveUniform(programId, location, bufsize, &nameLength, NULL, NULL, name);
 
     const auto nameStr = std::string(name);
-    if (nameStr.length() == 0)
+    if (nameStr.length() == 0 && !safe)
     {
         throw std::runtime_error("Failed to get uniform name at location " + std::to_string(location) + ".");
     }
@@ -822,15 +842,16 @@ int Rendering::Shader::findUniformLocation(const std::string &name, bool isUnifo
     GLint numOfUniforms;
     glGetProgramiv(programId, GL_ACTIVE_UNIFORMS, &numOfUniforms);
 
-    const auto uniformName = isUniformArray ? name + "[0]" : name;
+    const auto uniformName = isUniformArray && !name.ends_with("]") ? name + "[0]" : name;
 
     // we can just loop through as uniform locations are assigned in order
     for (GLint location = 0; location < numOfUniforms; location++)
     {
         auto nameAtLocation = getUniformName(location);
-        // std::cout << "nameAtLocation: " << nameAtLocation << std::endl;
+        // std::cout << "name: " << name << ", nameAtLocation: " << nameAtLocation << std::endl;
         if (nameAtLocation == uniformName || nameAtLocation == name)
         {
+            // std::cout << "found uniform at location: " << location << std::endl;
             return location;
         }
     }

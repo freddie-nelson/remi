@@ -6,6 +6,7 @@
 
 Rendering::TextureManager::TextureManager()
 {
+    texturesUniform.resize(glGetMaxTextureUnits(), 0);
 }
 
 Rendering::TextureManager::~TextureManager()
@@ -38,6 +39,11 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
         .atlasSize = glm::vec2(atlases[atlasIndex].getWidth(), atlases[atlasIndex].getHeight()),
         .textureUnit = atlasIndex,
     };
+}
+
+int Rendering::TextureManager::getTextureUnitsUsed() const
+{
+    return textureUnitsUsed;
 }
 
 const std::vector<int> &Rendering::TextureManager::getTexturesUniform() const
@@ -117,7 +123,7 @@ unsigned int Rendering::TextureManager::createAtlas()
     }
 
     atlases.push_back(TextureAtlas());
-    texturesUniform.push_back(atlases.size() - 1);
+    texturesUniform[textureUnitsUsed++] = atlases.size() - 1;
 
     auto atlasIndex = atlases.size() - 1;
     loadAtlas(atlasIndex);

@@ -329,10 +329,11 @@ namespace Rendering
          * Gets the name of the uniform stored at the given location.
          *
          * @param location The location of the uniform.
+         * @param safe Whether or not to throw an error if the name cannot be found.
          *
          * @returns The name of the uniform stored at the specified location.
          */
-        std::string getUniformName(unsigned int location);
+        std::string getUniformName(unsigned int location, bool safe = false);
 
         /**
          * Gets the name of every uniform location to find the correct location for the given name.

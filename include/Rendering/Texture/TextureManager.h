@@ -57,15 +57,30 @@ namespace Rendering
         BoundTexture bind(const Texture *texture);
 
         /**
+         * Gets the number of texture units currently used.
+         *
+         * @returns The number of texture units currently used.
+         */
+        int getTextureUnitsUsed() const;
+
+        /**
          * Gets the array of active texture units currently bound.
+         *
+         * Any texture units that are not bound will be 0 and after textureUnitsUsed.
          *
          * @returns The array of active texture units currently bound.
          */
         const std::vector<int> &getTexturesUniform() const;
 
     private:
+        int textureUnitsUsed = 0;
+
         /**
          * The texture units that are currently bound.
+         *
+         * The size of the vector is always equal to the number of texture units supported by the GPU.
+         *
+         * The values which are 0 and after textureUnitsUsed are not bound.
          */
         std::vector<int> texturesUniform;
 
@@ -131,12 +146,5 @@ namespace Rendering
          * @throws std::invalid_argument If the texture unit is invalid.
          */
         void loadAtlas(unsigned int textureUnit);
-
-        /**
-         * Gets the maximum number of texture units supported by the GPU.
-         *
-         * @returns The maximum number of texture units supported by the GPU.
-         */
-        unsigned int getMaxTextureUnits();
     };
 }
