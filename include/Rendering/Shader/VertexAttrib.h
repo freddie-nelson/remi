@@ -85,7 +85,7 @@ namespace Rendering
          *
          * @returns The size of the attrib array.
          */
-        virtual size_t size() = 0;
+        virtual size_t size() const = 0;
 
         /**
          * Gets the size of the template type in bytes.
@@ -94,7 +94,7 @@ namespace Rendering
          *
          * @returns The size of the template type.
          */
-        virtual size_t getTSize() = 0;
+        virtual size_t getTSize() const = 0;
     };
 
     /**
@@ -109,9 +109,15 @@ namespace Rendering
          *
          * Vertex data should begin at the start of the array.
          *
-         * The value will be copied into the vertex attribute, use std::move to move the value into the vertex attribute.
-         *
          * For instance rendering the divisor should be set to the number of instances between switching the attribute. This is 0 by default and can be set with setDivisor.
+         *
+         * To change the value of the vertex attribute the underlying vector should be change as it is passed by reference.
+         *
+         * This is annoying but avoids copying the vector every frame.
+         *
+         * You can use get to get the vector and then change it.
+         *
+         * The value will not be changed from within the VertexAttrib class.
          *
          * @param name The name of the vertex attribute
          * @param value The value of the vertex attribute
@@ -119,7 +125,7 @@ namespace Rendering
          * @param numComponents The number of components in each value of the vertex attribute
          * @param matrixSize The size of the matrix if the vertex attribute is a matrix
          */
-        VertexAttrib(std::string name, std::vector<T> value, GLenum type = GLType::type<T>, unsigned int numComponents = glGetNumComponents(GLType::type<T>), int matrixSize = glGetMatrixSize(GLType::type<T>)) : name(name), value(value), type(type), numComponents(numComponents), matrixSize(matrixSize)
+        VertexAttrib(std::string name, std::vector<T> &value, GLenum type = GLType::type<T>, unsigned int numComponents = glGetNumComponents(GLType::type<T>), int matrixSize = glGetMatrixSize(GLType::type<T>)) : name(name), value(value), type(type), numComponents(numComponents), matrixSize(matrixSize)
         {
             tSize = sizeof(T);
         }
@@ -135,25 +141,11 @@ namespace Rendering
         }
 
         /**
-         * Sets the value of the vertex attribute.
-         *
-         * The value will be copied into the vertex attribute, use std::move to move the value into the vertex attribute.
-         *
-         * The number of components and type of the value must match the values defined in the constructor.
-         *
-         * @param value The value of the vertex attribute
-         */
-        void set(std::vector<T> value)
-        {
-            this->value = value;
-        }
-
-        /**
          * Gets the value of the vertex attribute.
          *
          * @returns The value of the vertex attribute.
          */
-        const std::vector<T> &get() const
+        std::vector<T> &get()
         {
             return value;
         }
@@ -273,14 +265,14 @@ namespace Rendering
          *
          * @returns The size of the template type.
          */
-        size_t getTSize()
+        size_t getTSize() const
         {
             return tSize;
         }
 
     private:
         const std::string name;
-        const std::vector<T> value;
+        std::vector<T> &value;
         GLenum type;
 
         /**

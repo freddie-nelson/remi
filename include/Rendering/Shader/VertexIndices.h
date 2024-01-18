@@ -4,36 +4,39 @@
 
 namespace Rendering
 {
+    /**
+     * Represents vertex indices.
+     */
     class VertexIndices
     {
     public:
         /**
          * Creates vertex indices.
          *
-         * The indices will be copied into the vertex indices, use std::move to move the indices into the vertex indices.
+         * To edit the value of the indices, edit the underlying vector.
          *
          * @param indices The indices
          */
-        VertexIndices(std::vector<unsigned int> indices);
-
-        /**
-         * Sets the indices.
-         *
-         * @param indices The indices
-         */
-        void set(std::vector<unsigned int> indices);
+        VertexIndices(std::vector<unsigned int> &indices);
 
         /**
          * Gets the indices.
          *
          * @returns The indices.
          */
-        const std::vector<unsigned int> &get();
+        std::vector<unsigned int> &get();
+
+        /**
+         * Gets the size of the indices.
+         *
+         * @returns The size of the indices.
+         */
+        size_t size() const;
 
     private:
         /**
          * The indices.
          */
-        std::vector<unsigned int> indices;
+        std::vector<unsigned int> &indices;
     };
 }

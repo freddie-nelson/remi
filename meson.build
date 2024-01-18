@@ -75,7 +75,7 @@ rendering_src = ['src/Rendering/Renderer.cpp']
 rendering_src += ['src/Rendering/Camera/Camera.cpp']
 rendering_src += ['src/Rendering/Material/Color.cpp', 'src/Rendering/Material/Material.cpp']
 rendering_src += ['src/Rendering/Mesh/Mesh.cpp', 'src/Rendering/Mesh/Polygons.cpp', 'src/Rendering/Mesh/Triangulate.cpp']
-rendering_src += ['src/Rendering/Shader/Shader.cpp']
+rendering_src += ['src/Rendering/Shader/Shader.cpp', 'src/Rendering/Shader/VertexIndices.cpp']
 rendering_src += ['src/Rendering/Texture/Texture.cpp', 'src/Rendering/Texture/TextureAtlas.cpp', 'src/Rendering/Texture/TextureManager.cpp']
 rendering_src += ['src/Rendering/Utility/OpenGLHelpers.cpp']
 

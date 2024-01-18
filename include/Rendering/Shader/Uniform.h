@@ -16,7 +16,7 @@ namespace Rendering
          *
          * @returns The name of the uniform.
          */
-        virtual const std::string &getName() = 0;
+        virtual const std::string &getName() const = 0;
 
         /**
          * Gets the value of the uniform.
@@ -30,7 +30,7 @@ namespace Rendering
          *
          * @returns The OpenGL type of the uniform.
          */
-        virtual GLenum getGLType() = 0;
+        virtual GLenum getGLType() const = 0;
 
         /**
          * Gets the size of the uniform array.
@@ -39,7 +39,7 @@ namespace Rendering
          *
          * @returns The size of the uniform array.
          */
-        virtual size_t size() = 0;
+        virtual size_t size() const = 0;
 
         /**
          * Gets whether the uniform is an array.
@@ -59,9 +59,13 @@ namespace Rendering
         /**
          * Creates a uniform.
          *
-         * Array uniforms should be held in a std::vector.
+         * Array uniforms should be held in an std::vector.
          *
          * All vector and matrix uniforms should be held in glm::vec or glm::mat.
+         *
+         * To edit the value of the uniform, edit the value of the variable passed in.
+         *
+         * The value will not be changed from within the Uniform class.
          *
          * @param name The name of the uniform
          * @param value The value of the uniform
@@ -69,7 +73,7 @@ namespace Rendering
          * @param count The number of items in the array, 1 if not an array
          * @param type The OpenGL type of the uniform, will try to infer the type if not provided (not accurate)
          */
-        Uniform(std::string name, T value, bool isArray = false, size_t count = 1, GLenum type = GLType::type<T>) : name(name), value(value), isUniformArray(isArray), count(count), type(type)
+        Uniform(std::string name, T &value, bool isArray = false, size_t count = 1, GLenum type = GLType::type<T>) : name(name), value(value), isUniformArray(isArray), count(count), type(type)
         {
             if (count > 1 && !isArray)
             {
@@ -82,19 +86,9 @@ namespace Rendering
          *
          * @returns The name of the uniform.
          */
-        const std::string &getName()
+        const std::string &getName() const
         {
             return name;
-        }
-
-        /**
-         * Sets the value of the uniform.
-         *
-         * @param value The value of the uniform
-         */
-        void set(T value)
-        {
-            this->value = value;
         }
 
         /**
@@ -102,7 +96,7 @@ namespace Rendering
          *
          * @returns The value of the uniform.
          */
-        T get()
+        T &get()
         {
             return value;
         }
@@ -122,7 +116,7 @@ namespace Rendering
          *
          * @returns True if the uniform is an array, false otherwise.
          */
-        bool isArray()
+        bool isArray() const
         {
             return isUniformArray;
         }
@@ -132,7 +126,7 @@ namespace Rendering
          *
          * @returns The size of the uniform array.
          */
-        size_t size()
+        size_t size() const
         {
             return count;
         }
@@ -142,14 +136,14 @@ namespace Rendering
          *
          * @returns The OpenGL type of the uniform.
          */
-        GLenum getGLType()
+        GLenum getGLType() const
         {
             return type;
         }
 
     private:
         const std::string name;
-        T value;
+        T &value;
         bool isUniformArray;
         size_t count;
         GLenum type;

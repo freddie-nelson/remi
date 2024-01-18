@@ -9,6 +9,7 @@
 #include "../../include/Rendering/Camera/ActiveCamera.h"
 #include "../../include/Rendering/Camera/Camera.h"
 #include "../../include/gl.h"
+#include "../../include/Rendering/Shader/Shader.h"
 
 #include <iostream>
 #include <memory>
@@ -182,12 +183,8 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     auto &mesh = registry.get<Mesh2D>(entity);
 
     const std::vector<glm::vec2> &vertices = mesh.getVertices();
-    float *verticesPointer = (float *)glm::value_ptr(vertices[0]);
-
-    const std::vector<unsigned int> &indices = mesh.getIndices();
-
+    const std::vector<unsigned int> &indicesVec = mesh.getIndices();
     const std::vector<glm::vec2> &uvs = mesh.getUvs();
-    float *uvsPointer = (float *)glm::value_ptr(uvs[0]);
 
     // material data
     auto &material = registry.get<Material>(entity);
@@ -195,7 +192,7 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
 
     auto texture = material.getTexture();
     auto boundTexture = textureManager.bind(texture);
-    auto &textures = textureManager.getTexturesUniform();
+    auto &texturesUniform = textureManager.getTexturesUniform();
 
     // transform
     auto &transform = registry.get<Core::Transform>(entity);
@@ -204,28 +201,43 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     // view projection matrix
     auto viewProjectionMatrix = getViewProjectionMatrix(registry, camera);
 
+    // uniforms
+    Uniform uViewProjectionMatrix("uViewProjectionMatrix", viewProjectionMatrix);
+    Uniform uColor("uColor", color);
+    Uniform uTextures("uTextures", texturesUniform, true, texturesUniform.size(), GL_UNSIGNED_INT);
+
+    Uniform uTextureUnit("uTextureUnit", boundTexture.textureUnit);
+    Uniform uTextureSize("uTextureSize", boundTexture.textureSize);
+    Uniform uTextureAtlasPos("uTextureAtlasPos", boundTexture.posInAtlas);
+    Uniform uTextureAtlasSize("uTextureAtlasSize", boundTexture.atlasSize);
+
+    Uniform uMeshTransform("uMeshTransform", transformMatrix);
+
+    // attribs
+    VertexAttrib<glm::vec2> aPos("aPos", vertices);
+    VertexAttrib<glm::vec2> aTexCoord("aTexCoord", uvs);
+
+    // indices
+    VertexIndices indices(indicesVec);
+
+    // setup shader
     meshShader.use();
 
-    meshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
+    meshShader.uniform(&uViewProjectionMatrix);
+    meshShader.uniform(&uColor);
+    meshShader.uniform(&uTextures);
 
-    // texture uniforms
-    meshShader.setUniform("uColor", &color);
+    meshShader.uniform(&uTextureUnit);
+    meshShader.uniform(&uTextureSize);
+    meshShader.uniform(&uTextureAtlasPos);
+    meshShader.uniform(&uTextureAtlasSize);
 
-    meshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
+    meshShader.uniform(&uMeshTransform);
 
-    meshShader.setUniform("uTextureUnit", &boundTexture.textureUnit);
-    meshShader.setUniform("uTextureSize", &boundTexture.textureSize);
-    meshShader.setUniform("uTextureAtlasPos", &boundTexture.posInAtlas);
-    meshShader.setUniform("uTextureAtlasSize", &boundTexture.atlasSize);
+    meshShader.attrib(&aPos);
+    meshShader.attrib(&aTexCoord);
 
-    // transform
-    meshShader.setUniform("uMeshTransform", const_cast<glm::mat4 *>(&transformMatrix));
-
-    // mesh data
-    meshShader.setAttrib("aPos", verticesPointer, vertices.size() * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
-    meshShader.setIndices("aPos", &indices[0], indices.size(), bufferDrawType);
-
-    meshShader.setAttrib("aTexCoord", uvsPointer, uvs.size() * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
+    meshShader.indices(&indices);
 
     // draw
     meshShader.draw(GL_TRIANGLES, indices.size());

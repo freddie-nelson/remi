@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../gl.h"
-#include "../Utility/TypeHelpers.h"
+#include "../../gl.h"
+#include "../../Utility/TypeHelpers.h"
 
 #include <glm/glm.hpp>
 #include <type_traits>
