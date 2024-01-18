@@ -248,131 +248,201 @@ void Rendering::glUniform(int location, UniformBase *uniform)
     switch (type)
     {
     case GL_FLOAT:
-        glUniform1fv(location, size, static_cast<float *>(value));
+        if (isArray)
+            glUniform1fv(location, size, &(*reinterpret_cast<std::vector<float> *>(value))[0]);
+        else
+            glUniform1fv(location, size, reinterpret_cast<float *>(value));
         break;
 
     case GL_INT:
-        glUniform1iv(location, size, static_cast<int *>(value));
+        if (isArray)
+            glUniform1iv(location, size, &(*reinterpret_cast<std::vector<int> *>(value))[0]);
+        else
+            glUniform1iv(location, size, reinterpret_cast<int *>(value));
         break;
 
     case GL_UNSIGNED_INT:
-        glUniform1uiv(location, size, static_cast<unsigned int *>(value));
+        if (isArray)
+            glUniform1uiv(location, size, &(*reinterpret_cast<std::vector<unsigned int> *>(value))[0]);
+        else
+            glUniform1uiv(location, size, reinterpret_cast<unsigned int *>(value));
         break;
 
     case GL_BOOL:
-        glUniform1iv(location, size, static_cast<int *>(value));
+        if (isArray)
+            glUniform1iv(location, size, &(*reinterpret_cast<std::vector<int> *>(value))[0]);
+        else
+            glUniform1iv(location, size, reinterpret_cast<int *>(value));
         break;
 
     case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE:
     case GL_SAMPLER_2D_ARRAY:
-        glUniform1iv(location, size, static_cast<int *>(value));
+        if (isArray)
+            glUniform1iv(location, size, &(*reinterpret_cast<std::vector<int> *>(value))[0]);
+        else
+            glUniform1iv(location, size, reinterpret_cast<int *>(value));
         break;
 
     case GL_FLOAT_VEC2:
         if (isArray)
-            glUniform2fv(location, size, glm::value_ptr((*static_cast<std::vector<glm::vec2> *>(value))[0]));
+            glUniform2fv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::vec2> *>(value))[0]));
         else
-            glUniform2fv(location, size, glm::value_ptr(*static_cast<glm::vec2 *>(value)));
+            glUniform2fv(location, size, glm::value_ptr(*reinterpret_cast<glm::vec2 *>(value)));
         break;
 
     case GL_INT_VEC2:
         if (isArray)
-            glUniform2iv(location, size, glm::value_ptr((*static_cast<std::vector<glm::ivec2> *>(value))[0]));
+            glUniform2iv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::ivec2> *>(value))[0]));
         else
-            glUniform2iv(location, size, glm::value_ptr(*static_cast<glm::ivec2 *>(value)));
+            glUniform2iv(location, size, glm::value_ptr(*reinterpret_cast<glm::ivec2 *>(value)));
         break;
 
     case GL_UNSIGNED_INT_VEC2:
         if (isArray)
-            glUniform2uiv(location, size, glm::value_ptr((*static_cast<std::vector<glm::uvec2> *>(value))[0]));
+            glUniform2uiv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::uvec2> *>(value))[0]));
         else
-            glUniform2uiv(location, size, glm::value_ptr(*static_cast<glm::uvec2 *>(value)));
+            glUniform2uiv(location, size, glm::value_ptr(*reinterpret_cast<glm::uvec2 *>(value)));
         break;
 
     case GL_BOOL_VEC2:
         if (isArray)
-            glUniform2iv(location, size, glm::value_ptr((*static_cast<std::vector<glm::ivec2> *>(value))[0]));
+            glUniform2iv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::ivec2> *>(value))[0]));
         else
-            glUniform2iv(location, size, glm::value_ptr(*static_cast<glm::ivec2 *>(value)));
+            glUniform2iv(location, size, glm::value_ptr(*reinterpret_cast<glm::ivec2 *>(value)));
         break;
 
     case GL_FLOAT_VEC3:
         if (isArray)
-            glUniform3fv(location, size, glm::value_ptr((*static_cast<std::vector<glm::vec3> *>(value))[0]));
+            glUniform3fv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::vec3> *>(value))[0]));
         else
-            glUniform3fv(location, size, glm::value_ptr(*static_cast<glm::vec3 *>(value)));
+            glUniform3fv(location, size, glm::value_ptr(*reinterpret_cast<glm::vec3 *>(value)));
         break;
 
     case GL_INT_VEC3:
         if (isArray)
-            glUniform3iv(location, size, glm::value_ptr((*static_cast<std::vector<glm::ivec3> *>(value))[0]));
+            glUniform3iv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::ivec3> *>(value))[0]));
         else
-            glUniform3iv(location, size, glm::value_ptr(*static_cast<glm::ivec3 *>(value)));
+            glUniform3iv(location, size, glm::value_ptr(*reinterpret_cast<glm::ivec3 *>(value)));
         break;
 
     case GL_UNSIGNED_INT_VEC3:
         if (isArray)
-            glUniform3uiv(location, size, glm::value_ptr((*static_cast<std::vector<glm::uvec3> *>(value))[0]));
+            glUniform3uiv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::uvec3> *>(value))[0]));
         else
-            glUniform3uiv(location, size, glm::value_ptr(*static_cast<glm::uvec3 *>(value)));
+            glUniform3uiv(location, size, glm::value_ptr(*reinterpret_cast<glm::uvec3 *>(value)));
         break;
 
     case GL_BOOL_VEC3:
         if (isArray)
-            glUniform3iv(location, size, glm::value_ptr((*static_cast<std::vector<glm::ivec3> *>(value))[0]));
+            glUniform3iv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::ivec3> *>(value))[0]));
         else
-            glUniform3iv(location, size, glm::value_ptr(*static_cast<glm::ivec3 *>(value)));
+            glUniform3iv(location, size, glm::value_ptr(*reinterpret_cast<glm::ivec3 *>(value)));
         break;
 
     case GL_FLOAT_VEC4:
         if (isArray)
-            glUniform4fv(location, size, glm::value_ptr((*static_cast<std::vector<glm::vec4> *>(value))[0]));
+            glUniform4fv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::vec4> *>(value))[0]));
         else
-            glUniform4fv(location, size, glm::value_ptr(*static_cast<glm::vec4 *>(value)));
+            glUniform4fv(location, size, glm::value_ptr(*reinterpret_cast<glm::vec4 *>(value)));
         break;
 
     case GL_INT_VEC4:
         if (isArray)
-            glUniform4iv(location, size, glm::value_ptr((*static_cast<std::vector<glm::ivec4> *>(value))[0]));
+            glUniform4iv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::ivec4> *>(value))[0]));
         else
-            glUniform4iv(location, size, glm::value_ptr(*static_cast<glm::ivec4 *>(value)));
+            glUniform4iv(location, size, glm::value_ptr(*reinterpret_cast<glm::ivec4 *>(value)));
         break;
 
     case GL_UNSIGNED_INT_VEC4:
         if (isArray)
-            glUniform4uiv(location, size, glm::value_ptr((*static_cast<std::vector<glm::uvec4> *>(value))[0]));
+            glUniform4uiv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::uvec4> *>(value))[0]));
         else
-            glUniform4uiv(location, size, glm::value_ptr(*static_cast<glm::uvec4 *>(value)));
+            glUniform4uiv(location, size, glm::value_ptr(*reinterpret_cast<glm::uvec4 *>(value)));
         break;
 
     case GL_BOOL_VEC4:
         if (isArray)
-            glUniform4iv(location, size, glm::value_ptr((*static_cast<std::vector<glm::ivec4> *>(value))[0]));
+            glUniform4iv(location, size, glm::value_ptr((*reinterpret_cast<std::vector<glm::ivec4> *>(value))[0]));
         else
-            glUniform4iv(location, size, glm::value_ptr(*static_cast<glm::ivec4 *>(value)));
+            glUniform4iv(location, size, glm::value_ptr(*reinterpret_cast<glm::ivec4 *>(value)));
         break;
 
     case GL_FLOAT_MAT2:
         if (isArray)
-            glUniformMatrix2fv(location, size, GL_FALSE, glm::value_ptr((*static_cast<std::vector<glm::mat2> *>(value))[0]));
+            glUniformMatrix2fv(location, size, GL_FALSE, glm::value_ptr((*reinterpret_cast<std::vector<glm::mat2> *>(value))[0]));
         else
-            glUniformMatrix2fv(location, size, GL_FALSE, glm::value_ptr(*static_cast<glm::mat2 *>(value)));
+            glUniformMatrix2fv(location, size, GL_FALSE, glm::value_ptr(*reinterpret_cast<glm::mat2 *>(value)));
         break;
 
     case GL_FLOAT_MAT3:
         if (isArray)
-            glUniformMatrix3fv(location, size, GL_FALSE, glm::value_ptr((*static_cast<std::vector<glm::mat3> *>(value))[0]));
+            glUniformMatrix3fv(location, size, GL_FALSE, glm::value_ptr((*reinterpret_cast<std::vector<glm::mat3> *>(value))[0]));
         else
-            glUniformMatrix3fv(location, size, GL_FALSE, glm::value_ptr(*static_cast<glm::mat3 *>(value)));
+            glUniformMatrix3fv(location, size, GL_FALSE, glm::value_ptr(*reinterpret_cast<glm::mat3 *>(value)));
         break;
 
     case GL_FLOAT_MAT4:
         if (isArray)
-            glUniformMatrix4fv(location, size, GL_FALSE, glm::value_ptr((*static_cast<std::vector<glm::mat4> *>(value))[0]));
+            glUniformMatrix4fv(location, size, GL_FALSE, glm::value_ptr((*reinterpret_cast<std::vector<glm::mat4> *>(value))[0]));
         else
-            glUniformMatrix4fv(location, size, GL_FALSE, glm::value_ptr(*static_cast<glm::mat4 *>(value)));
+            glUniformMatrix4fv(location, size, GL_FALSE, glm::value_ptr(*reinterpret_cast<glm::mat4 *>(value)));
         break;
     }
+}
+
+std::string Rendering::glTypeToString(GLenum type)
+{
+    switch (type)
+    {
+    case GL_FLOAT:
+        return "GL_FLOAT";
+    case GL_INT:
+        return "GL_INT";
+    case GL_UNSIGNED_INT:
+        return "GL_UNSIGNED_INT";
+    case GL_BOOL:
+        return "GL_BOOL";
+    case GL_SAMPLER_2D:
+        return "GL_SAMPLER_2D";
+    case GL_SAMPLER_3D:
+        return "GL_SAMPLER_3D";
+    case GL_SAMPLER_CUBE:
+        return "GL_SAMPLER_CUBE";
+    case GL_SAMPLER_2D_ARRAY:
+        return "GL_SAMPLER_2D_ARRAY";
+    case GL_FLOAT_VEC2:
+        return "GL_FLOAT_VEC2";
+    case GL_INT_VEC2:
+        return "GL_INT_VEC2";
+    case GL_UNSIGNED_INT_VEC2:
+        return "GL_UNSIGNED_INT_VEC2";
+    case GL_BOOL_VEC2:
+        return "GL_BOOL_VEC2";
+    case GL_FLOAT_VEC3:
+        return "GL_FLOAT_VEC3";
+    case GL_INT_VEC3:
+        return "GL_INT_VEC3";
+    case GL_UNSIGNED_INT_VEC3:
+        return "GL_UNSIGNED_INT_VEC3";
+    case GL_BOOL_VEC3:
+        return "GL_BOOL_VEC3";
+    case GL_FLOAT_VEC4:
+        return "GL_FLOAT_VEC4";
+    case GL_INT_VEC4:
+        return "GL_INT_VEC4";
+    case GL_UNSIGNED_INT_VEC4:
+        return "GL_UNSIGNED_INT_VEC4";
+    case GL_BOOL_VEC4:
+        return "GL_BOOL_VEC4";
+    case GL_FLOAT_MAT2:
+        return "GL_FLOAT_MAT2";
+    case GL_FLOAT_MAT3:
+        return "GL_FLOAT_MAT3";
+    case GL_FLOAT_MAT4:
+        return "GL_FLOAT_MAT4";
+    }
+
+    throw std::runtime_error("Could not determine string representation of OpenGL type.");
 }

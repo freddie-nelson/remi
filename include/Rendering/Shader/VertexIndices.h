@@ -17,14 +17,14 @@ namespace Rendering
          *
          * @param indices The indices
          */
-        VertexIndices(std::vector<unsigned int> &indices);
+        VertexIndices(const std::vector<unsigned int> &indices);
 
         /**
          * Gets the indices.
          *
          * @returns The indices.
          */
-        std::vector<unsigned int> &get();
+        const std::vector<unsigned int> &get();
 
         /**
          * Gets the size of the indices.
@@ -37,6 +37,6 @@ namespace Rendering
         /**
          * The indices.
          */
-        std::vector<unsigned int> &indices;
+        const std::vector<unsigned int> &indices;
     };
 }

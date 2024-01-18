@@ -204,7 +204,7 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     // uniforms
     Uniform uViewProjectionMatrix("uViewProjectionMatrix", viewProjectionMatrix);
     Uniform uColor("uColor", color);
-    Uniform uTextures("uTextures", texturesUniform, true, texturesUniform.size(), GL_UNSIGNED_INT);
+    Uniform uTextures("uTextures", texturesUniform, true, texturesUniform.size(), GL_SAMPLER_2D);
 
     Uniform uTextureUnit("uTextureUnit", boundTexture.textureUnit);
     Uniform uTextureSize("uTextureSize", boundTexture.textureSize);
@@ -250,12 +250,8 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
 
     // mesh data
     const std::vector<glm::vec2> &vertices = m.getVertices();
-    float *vertexArr = (float *)glm::value_ptr(vertices[0]);
-
-    const std::vector<unsigned int> &indices = m.getIndices();
-
+    const std::vector<unsigned int> &indicesVec = m.getIndices();
     const std::vector<glm::vec2> &uvs = m.getUvs();
-    float *uvArr = (float *)glm::value_ptr(uvs[0]);
 
     // create transforms and materials arrays
     // vectors used so that stack overflow does not occur when instance count is too high
@@ -284,41 +280,49 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
         color[i] = material.getColor().getColor();
     }
 
+    auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
+
+    auto &textures = textureManager.getTexturesUniform();
+
     // view projection matrix
     auto viewProjectionMatrix = getViewProjectionMatrix(registry, camera);
 
+    // uniforms
+    Uniform uViewProjectionMatrix("uViewProjectionMatrix", viewProjectionMatrix);
+    Uniform uTextureAtlasSize("uTextureAtlasSize", atlasSize);
+    Uniform uTextures("uTextures", textures, true, textures.size(), GL_SAMPLER_2D);
+
+    // attribs
+    VertexAttrib aPos("aPos", vertices);
+    VertexAttrib aTexCoord("aTexCoord", uvs);
+    VertexAttrib aTextureAtlasPos("aTextureAtlasPos", textureAtlasPos);
+    VertexAttrib aTextureUnit("aTextureUnit", textureUnit);
+    VertexAttrib aTextureSize("aTextureSize", textureSize);
+    VertexAttrib aColor("aColor", color);
+    VertexAttrib aTransform("aTransform", transform);
+
+    std::vector<VertexAttribBase *> attribs = {&aPos, &aTexCoord, &aTextureAtlasPos, &aTextureUnit, &aTextureSize, &aColor, &aTransform};
+
+    for (auto &a : attribs)
+    {
+        a->setDivisor(1);
+    }
+
+    // indices
+    VertexIndices indices(indicesVec);
+
+    // setup shader
     instancedMeshShader.use();
 
-    instancedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
+    instancedMeshShader.uniform(&uViewProjectionMatrix);
+    instancedMeshShader.uniform(&uTextureAtlasSize);
+    instancedMeshShader.uniform(&uTextures);
 
-    auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
-    instancedMeshShader.setUniform("uTextureAtlasSize", &atlasSize);
+    instancedMeshShader.attrib(attribs);
 
-    auto &textures = textureManager.getTexturesUniform();
-    instancedMeshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
+    instancedMeshShader.indices(&indices);
 
-    // instanced arrays
-    float *atlasPosArr = (float *)glm::value_ptr(textureAtlasPos[0]);
-    instancedMeshShader.setAttrib("aTextureAtlasPos", atlasPosArr, instanceCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType, 1);
-
-    unsigned int *textureUnitArr = &textureUnit[0];
-    instancedMeshShader.setAttrib("aTextureUnit", textureUnitArr, instanceCount, 1, GL_UNSIGNED_INT, false, 0, bufferDrawType, 1);
-
-    float *textureSizeArr = (float *)glm::value_ptr(textureSize[0]);
-    instancedMeshShader.setAttrib("aTextureSize", textureSizeArr, instanceCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType, 1);
-
-    float *colorArr = (float *)glm::value_ptr(color[0]);
-    instancedMeshShader.setAttrib("aColor", colorArr, instanceCount * 4, 4, GL_FLOAT, false, 0, bufferDrawType, 1);
-
-    float *transformArr = (float *)glm::value_ptr(transform[0]);
-    instancedMeshShader.setAttrib("aTransform", transformArr, instanceCount * 16, 16, GL_FLOAT, false, 0, bufferDrawType, 1, 4);
-
-    // vertices and indices
-    instancedMeshShader.setAttrib("aPos", vertexArr, vertices.size() * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
-    instancedMeshShader.setIndices("aPos", &indices[0], indices.size(), bufferDrawType);
-
-    instancedMeshShader.setAttrib("aTexCoord", uvArr, uvs.size() * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
-
+    // draw
     instancedMeshShader.drawInstanced(instanceCount, GL_TRIANGLES, indices.size());
     instancedMeshShader.unbind();
 };
@@ -398,36 +402,46 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
         indicesOffset += indices.size();
     }
 
+    auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
+
+    auto &textures = textureManager.getTexturesUniform();
+
     // view projection matrix
     auto viewProjectionMatrix = getViewProjectionMatrix(registry, camera);
 
-    // std::cout << "batch time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+    // uniforms
+    Uniform uViewProjectionMatrix("uViewProjectionMatrix", viewProjectionMatrix);
+    Uniform uTextureAtlasSize("uTextureAtlasSize", atlasSize);
+    Uniform uTextures("uTextures", textures, true, textures.size(), GL_SAMPLER_2D);
 
-    // now = Rendering::timeSinceEpochMillisec();
+    // attribs
+    VertexAttrib aPos("aPos", batchedVertices);
+    VertexAttrib aTexCoord("aTexCoord", batchedTexCoords);
+    VertexAttrib aTextureAtlasPos("aTextureAtlasPos", batchedAtlasPos);
+    VertexAttrib aTextureUnit("aTextureUnit", batchedTextureUnits);
+    VertexAttrib aTextureSize("aTextureSize", batchedTextureSizes);
+    VertexAttrib aColor("aColor", batchedColors);
 
-    // set up shader variables
-    // and draw
+    // indices
+    VertexIndices indices(batchedIndices);
 
+    // set up shader
     batchedMeshShader.use();
 
-    batchedMeshShader.setUniform("uViewProjectionMatrix", &viewProjectionMatrix);
+    batchedMeshShader.uniform(&uViewProjectionMatrix);
+    batchedMeshShader.uniform(&uTextureAtlasSize);
+    batchedMeshShader.uniform(&uTextures);
 
-    auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
-    batchedMeshShader.setUniform("uTextureAtlasSize", &atlasSize);
+    batchedMeshShader.attrib(&aPos);
+    batchedMeshShader.attrib(&aTexCoord);
+    batchedMeshShader.attrib(&aTextureAtlasPos);
+    batchedMeshShader.attrib(&aTextureUnit);
+    batchedMeshShader.attrib(&aTextureSize);
+    batchedMeshShader.attrib(&aColor);
 
-    auto &textures = textureManager.getTexturesUniform();
-    batchedMeshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
+    batchedMeshShader.indices(&indices);
 
-    batchedMeshShader.setAttrib("aTextureAtlasPos", (float *)glm::value_ptr(batchedAtlasPos[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
-    batchedMeshShader.setAttrib("aTextureUnit", &batchedTextureUnits[0], verticesCount, 1, GL_UNSIGNED_INT, false, 0, bufferDrawType);
-    batchedMeshShader.setAttrib("aTextureSize", (float *)glm::value_ptr(batchedTextureSizes[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
-    batchedMeshShader.setAttrib("aTexCoord", (float *)glm::value_ptr(batchedTexCoords[0]), verticesCount * 2, 2, GL_FLOAT, false, 0, bufferDrawType);
-
-    batchedMeshShader.setAttrib("aColor", (float *)glm::value_ptr(batchedColors[0]), verticesCount * 4, 4, GL_FLOAT, false, 0, bufferDrawType);
-
-    batchedMeshShader.setAttrib("aPos", (float *)glm::value_ptr(batchedVertices[0]), verticesCount * 4, 4, GL_FLOAT, false, 0, bufferDrawType);
-    batchedMeshShader.setIndices("aPos", &batchedIndices[0], indicesCount, bufferDrawType);
-
+    // draw
     batchedMeshShader.draw(GL_TRIANGLES, indicesCount);
     batchedMeshShader.unbind();
 

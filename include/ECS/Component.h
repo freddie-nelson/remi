@@ -20,6 +20,6 @@ namespace ECS
          *       therefore have different ids for the same component.
          */
         template <typename T>
-        inline static const ComponentId id = generateTypeId(typeid(T).name());
+        inline static const ComponentId id = blz::generateTypeId(typeid(T).name());
     };
 }

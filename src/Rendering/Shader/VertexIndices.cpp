@@ -1,10 +1,10 @@
 #include "../../../include/Rendering/Shader/VertexIndices.h"
 
-Rendering::VertexIndices::VertexIndices(std::vector<unsigned int> &indices) : indices(indices)
+Rendering::VertexIndices::VertexIndices(const std::vector<unsigned int> &indices) : indices(indices)
 {
 }
 
-std::vector<unsigned int> &Rendering::VertexIndices::get()
+const std::vector<unsigned int> &Rendering::VertexIndices::get()
 {
     return indices;
 }

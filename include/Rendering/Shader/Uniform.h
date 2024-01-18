@@ -3,6 +3,9 @@
 #include "../../gl.h"
 #include "GLType.h"
 
+#include <vector>
+#include <string>
+
 namespace Rendering
 {
     /**
@@ -46,7 +49,7 @@ namespace Rendering
          *
          * @returns True if the uniform is an array, false otherwise.
          */
-        virtual bool isArray() = 0;
+        virtual bool isArray() const = 0;
     };
 
     /**
@@ -67,13 +70,15 @@ namespace Rendering
          *
          * The value will not be changed from within the Uniform class.
          *
+         * For array uniforms, the name should be the name of the uniform without the array index.
+         *
          * @param name The name of the uniform
          * @param value The value of the uniform
          * @param isArray Whether the uniform is an array
          * @param count The number of items in the array, 1 if not an array
          * @param type The OpenGL type of the uniform, will try to infer the type if not provided (not accurate)
          */
-        Uniform(std::string name, T &value, bool isArray = false, size_t count = 1, GLenum type = GLType::type<T>) : name(name), value(value), isUniformArray(isArray), count(count), type(type)
+        Uniform(std::string name, const T &value, bool isArray = false, size_t count = 1, GLenum type = GLType::type<T>) : name(isArray ? name + "[0]" : name), value(value), isUniformArray(isArray), count(count), type(type)
         {
             if (count > 1 && !isArray)
             {
@@ -96,7 +101,7 @@ namespace Rendering
          *
          * @returns The value of the uniform.
          */
-        T &get()
+        const T &get()
         {
             return value;
         }
@@ -108,7 +113,7 @@ namespace Rendering
          */
         void *getValuePointer()
         {
-            return &value;
+            return const_cast<T *>(&value);
         }
 
         /**
@@ -143,8 +148,8 @@ namespace Rendering
 
     private:
         const std::string name;
-        T &value;
-        bool isUniformArray;
+        const T &value;
+        const bool isUniformArray;
         size_t count;
         GLenum type;
     };

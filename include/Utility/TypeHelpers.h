@@ -1,9 +1,15 @@
+#pragma once
+
+#include <typeinfo>
+
 namespace blz
 {
     using TypeId = unsigned long long;
 
     /**
      * Generates a unique id for a type.
+     *
+     * This function is memoized so it will only generate the id once per type.
      *
      * @param typeName The name of the type (use `typeid(T).name()`)
      *

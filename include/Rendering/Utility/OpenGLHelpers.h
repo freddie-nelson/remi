@@ -6,6 +6,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <string>
+
 namespace Rendering
 {
     /**
@@ -88,4 +90,15 @@ namespace Rendering
      * @throws std::runtime_error If the uniform type is not supported.
      */
     void glUniform(int location, UniformBase *uniform);
+
+    /**
+     * Gets the string representation of the given OpenGL type.
+     *
+     * i.e. GL_FLOAT would return "GL_FLOAT".
+     *
+     * @param type The OpenGL type.
+     *
+     * @returns The string representation of the given OpenGL type.
+     */
+    std::string glTypeToString(GLenum type);
 }

@@ -167,7 +167,7 @@ void blz::Engine::mainLoop(MainLoopArgs *args)
             emscripten_cancel_main_loop();
             return;
 #else
-            return;
+            exit(0);
 #endif
         }
 

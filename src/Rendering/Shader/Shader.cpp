@@ -140,7 +140,7 @@ void Rendering::Shader::draw(GLenum drawMode, size_t drawCount, size_t offset)
     glBindVertexArray(0);
 }
 
-void Rendering::Shader::draw(size_t instanceCount, GLenum drawMode, size_t drawCount, size_t offset)
+void Rendering::Shader::drawInstanced(size_t instanceCount, GLenum drawMode, size_t drawCount, size_t offset)
 {
     glIsValidDrawMode(drawMode, false);
 
@@ -176,6 +176,11 @@ void Rendering::Shader::uniform(UniformBase *uniform)
         throw std::invalid_argument("Uniform " + uniform->getName() + " not found.");
     }
 
+    if (uniform->getGLType() != uniformInfo[uniform->getName()].type)
+    {
+        throw std::invalid_argument("Uniform " + uniform->getName() + " has incorrect type. Expected " + glTypeToString(uniformInfo[uniform->getName()].type) + ", got " + glTypeToString(uniform->getGLType()) + ".");
+    }
+
     uniforms[uniform->getName()] = uniform;
 }
 
@@ -205,6 +210,11 @@ void Rendering::Shader::attrib(VertexAttribBase *attrib)
     if (!hasAttrib(attrib->getName()))
     {
         throw std::invalid_argument("Vertex attribute " + attrib->getName() + " not found.");
+    }
+
+    if (attrib->getGLType() != attribInfo[attrib->getName()].type)
+    {
+        throw std::invalid_argument("Vertex attribute " + attrib->getName() + " has incorrect type. Expected " + glTypeToString(attribInfo[attrib->getName()].type) + ", got " + glTypeToString(attrib->getGLType()) + ".");
     }
 
     attribsNeedUpdate = true;
@@ -360,6 +370,10 @@ void Rendering::Shader::bindUniforms()
 
     for (auto u : uniforms)
     {
+        // std::cout << "binding uniform: " << u.first << std::endl;
+        // std::cout << "location: " << uniformInfo[u.first].location << std::endl;
+        // std::cout << "type: " << glTypeToString(u.second->getGLType()) << std::endl;
+
         auto info = uniformInfo[u.first];
         glUniform(info.location, u.second);
     }
@@ -390,6 +404,12 @@ void Rendering::Shader::bindVertexAttribs()
     // bind vertex attributes
     for (auto &[name, a] : vertexAttribs)
     {
+        std::cout << "binding vertex attrib: " << name << std::endl;
+        std::cout << "location: " << attribInfo[name].location << std::endl;
+        std::cout << "type: " << glTypeToString(a->getGLType()) << std::endl;
+        std::cout << "size: " << a->size() << std::endl;
+        std::cout << "tSize: " << a->getTSize() << std::endl;
+
         auto &info = attribInfo[name];
         unsigned int vbo = info.vbo;
 
@@ -410,7 +430,7 @@ void Rendering::Shader::bindVertexAttribs()
             // we need to set up the attribs for each column of the matrix
             for (int i = 0; i < a->getMatrixSize(); i++)
             {
-                glVertexAttribPointer(info.location + i, a->getMatrixSize(), a->getGLType(), a->getNormalize(), a->getMatrixSize() * a->getMatrixSize() * a->getTSize(), (void *)(i * a->getTSize() * a->getMatrixSize()));
+                glVertexAttribPointer(info.location + i, a->getMatrixSize(), a->getGLType(), a->getNormalize() ? GL_TRUE : GL_FALSE, a->getMatrixSize() * a->getMatrixSize() * a->getTSize(), (void *)(i * a->getTSize() * a->getMatrixSize()));
                 glVertexAttribDivisor(info.location + i, a->getDivisor());
                 glEnableVertexAttribArray(info.location + i);
             }
@@ -424,7 +444,7 @@ void Rendering::Shader::bindVertexAttribs()
             }
             else
             {
-                glVertexAttribPointer(info.location, a->getNumComponents(), a->getGLType(), a->getNormalize(), a->getTSize(), (void *)a->getOffset());
+                glVertexAttribPointer(info.location, a->getNumComponents(), a->getGLType(), a->getNormalize() ? GL_TRUE : GL_FALSE, a->getTSize(), (void *)a->getOffset());
             }
 
             glVertexAttribDivisor(info.location, a->getDivisor());
@@ -487,6 +507,8 @@ std::unordered_map<std::string, Rendering::Shader::UniformInfo> Rendering::Shade
 
         glGetActiveUniform(program, i, maxLength, NULL, &size, &type, name);
 
+        std::cout << "uniform: " << name << std::endl;
+
         result.emplace(std::string(name), UniformInfo{name, i, type, size});
     }
 
@@ -516,6 +538,8 @@ std::unordered_map<std::string, Rendering::Shader::VertexAttribInfo> Rendering::
         GLenum type;
 
         glGetActiveAttrib(program, i, maxLength, &length, &size, &type, name);
+
+        std::cout << "attrib: " << name << std::endl;
 
         result.emplace(std::string(name), VertexAttribInfo{name, i, type, size});
     }

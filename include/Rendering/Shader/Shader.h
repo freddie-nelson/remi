@@ -78,7 +78,7 @@ namespace Rendering
          * @param drawCount The number of vertices to draw.
          * @param offset The offset in the arrays or indices to start drawing from.
          */
-        void draw(size_t instanceCount, GLenum drawMode, size_t drawCount, size_t offset = 0);
+        void drawInstanced(size_t instanceCount, GLenum drawMode, size_t drawCount, size_t offset = 0);
 
         /**
          * Sets or updates the uniform value.

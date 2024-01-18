@@ -58,11 +58,27 @@ namespace Rendering
         virtual int getMatrixSize() const = 0;
 
         /**
+         * Sets whether to normalize the attrib.
+         *
+         * @param normalize Whether to normalize the attrib
+         */
+        virtual void setNormalize(bool normalize) = 0;
+
+        /**
          * Gets whether to normalize the attrib.
          *
          * @returns Whether to normalize the attrib.
          */
         virtual bool getNormalize() const = 0;
+
+        /**
+         * Sets the divisor of the attrib.
+         *
+         * This is used for instanced rendering, it is the number of instances between switching the attribute.
+         *
+         * @param divisor The divisor of the attrib
+         */
+        virtual void setDivisor(unsigned int divisor) = 0;
 
         /**
          * Gets the divisor of the attrib.
@@ -115,8 +131,6 @@ namespace Rendering
          *
          * This is annoying but avoids copying the vector every frame.
          *
-         * You can use get to get the vector and then change it.
-         *
          * The value will not be changed from within the VertexAttrib class.
          *
          * @param name The name of the vertex attribute
@@ -125,7 +139,7 @@ namespace Rendering
          * @param numComponents The number of components in each value of the vertex attribute
          * @param matrixSize The size of the matrix if the vertex attribute is a matrix
          */
-        VertexAttrib(std::string name, std::vector<T> &value, GLenum type = GLType::type<T>, unsigned int numComponents = glGetNumComponents(GLType::type<T>), int matrixSize = glGetMatrixSize(GLType::type<T>)) : name(name), value(value), type(type), numComponents(numComponents), matrixSize(matrixSize)
+        VertexAttrib(std::string name, const std::vector<T> &value, GLenum type = GLType::type<T>, unsigned int numComponents = glGetNumComponents(GLType::type<T>), int matrixSize = glGetMatrixSize(GLType::type<T>)) : name(name), value(value), type(type), numComponents(numComponents), matrixSize(matrixSize)
         {
             tSize = sizeof(T);
         }
@@ -145,7 +159,7 @@ namespace Rendering
          *
          * @returns The value of the vertex attribute.
          */
-        std::vector<T> &get()
+        const std::vector<T> &get()
         {
             return value;
         }
@@ -272,7 +286,7 @@ namespace Rendering
 
     private:
         const std::string name;
-        std::vector<T> &value;
+        const std::vector<T> &value;
         GLenum type;
 
         /**
