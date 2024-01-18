@@ -1,15 +1,17 @@
-#pragma once
-
-#include "../Utility/TypeHelpers.h"
-
-namespace ECS
+namespace blz
 {
-    using ComponentId = unsigned long long;
+    using TypeId = unsigned long long;
 
     /**
-     * Generates unique ids for components.
+     * Generates a unique id for a type.
+     *
+     * @param typeName The name of the type (use `typeid(T).name()`)
+     *
+     * @returns The type's id
      */
-    class ComponentIdGenerator
+    TypeId generateTypeId(const char *typeName);
+
+    class TypeIdGenerator
     {
     public:
         /**
@@ -20,6 +22,6 @@ namespace ECS
          *       therefore have different ids for the same component.
          */
         template <typename T>
-        inline static const ComponentId id = generateTypeId(typeid(T).name());
+        inline static const TypeId id = generateTypeId(typeid(T).name());
     };
 }

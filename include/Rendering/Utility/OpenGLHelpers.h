@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../gl.h"
+#include "../Shader/Uniform.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -34,9 +35,57 @@ namespace Rendering
     bool glIsValidAlphaBlendingFunction(GLenum function);
 
     /**
+     * Checks if the given mode is a valid OpenGL draw mode.
+     *
+     * @param mode The OpenGL draw mode to check.
+     * @param safe If false, then the function will throw an exception if the mode is not valid.
+     *
+     * @returns True if the mode is a valid OpenGL draw mode, false otherwise.
+     *
+     * @throws std::runtime_error If the mode is not valid and safe is false.
+     */
+    bool glIsValidDrawMode(GLenum mode, bool safe = true);
+
+    /**
      * Gets the maximum number of texture units supported by the GPU.
      *
      * @returns The maximum number of texture units supported by the GPU.
      */
     unsigned int glGetMaxTextureUnits();
+
+    /**
+     * Gets the number of components in the given OpenGL type.
+     *
+     * i.e. GL_FLOAT_VEC3 would return 3, GL_INT would return 1.
+     *
+     * @param type The OpenGL type.
+     *
+     * @returns The number of components in the given OpenGL type.
+     *
+     * @throws std::runtime_error If the number of components could not be determined.
+     */
+    unsigned int glGetNumComponents(GLenum type);
+
+    /**
+     * Gets the size of the given OpenGL type.
+     *
+     * If the type is not a matrix, then this will return -1.
+     *
+     * @param type The OpenGL type.
+     *
+     * @returns The matrix size of the given OpenGL type.
+     */
+    int glGetMatrixSize(GLenum type);
+
+    /**
+     * Calls the correct glUniform function for the given uniform.
+     *
+     * The shader program to bind the uniform to must be in use before calling this function.
+     *
+     * @param location The location of the uniform.
+     * @param uniform The uniform to set.
+     *
+     * @throws std::runtime_error If the uniform type is not supported.
+     */
+    void glUniform(int location, UniformBase *uniform);
 }

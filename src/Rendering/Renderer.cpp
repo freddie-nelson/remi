@@ -283,7 +283,7 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
     instancedMeshShader.setUniform("uTextureAtlasSize", &atlasSize);
 
     auto &textures = textureManager.getTexturesUniform();
-    batchedMeshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
+    instancedMeshShader.setUniformArray("uTextures", const_cast<int *>(&textures[0]), textures.size());
 
     // instanced arrays
     float *atlasPosArr = (float *)glm::value_ptr(textureAtlasPos[0]);

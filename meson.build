@@ -65,7 +65,7 @@ core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/T
 core_src += ['src/Core/AABB/AABB.cpp']
 
 # ecs
-ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp', 'src/ECS/Component.cpp']
+ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp']
 
 # input
 input_src = ['src/Input/Mouse.cpp', 'src/Input/Keyboard.cpp']
@@ -77,11 +77,15 @@ rendering_src += ['src/Rendering/Material/Color.cpp', 'src/Rendering/Material/Ma
 rendering_src += ['src/Rendering/Mesh/Mesh.cpp', 'src/Rendering/Mesh/Polygons.cpp', 'src/Rendering/Mesh/Triangulate.cpp']
 rendering_src += ['src/Rendering/Shader/Shader.cpp']
 rendering_src += ['src/Rendering/Texture/Texture.cpp', 'src/Rendering/Texture/TextureAtlas.cpp', 'src/Rendering/Texture/TextureManager.cpp']
-rendering_src += ['src/Rendering/Utility/FileHandling.cpp', 'src/Rendering/Utility/OpenGLHelpers.cpp']
+rendering_src += ['src/Rendering/Utility/OpenGLHelpers.cpp']
 
+# utility
+utility_src = ['src/Utility/FileHandling.cpp', 'src/Utility/glfwSetCallbacks.cpp', 'src/Utility/TypeHelpers.cpp']
+
+# engine
 engine_src = ['src/Engine.cpp', 'src/emscriptenHelpers.cpp']
 
-all_src = core_src + ecs_src + input_src + rendering_src + engine_src
+all_src = core_src + ecs_src + input_src + rendering_src + utility_src + engine_src
 
 engine_kwargs = {
     'dependencies' : dependencies,

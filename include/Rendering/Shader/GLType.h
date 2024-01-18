@@ -1,6 +1,10 @@
 #pragma once
 
 #include "../gl.h"
+#include "../Utility/TypeHelpers.h"
+
+#include <glm/glm.hpp>
+#include <type_traits>
 
 namespace Rendering
 {
@@ -21,54 +25,78 @@ namespace Rendering
         template <typename T>
         static GLenum getGLType()
         {
-            auto type = typeid(T).hash_code();
+            auto type = blz::TypeIdGenerator::id<T>;
 
             switch (type)
             {
-            case typeid(int).hash_code():
-            case typeid(int *).hash_code():
+            case blz::TypeIdGenerator::id<int>:
                 return GL_INT;
-                break;
 
-            case typeid(unsigned int).hash_code():
-            case typeid(unsigned int *).hash_code():
+            case blz::TypeIdGenerator::id<unsigned int>:
                 return GL_UNSIGNED_INT;
-                break;
 
-            case typeid(float).hash_code():
-            case typeid(float *).hash_code():
+            case blz::TypeIdGenerator::id<float>:
                 return GL_FLOAT;
-                break;
 
-            case typeid(double).hash_code():
-            case typeid(double *).hash_code():
+            case blz::TypeIdGenerator::id<double>:
                 return GL_DOUBLE;
-                break;
 
-            case typeid(char).hash_code():
-            case typeid(char *).hash_code():
+            case blz::TypeIdGenerator::id<char>:
                 return GL_BYTE;
-                break;
 
-            case typeid(unsigned char).hash_code():
-            case typeid(unsigned char *).hash_code():
+            case blz::TypeIdGenerator::id<unsigned char>:
                 return GL_UNSIGNED_BYTE;
-                break;
 
-            case typeid(short).hash_code():
-            case typeid(short *).hash_code():
+            case blz::TypeIdGenerator::id<short>:
                 return GL_SHORT;
-                break;
 
-            case typeid(unsigned short).hash_code():
-            case typeid(unsigned short *).hash_code():
+            case blz::TypeIdGenerator::id<unsigned short>:
                 return GL_UNSIGNED_SHORT;
-                break;
+
+            case blz::TypeIdGenerator::id<bool>:
+                return GL_BOOL;
+
+            case blz::TypeIdGenerator::id<glm::vec2>:
+                return GL_FLOAT_VEC2;
+
+            case blz::TypeIdGenerator::id<glm::vec3>:
+                return GL_FLOAT_VEC3;
+
+            case blz::TypeIdGenerator::id<glm::vec4>:
+                return GL_FLOAT_VEC4;
+
+            case blz::TypeIdGenerator::id<glm::ivec2>:
+                return GL_INT_VEC2;
+
+            case blz::TypeIdGenerator::id<glm::ivec3>:
+                return GL_INT_VEC3;
+
+            case blz::TypeIdGenerator::id<glm::ivec4>:
+                return GL_INT_VEC4;
+
+            case blz::TypeIdGenerator::id<glm::uvec2>:
+                return GL_UNSIGNED_INT_VEC2;
+
+            case blz::TypeIdGenerator::id<glm::uvec3>:
+                return GL_UNSIGNED_INT_VEC3;
+
+            case blz::TypeIdGenerator::id<glm::uvec4>:
+                return GL_UNSIGNED_INT_VEC4;
+
+            case blz::TypeIdGenerator::id<glm::mat2>:
+                return GL_FLOAT_MAT2;
+
+            case blz::TypeIdGenerator::id<glm::mat3>:
+                return GL_FLOAT_MAT3;
+
+            case blz::TypeIdGenerator::id<glm::mat4>:
+                return GL_FLOAT_MAT4;
 
             default:
-                throw std::runtime_error("Could not determine OpenGL type of type.");
                 break;
             }
+
+            throw std::runtime_error("Could not determine OpenGL type of type.");
         }
 
         /**
