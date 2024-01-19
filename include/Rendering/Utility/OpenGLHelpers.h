@@ -101,4 +101,15 @@ namespace Rendering
      * @returns The string representation of the given OpenGL type.
      */
     std::string glTypeToString(GLenum type);
+
+    /**
+     * Gets the OpenGL component type of the given gl type.
+     *
+     * i.e. GL_FLOAT_VEC3 would return GL_FLOAT.
+     *
+     * @param type The gl type.
+     *
+     * @returns The OpenGL component type of the given gl type.
+     */
+    GLenum glGetComponentType(GLenum type);
 }

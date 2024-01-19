@@ -446,3 +446,31 @@ std::string Rendering::glTypeToString(GLenum type)
 
     throw std::runtime_error("Could not determine string representation of OpenGL type.");
 }
+
+GLenum Rendering::glGetComponentType(GLenum type)
+{
+    switch (type)
+    {
+    case GL_FLOAT_VEC2:
+    case GL_FLOAT_VEC3:
+    case GL_FLOAT_VEC4:
+    case GL_FLOAT_MAT2:
+    case GL_FLOAT_MAT3:
+    case GL_FLOAT_MAT4:
+        return GL_FLOAT;
+    case GL_INT_VEC2:
+    case GL_INT_VEC3:
+    case GL_INT_VEC4:
+        return GL_INT;
+    case GL_UNSIGNED_INT_VEC2:
+    case GL_UNSIGNED_INT_VEC3:
+    case GL_UNSIGNED_INT_VEC4:
+        return GL_UNSIGNED_INT;
+    case GL_BOOL_VEC2:
+    case GL_BOOL_VEC3:
+    case GL_BOOL_VEC4:
+        return GL_BOOL;
+    default:
+        return type;
+    }
+}

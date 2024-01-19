@@ -40,6 +40,15 @@ namespace Rendering
         virtual GLenum getGLType() const = 0;
 
         /**
+         * Gets the OpenGL component type of the attrib.
+         *
+         * i.e. GL_FLOAT_VEC3 would return GL_FLOAT.
+         *
+         * @returns The OpenGL component type of the attrib.
+         */
+        virtual GLenum getComponentType() const = 0;
+
+        /**
          * Gets the number of components in each value of the attrib.
          *
          * @returns The number of components in each value of the attrib.
@@ -97,8 +106,6 @@ namespace Rendering
         /**
          * Gets the size of the attrib array.
          *
-         * 1 if the attrib is not an array.
-         *
          * @returns The size of the attrib array.
          */
         virtual size_t size() const = 0;
@@ -142,6 +149,7 @@ namespace Rendering
         VertexAttrib(std::string name, const std::vector<T> &value, GLenum type = GLType::type<T>, unsigned int numComponents = glGetNumComponents(GLType::type<T>), int matrixSize = glGetMatrixSize(GLType::type<T>)) : name(name), value(value), type(type), numComponents(numComponents), matrixSize(matrixSize)
         {
             tSize = sizeof(T);
+            componentType = glGetComponentType(type);
         }
 
         /**
@@ -171,7 +179,7 @@ namespace Rendering
          */
         void *getValuePointer()
         {
-            return (void *)value.data();
+            return (void *)&value[0];
         }
 
         /**
@@ -182,6 +190,18 @@ namespace Rendering
         GLenum getGLType() const
         {
             return type;
+        }
+
+        /**
+         * Gets the OpenGL component type of the vertex attribute.
+         *
+         * i.e. GL_FLOAT_VEC3 would return GL_FLOAT.
+         *
+         * @returns The OpenGL component type of the vertex attribute.
+         */
+        GLenum getComponentType() const
+        {
+            return componentType;
         }
 
         /**
@@ -288,6 +308,7 @@ namespace Rendering
         const std::string name;
         const std::vector<T> &value;
         GLenum type;
+        GLenum componentType;
 
         /**
          * The size of the template type.
@@ -301,7 +322,7 @@ namespace Rendering
 
         int matrixSize;
 
-        bool normalize;
+        bool normalize = false;
 
         unsigned int divisor = 0;
     };

@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <boost/algorithm/string/replace.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 Rendering::Shader::Shader()
 {
@@ -404,14 +405,31 @@ void Rendering::Shader::bindVertexAttribs()
     // bind vertex attributes
     for (auto &[name, a] : vertexAttribs)
     {
-        std::cout << "binding vertex attrib: " << name << std::endl;
-        std::cout << "location: " << attribInfo[name].location << std::endl;
-        std::cout << "type: " << glTypeToString(a->getGLType()) << std::endl;
-        std::cout << "size: " << a->size() << std::endl;
-        std::cout << "tSize: " << a->getTSize() << std::endl;
+        // std::cout << "binding vertex attrib: " << name << std::endl;
+        // std::cout << "location: " << attribInfo[name].location << std::endl;
+        // std::cout << "type: " << glTypeToString(a->getGLType()) << std::endl;
+        // std::cout << "componentType: " << glTypeToString(a->getComponentType()) << std::endl;
+        // std::cout << "size: " << a->size() << std::endl;
+        // std::cout << "tSize: " << a->getTSize() << std::endl;
+        // std::cout << "offset: " << a->getOffset() << std::endl;
+        // std::cout << "divisor: " << a->getDivisor() << std::endl;
+        // std::cout << "matrixSize: " << a->getMatrixSize() << std::endl;
+        // std::cout << "normalize: " << (a->getNormalize() ? GL_TRUE : GL_FALSE) << std::endl;
+        // std::cout << "numComponents: " << a->getNumComponents() << std::endl;
 
         auto &info = attribInfo[name];
         unsigned int vbo = info.vbo;
+
+        // if (name == "aPos")
+        // {
+        //     auto attrib = reinterpret_cast<VertexAttrib<glm::vec4> *>(a);
+
+        //     for (int i = 0; i < a->size(); i++)
+        //     {
+        //         auto v = attrib->get()[i];
+        //         std::cout << "aPos[" << i << "]: " << v.x << ", " << v.y << ", " << v.z << ", " << v.w << std::endl;
+        //
+        // }
 
         if (vbo == 0)
         {
@@ -430,7 +448,7 @@ void Rendering::Shader::bindVertexAttribs()
             // we need to set up the attribs for each column of the matrix
             for (int i = 0; i < a->getMatrixSize(); i++)
             {
-                glVertexAttribPointer(info.location + i, a->getMatrixSize(), a->getGLType(), a->getNormalize() ? GL_TRUE : GL_FALSE, a->getMatrixSize() * a->getMatrixSize() * a->getTSize(), (void *)(i * a->getTSize() * a->getMatrixSize()));
+                glVertexAttribPointer(info.location + i, a->getMatrixSize(), a->getComponentType(), a->getNormalize() ? GL_TRUE : GL_FALSE, a->getMatrixSize() * a->getMatrixSize() * a->getTSize(), (void *)(i * a->getTSize() * a->getMatrixSize()));
                 glVertexAttribDivisor(info.location + i, a->getDivisor());
                 glEnableVertexAttribArray(info.location + i);
             }
@@ -440,11 +458,11 @@ void Rendering::Shader::bindVertexAttribs()
             // not a matrix
             if (glIsTypeInt(a->getGLType()))
             {
-                glVertexAttribIPointer(info.location, a->getNumComponents(), a->getGLType(), a->getTSize(), (void *)a->getOffset());
+                glVertexAttribIPointer(info.location, a->getNumComponents(), a->getComponentType(), a->getTSize(), (void *)a->getOffset());
             }
             else
             {
-                glVertexAttribPointer(info.location, a->getNumComponents(), a->getGLType(), a->getNormalize() ? GL_TRUE : GL_FALSE, a->getTSize(), (void *)a->getOffset());
+                glVertexAttribPointer(info.location, a->getNumComponents(), a->getComponentType(), a->getNormalize() ? GL_TRUE : GL_FALSE, a->getTSize(), (void *)a->getOffset());
             }
 
             glVertexAttribDivisor(info.location, a->getDivisor());
@@ -501,15 +519,19 @@ std::unordered_map<std::string, Rendering::Shader::UniformInfo> Rendering::Shade
 
     for (int i = 0; i < uniformCount; i++)
     {
-        char name[maxLength];
+        char *name = new char[maxLength];
         GLenum type;
         int size;
 
         glGetActiveUniform(program, i, maxLength, NULL, &size, &type, name);
 
-        std::cout << "uniform: " << name << std::endl;
-
         result.emplace(std::string(name), UniformInfo{name, i, type, size});
+    }
+
+    // fix locations
+    for (auto &u : result)
+    {
+        u.second.location = glGetUniformLocation(program, u.second.name.c_str());
     }
 
     return result;
@@ -532,16 +554,20 @@ std::unordered_map<std::string, Rendering::Shader::VertexAttribInfo> Rendering::
 
     for (int i = 0; i < attribCount; i++)
     {
-        char name[maxLength];
+        char *name = new char[maxLength];
         int length;
         int size;
         GLenum type;
 
         glGetActiveAttrib(program, i, maxLength, &length, &size, &type, name);
 
-        std::cout << "attrib: " << name << std::endl;
-
         result.emplace(std::string(name), VertexAttribInfo{name, i, type, size});
+    }
+
+    // fix locations
+    for (auto &a : result)
+    {
+        a.second.location = glGetAttribLocation(program, a.second.name.c_str());
     }
 
     return result;
