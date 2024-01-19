@@ -448,7 +448,7 @@ void Rendering::Shader::bindVertexAttribs()
             // we need to set up the attribs for each column of the matrix
             for (int i = 0; i < a->getMatrixSize(); i++)
             {
-                glVertexAttribPointer(info.location + i, a->getMatrixSize(), a->getComponentType(), a->getNormalize() ? GL_TRUE : GL_FALSE, a->getMatrixSize() * a->getMatrixSize() * a->getTSize(), (void *)(i * a->getTSize() * a->getMatrixSize()));
+                glVertexAttribPointer(info.location + i, a->getMatrixSize(), a->getComponentType(), a->getNormalize() ? GL_TRUE : GL_FALSE, a->getTSize(), (void *)(i * sizeof(float) * a->getMatrixSize()));
                 glVertexAttribDivisor(info.location + i, a->getDivisor());
                 glEnableVertexAttribArray(info.location + i);
             }

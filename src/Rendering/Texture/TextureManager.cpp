@@ -176,6 +176,7 @@ void Rendering::TextureManager::loadAtlas(unsigned int textureUnit)
 
     // std::cout << "bound texture " << textureId << std::endl;
 
+    // causing crash on my gtx 1060 3gb
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas.getWidth(), atlas.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, atlas.getPixels());
     // std::cout << "sent texture to GPU " << textureId << std::endl;
 
