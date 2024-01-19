@@ -3,6 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
+#include <iostream>
 #include <stdexcept>
 
 Rendering::TextureId Rendering::Texture::nextId = 0;
@@ -163,6 +164,9 @@ void Rendering::Texture::fromColor(Color color, unsigned int width, unsigned int
         pixels[i * 4 + 2] = c.b * 255;
         pixels[i * 4 + 3] = c.a * 255;
     }
+
+    // std::cout << "Color: " << c.r << ", " << c.g << ", " << c.b << ", " << c.a << std::endl;
+    // std::cout << "width: " << width << ", height: " << height << std::endl;
 
     this->width = width;
     this->height = height;

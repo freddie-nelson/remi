@@ -2,7 +2,7 @@
 
 Rendering::MaterialId Rendering::Material::nextId = 0;
 
-Rendering::Texture *Rendering::Material::defaultTexture = new Rendering::Texture(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), 32, 32);
+Rendering::Texture *Rendering::Material::defaultTexture = new Rendering::Texture(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), 32u, 32u);
 
 Rendering::Material::Material(const Rendering::Material &m)
 {

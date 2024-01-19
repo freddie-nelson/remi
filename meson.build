@@ -53,7 +53,8 @@ if cross_target == 'native'
 endif
 
 if cross_target == 'wasm'
-    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sEXPORT_ALL=1', '-sALLOW_MEMORY_GROWTH=1', '-sTOTAL_MEMORY=1024MB', '-sASSERTIONS=1', '-sSAFE_HEAP=1', '-sINVOKE_RUN=0']
+    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sEXPORT_ALL=1', '-sALLOW_MEMORY_GROWTH=1', '-sTOTAL_MEMORY=1024MB', '-sINVOKE_RUN=0']
+    link_args += ['-sASSERTIONS=1', '-sSAFE_HEAP=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
 endif
 
 #

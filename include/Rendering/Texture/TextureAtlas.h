@@ -40,7 +40,7 @@ namespace Rendering
          *
          * Can be made smaller to improve precision of uv coordinates for smaller textures.
          */
-        static constexpr unsigned int MAX_ATLAS_SIZE = 8192;
+        static constexpr unsigned int MAX_ATLAS_SIZE = 4096;
 
         /**
          * Gets the size of an atlas.

@@ -68,7 +68,7 @@ void Application::init()
     registry->add(camera, Rendering::ActiveCamera());
 
     // create texture
-    Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
+    // Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
 
     // create entities
     int entityCount = 100;
@@ -96,7 +96,7 @@ void Application::init()
         material.setColor(Rendering::Color(r, g, b, (t.getZIndex() + 1) / static_cast<float>(zRange)));
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
 
-        material.setTexture(texture);
+        // material.setTexture(texture);
     }
 }
 

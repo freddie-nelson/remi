@@ -25,6 +25,9 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
         throw std::invalid_argument("TextureManager (bind): texture must not be null.");
     }
 
+    // std::cout << "width: " << texture->getWidth() << ", height: " << texture->getHeight() << std::endl;
+    // std::cout << "channels: " << texture->getChannels() << std::endl;
+
     auto atlasIndex = getContainingAtlas(texture);
     if (atlasIndex == -1)
     {
@@ -86,6 +89,9 @@ unsigned int Rendering::TextureManager::addTextureToAtlas(const Texture *texture
 
     // insert into last created atlas as other atlases may not have enough space
     auto atlasIndex = atlases.size() - 1;
+
+    // std::cout << "width: " << texture->getWidth() << ", height: " << texture->getHeight() << std::endl;
+    // std::cout << "channels: " << texture->getChannels() << std::endl;
 
     try
     {

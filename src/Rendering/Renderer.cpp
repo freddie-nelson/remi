@@ -763,6 +763,10 @@ std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture
 
         if (!boundTextures.contains(texture->getId()))
         {
+            // std::cout << "binding texture: " << texture->getId() << std::endl;
+            // std::cout << "width: " << texture->getWidth() << ", height: " << texture->getHeight() << std::endl;
+            // std::cout << "channels: " << texture->getChannels() << std::endl;
+
             boundTextures.emplace(texture->getId(), textureManager.bind(texture));
         }
     }

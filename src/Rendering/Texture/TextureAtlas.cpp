@@ -64,10 +64,20 @@ glm::vec2 Rendering::TextureAtlas::add(const Texture *texture)
     auto texId = texture->getId();
     textures[texId] = texture;
 
+    // std::cout << "width: " << texture->getWidth() << ", height: " << texture->getHeight() << std::endl;
+    // std::cout << "channels: " << texture->getChannels() << std::endl;
+
+    // std::cout << "textures" << std::endl;
+    // std::cout << "width: " << textures[texId]->getWidth() << ", height: " << textures[texId]->getHeight() << std::endl;
+    // std::cout << "channels: " << textures[texId]->getChannels() << std::endl;
+
     // std::cout << "Adding texture to atlas: " << texId << std::endl;
 
     try
     {
+        // std::cout << "width: " << textures[texId]->getWidth() << ", height: " << textures[texId]->getHeight() << std::endl;
+        // std::cout << "channels: " << textures[texId]->getChannels() << std::endl;
+
         pack();
     }
     catch (std::runtime_error &e)
@@ -156,9 +166,9 @@ void Rendering::TextureAtlas::pack()
 
     // sort the textures by height
     std::vector<TextureId> sortedTextures;
-    for (auto [texId, texture] : textures)
+    for (auto &t : textures)
     {
-        sortedTextures.push_back(texId);
+        sortedTextures.push_back(t.first);
     }
 
     std::sort(sortedTextures.begin(), sortedTextures.end(), [&](TextureId a, TextureId b)
@@ -166,10 +176,12 @@ void Rendering::TextureAtlas::pack()
 
     // std::cout << "sorted textures" << std::endl;
 
+    // ! weird bug here on wasm desktop where textures get corrupted? junk values end up being for width, height and channels
+
     // pack the textures
     for (auto texId : sortedTextures)
     {
-        auto texture = textures[texId];
+        auto &texture = textures[texId];
 
         auto texWidth = texture->getWidth();
         auto texHeight = texture->getHeight();
@@ -180,7 +192,10 @@ void Rendering::TextureAtlas::pack()
         // this should never happen
         if (texChannels != 4)
         {
-            throw std::invalid_argument("TextureAtlas (pack): texture must have 4 channels, something has went severly wrong.");
+            std::cout << "width: " << texWidth << std::endl;
+            std::cout << "height: " << texHeight << std::endl;
+
+            throw std::invalid_argument("TextureAtlas (pack): texture must have 4 channels, something has went severly wrong. Channels recieved: " + std::to_string(texChannels) + ".");
         }
 
         // texture can't fit in row, x
@@ -214,7 +229,7 @@ void Rendering::TextureAtlas::pack()
 
             memcpy(pixelsRow, texPixelsRow, texWidth * 4);
 
-            //     for (unsigned int x = 0; x < texWidth; x++)
+            // for (unsigned int x = 0; x < texWidth; x++)
             // {
             //     unsigned int texIndex = (y * texWidth + x) * 4;
 
