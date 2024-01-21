@@ -4,6 +4,29 @@
 
 namespace Rendering
 {
+    /**
+     * The vertex shader for an instanced
+     *
+     * This shader needs access to the following uniforms:
+     * - uViewProjectionMatrix: The view projection matrix to use.
+     * - uTextureAtlasSize: The size of the texture atlas.
+     *
+     * This shader needs access to the following inputs:
+     * - aTransform: The transform of the mesh.
+     * - aPos: The position of the vertex.
+     * - aTextureAtlasPos: The position of the texture within the texture atlas.
+     * - aTextureUnit: The texture unit to use. This is the texture atlas.
+     * - aTextureSize: The size of the texture within the atlas.
+     * - aTexCoord: The UV coordinate of the vertex.
+     * - aColor: The color of the vertex.
+     *
+     * This shader must have the following outputs:
+     * - gl_Position: The position of the vertex.
+     * - vTextureUnit: The texture unit to use. This is the texture atlas.
+     * - vTexCoord: The texture coordinate to use. This is the texture coordinate within the atlas.
+     * - vColor: The color to use.
+     * - vUv: The UV coordinate. This is the UV coordinate of the vertex.
+     */
     const std::string instancedMeshVertexShader =
         "#version 300 es\n"
         "\n"
@@ -25,6 +48,7 @@ namespace Rendering
         "flat out uint vTextureUnit;\n"
         "out vec2 vTexCoord;\n"
         "out vec4 vColor;\n"
+        "out vec2 vUv;\n"
         "\n"
         "void main()\n"
         "{\n"
@@ -36,6 +60,7 @@ namespace Rendering
         "\n"
         "  vTextureUnit = aTextureUnit;\n"
         "  vColor = aColor;\n"
+        "  vUv = aTexCoord;\n"
         "}\n";
 
     // uses the same fragment shader as MeshShader

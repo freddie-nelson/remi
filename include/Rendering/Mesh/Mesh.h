@@ -61,6 +61,21 @@ namespace Rendering
         /**
          * Creates a mesh instance.
          *
+         * The mesh created will have the given vertices and indices.
+         *
+         * The vertices must be in counter-clockwise order and represent a simple polygon.
+         *
+         * The polygon will be centred at (0, 0) if preserveCentre is false.
+         *
+         * @param vertices The vertices of the polygon.
+         * @param indices The indices of the polygon.
+         * @param preserveCentre Whether to preserve the vertices original centre or not
+         */
+        Mesh2D(std::vector<glm::vec2> vertices, std::vector<unsigned int> indices, bool preserveCentre = false);
+
+        /**
+         * Creates a mesh instance.
+         *
          * The mesh created will be a regular polygon with the given number of sides and radius.
          *
          * A high number of sides can be used to approximate a circle.
@@ -91,7 +106,7 @@ namespace Rendering
          *
          * @param vertices The vertices of the polygon.
          */
-        void createPolygon(std::vector<glm::vec2> vertices);
+        void createPolygon(const std::vector<glm::vec2> &vertices);
 
         /**
          * Creates the vertices and indices of the mesh to form a regular polygon.
@@ -180,6 +195,13 @@ namespace Rendering
          */
         const glm::vec2 &getCentre() const;
 
+        /**
+         * Sets the centre of the mesh.
+         *
+         * @param centre The centre of the mesh.
+         */
+        void setCentre(const glm::vec2 &centre);
+
     private:
         std::vector<glm::vec2> vertices;
         std::vector<unsigned int> indices;
@@ -188,6 +210,5 @@ namespace Rendering
         std::vector<glm::vec2> uvs;
 
         Core::AABB aabb;
-        glm::vec2 centre;
     };
 }

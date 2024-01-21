@@ -81,6 +81,11 @@ namespace blz
          * A higher number may result in worse performance.
          */
         unsigned int maxZIndex = 128;
+
+        /**
+         * Whether to show debug info.
+         */
+        bool showDebugInfo = true;
     };
 
     /**

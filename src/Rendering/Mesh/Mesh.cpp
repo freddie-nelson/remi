@@ -30,6 +30,15 @@ Rendering::Mesh2D::Mesh2D(std::vector<glm::vec2> vertices)
     createPolygon(vertices);
 }
 
+Rendering::Mesh2D::Mesh2D(std::vector<glm::vec2> vertices, std::vector<unsigned int> indices, bool preserveCentre)
+{
+    setVertices(std::move(vertices));
+    setIndices(std::move(indices));
+
+    if (!preserveCentre)
+        setCentre(glm::vec2(0.0f));
+}
+
 Rendering::Mesh2D::Mesh2D(float radius, unsigned int sides)
 {
     createRegularPolygon(radius, sides);
@@ -40,23 +49,20 @@ Rendering::Mesh2D::Mesh2D(float width, float height)
     createRect(width, height);
 }
 
-void Rendering::Mesh2D::createPolygon(std::vector<glm::vec2> vertices)
+void Rendering::Mesh2D::createPolygon(const std::vector<glm::vec2> &vertices)
 {
     auto iv = Rendering::createPolygon(vertices, true);
 
-    vertices = iv.vertices;
-    indices = iv.indices;
-
-    aabb.setFromPoints(vertices);
-    setUvsFromAABB();
+    setVertices(std::move(iv.vertices));
+    setIndices(std::move(iv.indices));
 }
 
 void Rendering::Mesh2D::createRegularPolygon(float radius, unsigned int sides)
 {
     auto iv = Rendering::createRegularPolygon(radius, sides);
 
-    vertices = iv.vertices;
-    indices = iv.indices;
+    vertices = std::move(iv.vertices);
+    indices = std::move(iv.indices);
 
     aabb.setFromPoints(vertices);
     setUvsFromAABB();
@@ -66,8 +72,8 @@ void Rendering::Mesh2D::createRect(float width, float height)
 {
     auto iv = Rendering::createRect(width, height);
 
-    vertices = iv.vertices;
-    indices = iv.indices;
+    vertices = std::move(iv.vertices);
+    indices = std::move(iv.indices);
 
     aabb.setFromPoints(vertices);
     setUvsFromAABB();
@@ -149,4 +155,18 @@ const Core::AABB &Rendering::Mesh2D::getAABB() const
 const glm::vec2 &Rendering::Mesh2D::getCentre() const
 {
     return aabb.getCentre();
+}
+
+void Rendering::Mesh2D::setCentre(const glm::vec2 &centre)
+{
+    auto oldCentre = aabb.getCentre();
+    auto oldToNew = centre - oldCentre;
+
+    // move each vertex by the difference between the old and new centre
+    for (auto &v : vertices)
+    {
+        v += oldToNew;
+    }
+
+    aabb.setFromPoints(vertices);
 }

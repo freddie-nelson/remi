@@ -105,12 +105,12 @@ namespace Core
         /**
          * Gets the width of the AABB.
          */
-        unsigned int getWidth() const;
+        float getWidth() const;
 
         /**
          * Gets the height of the AABB.
          */
-        unsigned int getHeight() const;
+        float getHeight() const;
 
         /**
          * Gets the centre of the AABB.

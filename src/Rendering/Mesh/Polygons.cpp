@@ -12,7 +12,7 @@ Rendering::IndexedVertices Rendering::createPolygon(const std::vector<glm::vec2>
         return triangulated;
 
     // calculate centre
-    glm::vec2 centre{0.0f};
+    glm::vec2 centre(0.0f);
     for (auto &v : triangulated.vertices)
     {
         centre += v;

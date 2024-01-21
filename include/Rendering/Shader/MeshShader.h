@@ -9,12 +9,19 @@ namespace Rendering
      *
      * This shader needs access to the following uniforms:
      * - uViewProjectionMatrix: The view projection matrix to use.
+     * - uMeshTransform: The transform of the mesh.
+     * - uTextureUnit: The texture unit to use. This is the texture atlas.
+     * - uTextureSize: The size of the texture within the atlas.
+     * - uTextureAtlasPos: The position of the texture within the texture atlas.
+     * - uTextureAtlasSize: The size of the texture atlas.
+     * - uColor: The color to use.
      *
      * This shader must have the following outputs:
      * - gl_Position: The position of the vertex.
-     * - vTextureUnit: The texture unit to use.
-     * - vTexCoord: The texture coordinate to use.
+     * - vTextureUnit: The texture unit to use. This is the texture atlas.
+     * - vTexCoord: The texture coordinate to use. This is the texture coordinate within the atlas.
      * - vColor: The color to use.
+     * - vUv: The UV coordinate. This is the UV coordinate of the vertex.
      */
     const std::string meshVertexShader =
         "#version 300 es\n"
@@ -37,6 +44,7 @@ namespace Rendering
         "flat out uint vTextureUnit;\n"
         "out vec2 vTexCoord;\n"
         "out vec4 vColor;\n"
+        "out vec2 vUv;\n"
         "\n"
         "void main()\n"
         "{\n"
@@ -48,6 +56,7 @@ namespace Rendering
         "\n"
         "  vTextureUnit = uTextureUnit;\n"
         "  vColor = uColor;\n"
+        "  vUv = aTexCoord;\n"
         "}\n";
 
     /**
@@ -57,9 +66,10 @@ namespace Rendering
      * - uTextures: The currently bound texture atlases.
      *
      * This shader needs access to the following inputs:
-     * - vTextureUnit: The texture unit to use.
-     * - vTexCoord: The texture coordinate to use.
+     * - vTextureUnit: The texture unit to use. This is the texture atlas.
+     * - vTexCoord: The texture coordinate within the atlas.
      * - vColor: The color to use.
+     * - vUv: The UV coordinate.
      *
      * This shader must have the following outputs:
      * - FragColor: The color of the fragment.
@@ -74,6 +84,7 @@ namespace Rendering
         "flat in uint vTextureUnit;\n"
         "in vec2 vTexCoord;\n"
         "in vec4 vColor;\n"
+        "in vec2 vUv;\n"
         "\n"
         "out vec4 FragColor;\n"
         "\n"

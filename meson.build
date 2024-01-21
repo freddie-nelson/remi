@@ -91,6 +91,9 @@ endif
 core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/Timestep.cpp', 'src/Core/Window.cpp']
 core_src += ['src/Core/AABB/AABB.cpp']
 
+# debug
+# debug_src = ['src/Debug/DebugInfo.cpp']
+
 # ecs
 ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp']
 
@@ -100,6 +103,7 @@ input_src = ['src/Input/Mouse.cpp', 'src/Input/Keyboard.cpp']
 # rendering
 rendering_src = ['src/Rendering/Renderer.cpp'] 
 rendering_src += ['src/Rendering/Camera/Camera.cpp']
+rendering_src += ['src/Rendering/Font/Font.cpp', 'src/Rendering/Font/Text.cpp']
 rendering_src += ['src/Rendering/Material/Color.cpp', 'src/Rendering/Material/Material.cpp']
 rendering_src += ['src/Rendering/Mesh/Mesh.cpp', 'src/Rendering/Mesh/Polygons.cpp', 'src/Rendering/Mesh/Triangulate.cpp']
 rendering_src += ['src/Rendering/Shader/Shader.cpp', 'src/Rendering/Shader/VertexIndices.cpp']

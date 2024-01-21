@@ -9,6 +9,8 @@
 #include <blaze++/Rendering/Renderable.h>
 #include <blaze++/Rendering/Camera/Camera.h>
 #include <blaze++/Rendering/Camera/ActiveCamera.h>
+#include <blaze++/Rendering/Font/Font.h>
+#include <blaze++/Rendering/Font/Text.h>
 
 #include <math.h>
 #include <random>
@@ -61,17 +63,20 @@ void Application::init()
     // window->syncRendererSize(false);
     // renderer->syncActiveCameraSize(true);
 
+    // create texture
+    Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
+
+    // create font
+    Rendering::Font *font = new Rendering::Font("assets/Roboto-Regular.ttf");
+
     // create camera
     auto camera = registry->create();
     registry->add(camera, Rendering::Camera(window->getWidth(), window->getHeight()));
     registry->add(camera, Core::Transform());
     registry->add(camera, Rendering::ActiveCamera());
 
-    // create texture
-    Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
-
     // create entities
-    int entityCount = 100;
+    int entityCount = 0;
     int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
     int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
     int zRange = 10;
@@ -98,6 +103,18 @@ void Application::init()
 
         material.setTexture(texture);
     }
+
+    // create text
+    auto text = Rendering::Text("Hello World!", *font);
+
+    ECS::Entity textEntity = registry->create();
+    registry->add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
+    registry->add(textEntity, Core::Transform());
+    registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
+    registry->add(textEntity, Rendering::Renderable{true, true});
+
+    auto &t = registry->get<Core::Transform>(textEntity);
+    t.scale(60);
 }
 
 void Application::destroy()

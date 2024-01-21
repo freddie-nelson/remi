@@ -103,12 +103,12 @@ void Core::AABB::setFromCircle(const glm::vec2 &centre, float radius)
     setMax(glm::vec2(centre.x + radius, centre.y + radius));
 }
 
-unsigned int Core::AABB::getWidth() const
+float Core::AABB::getWidth() const
 {
     return max.x - min.x;
 }
 
-unsigned int Core::AABB::getHeight() const
+float Core::AABB::getHeight() const
 {
     return max.y - min.y;
 }

@@ -60,3 +60,13 @@ bool ECS::Registry::has(Entity entity) const
 {
     return entitiesSet.contains(entity);
 }
+
+const std::vector<ECS::Entity> &ECS::Registry::getEntities() const
+{
+    return entities;
+}
+
+size_t ECS::Registry::size() const
+{
+    return entities.size();
+}

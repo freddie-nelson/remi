@@ -115,9 +115,14 @@ namespace ECS
             }
 
             auto &componentPool = getComponentPool<T>();
-            componentPool.add(entity, component);
 
-            invalidateCachedViews<T>();
+            // only invalidate cached views if the entity doesn't already have the component
+            if (!componentPool.has(entity))
+            {
+                invalidateCachedViews<T>();
+            }
+
+            componentPool.add(entity, component);
 
             return componentPool.get(entity);
         }
@@ -140,8 +145,12 @@ namespace ECS
             }
 
             auto &componentPool = getComponentPool<T>();
-            componentPool.remove(entity);
+            if (!componentPool.has(entity))
+            {
+                return;
+            }
 
+            componentPool.remove(entity);
             invalidateCachedViews<T>();
         }
 
@@ -190,7 +199,16 @@ namespace ECS
          *
          * @returns A reference to the vector of all entities.
          */
-        std::vector<Entity> &getAllEntities();
+        const std::vector<Entity> &getEntities() const;
+
+        /**
+         * Gets the size of the registry.
+         *
+         * This is the number of entities in the registry.
+         *
+         * @returns The size of the registry.
+         */
+        size_t size() const;
 
     private:
         /**
