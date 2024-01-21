@@ -65,6 +65,7 @@ void Application::init()
 
     // create texture
     Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
+    Rendering::Texture *gradient = new Rendering::Texture("assets/gradient.png");
 
     // create font
     Rendering::Font *font = new Rendering::Font("assets/Roboto-Regular.ttf");
@@ -110,8 +111,8 @@ void Application::init()
     ECS::Entity textEntity = registry->create();
     registry->add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
     registry->add(textEntity, Core::Transform());
-    registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 0.5f)));
-    // registry->add(textEntity, Rendering::Renderable{true, true});
+    registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 0.5f), gradient));
+    registry->add(textEntity, Rendering::Renderable{true, true});
 
     auto &t = registry->get<Core::Transform>(textEntity);
     t.scale(60);

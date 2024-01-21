@@ -151,7 +151,7 @@ const unsigned char *Rendering::TextureAtlas::getPixels() const
 
 void Rendering::TextureAtlas::pack()
 {
-    // std::cout << "Packing atlas" << std::endl;
+    std::cout << "Packing atlas" << std::endl;
 
     // clear the atlas
     // sets all pixels to fully transparent black
@@ -169,6 +169,7 @@ void Rendering::TextureAtlas::pack()
     for (auto &t : textures)
     {
         sortedTextures.push_back(t.first);
+        positions[t.first] = glm::vec2{0, 0};
     }
 
     std::sort(sortedTextures.begin(), sortedTextures.end(), [&](TextureId a, TextureId b)
@@ -181,6 +182,8 @@ void Rendering::TextureAtlas::pack()
     // pack the textures
     for (auto texId : sortedTextures)
     {
+        std::cout << "texId: " << texId << std::endl;
+
         auto &texture = textures[texId];
 
         auto texWidth = texture->getWidth();
@@ -227,21 +230,21 @@ void Rendering::TextureAtlas::pack()
             auto texPixelsRow = &texPixels[texRow];
             auto pixelsRow = &pixels[atlasRow];
 
-            memcpy(pixelsRow, texPixelsRow, texWidth * 4);
+            // memcpy(pixelsRow, texPixelsRow, texWidth * 4);
 
-            // for (unsigned int x = 0; x < texWidth; x++)
-            // {
-            //     unsigned int texIndex = (y * texWidth + x) * 4;
+            for (unsigned int x = 0; x < texWidth; x++)
+            {
+                unsigned int texIndex = (y * texWidth + x) * 4;
 
-            //     unsigned int atlasX = curX + x;
-            //     unsigned int atlasY = curY + y;
-            //     unsigned int atlasIndex = (atlasY * width + atlasX) * 4;
+                unsigned int atlasX = curX + x;
+                unsigned int atlasY = curY + y;
+                unsigned int atlasIndex = (atlasY * width + atlasX) * 4;
 
-            //     pixels[atlasIndex] = texPixels[texIndex];
-            //     pixels[atlasIndex + 1] = texPixels[texIndex + 1];
-            //     pixels[atlasIndex + 2] = texPixels[texIndex + 2];
-            //     pixels[atlasIndex + 3] = texPixels[texIndex + 3];
-            // }
+                pixels[atlasIndex] = texPixels[texIndex];
+                pixels[atlasIndex + 1] = texPixels[texIndex + 1];
+                pixels[atlasIndex + 2] = texPixels[texIndex + 2];
+                pixels[atlasIndex + 3] = texPixels[texIndex + 3];
+            }
         }
 
         // save the position of the texture
@@ -249,6 +252,7 @@ void Rendering::TextureAtlas::pack()
 
         // move the cursor
         curX += texWidth + padding;
+        break;
     }
 }
 
