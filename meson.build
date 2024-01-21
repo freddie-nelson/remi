@@ -39,6 +39,31 @@ if install_headers
 endif
 
 #
+# ttf2mesh
+#
+
+ttf2mesh_src = ['externals/src/ttf2mesh.c']
+ttf2mesh_kwargs = {
+    'include_directories' : incdir,
+    'install' : install_libs,
+    'install_dir' : lib_dir / 'lib',
+    'link_args' : [],
+}
+
+if cross_target == 'native'
+    ttf2mesh = library('ttf2mesh', ttf2mesh_src, kwargs : ttf2mesh_kwargs)
+endif
+
+if cross_target == 'wasm'
+    ttf2mesh = static_library('ttf2mesh', ttf2mesh_src, kwargs : ttf2mesh_kwargs)
+endif
+
+if install_headers
+    install_data('externals/include/ttf2mesh.h', install_dir : lib_dir / 'include')
+    install_data('externals/src/ttf2mesh.c', install_dir : lib_dir / 'src')
+endif
+
+#
 # configure for cross compilation
 #
 
@@ -49,12 +74,13 @@ link_with = []
 
 if cross_target == 'native'
     dependencies += [dependency('glfw3'), dependency('boost')]
-    link_with += [glad]
+    link_with += [glad, ttf2mesh]
 endif
 
 if cross_target == 'wasm'
     link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sEXPORT_ALL=1', '-sALLOW_MEMORY_GROWTH=1', '-sTOTAL_MEMORY=1024MB', '-sINVOKE_RUN=0']
     link_args += ['-sASSERTIONS=1', '-sSAFE_HEAP=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
+    link_with += [ttf2mesh]
 endif
 
 #
