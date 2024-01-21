@@ -76,7 +76,7 @@ void Application::init()
     registry->add(camera, Rendering::ActiveCamera());
 
     // create entities
-    int entityCount = 0;
+    int entityCount = 100;
     int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
     int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
     int zRange = 10;
@@ -110,11 +110,12 @@ void Application::init()
     ECS::Entity textEntity = registry->create();
     registry->add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
     registry->add(textEntity, Core::Transform());
-    registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
-    registry->add(textEntity, Rendering::Renderable{true, true});
+    registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 0.5f)));
+    // registry->add(textEntity, Rendering::Renderable{true, true});
 
     auto &t = registry->get<Core::Transform>(textEntity);
     t.scale(60);
+    t.setZIndex(zRange + 1);
 }
 
 void Application::destroy()

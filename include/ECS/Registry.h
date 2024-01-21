@@ -84,6 +84,14 @@ namespace ECS
 
             auto cached = cachedViews.emplace(std::move(cacheKey), std::vector<Entity>(entitySet.begin(), entitySet.end()));
 
+            // for (Entity entity : cached.first->second)
+            // {
+            //     if (entity == 101)
+            //     {
+            //         std::cout << "entity: " << entity << std::endl;
+            //     }
+            // }
+
             return cached.first->second;
         }
 
@@ -338,6 +346,7 @@ namespace ECS
             }
 
             const auto &entitiesT = getComponentPool<T>().getDenseIds();
+
             if (depth == 0)
             {
                 for (Entity entity : entitiesT)
@@ -357,9 +366,9 @@ namespace ECS
                 // remove entities that don't have the component
                 std::unordered_set<Entity> entitySetT(entitiesT.begin(), entitiesT.end());
 
-                for (Entity entity : entitySetT)
+                for (Entity entity : entitySet)
                 {
-                    if (entitySetT.count(entity) == 0)
+                    if (!entitySetT.contains(entity))
                     {
                         entitySet.erase(entity);
                     }

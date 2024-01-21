@@ -221,8 +221,8 @@ void Rendering::TextureAtlas::pack()
         // copy the texture to the atlas
         for (unsigned int y = 0; y < texHeight; y++)
         {
-            unsigned int texRow = y * texWidth * 4;
-            unsigned int atlasRow = (curY + y) * width * 4;
+            size_t texRow = y * texWidth * 4;
+            size_t atlasRow = (curY + y) * width * 4;
 
             auto texPixelsRow = &texPixels[texRow];
             auto pixelsRow = &pixels[atlasRow];
@@ -249,7 +249,6 @@ void Rendering::TextureAtlas::pack()
 
         // move the cursor
         curX += texWidth + padding;
-        curY += texHeight + padding;
     }
 }
 

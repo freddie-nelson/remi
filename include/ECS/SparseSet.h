@@ -157,7 +157,7 @@ namespace ECS
         {
             if (!has(id))
             {
-                throw std::runtime_error("SparseSet (get): ID does not exist in sparse set.");
+                throw std::runtime_error("SparseSet (get): ID '" + std::to_string(id) + "' does not exist in sparse set, for type '" + typeid(T).name() + "'.");
             }
 
             return dense[sparse[id]];
