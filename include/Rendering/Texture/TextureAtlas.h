@@ -18,9 +18,9 @@ namespace Rendering
      *
      * The atlas will not modify the textures it contains.
      *
-     * The texture packing algorithm is extremely simple, and so may not be the most efficient.
+     * The texture packing algorithm is attempts to pack the textures into the atlas as tightly as possible.
      *
-     * TODO: Improve the texture packing algorithm.
+     * This is done by continuously subdividing the atlas into spaces as it is filled with textures.
      */
     class TextureAtlas
     {
@@ -170,6 +170,16 @@ namespace Rendering
         std::unordered_map<TextureId, const Texture *> textures;
 
         /**
+         * A space in the atlas.
+         */
+        struct AtlasSpace
+        {
+            glm::vec2 position;
+            unsigned int width;
+            unsigned int height;
+        };
+
+        /**
          * Packs the textures into the atlas.
          *
          * @throws std::runtime_error If the textures cannot be packed into the atlas.
@@ -186,5 +196,12 @@ namespace Rendering
          * @throws std::invalid_argument If the position is not in the atlas.
          */
         glm::vec2 posToUV(glm::vec2 position);
+
+        /**
+         * Writes the atlas to a png file.
+         *
+         * @param sample Must be greater than 1. Bigger values downsample the image.
+         */
+        void writeTestAtlas(int sample = 1);
     };
 }

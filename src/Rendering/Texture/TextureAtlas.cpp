@@ -7,6 +7,10 @@
 #include <iostream>
 #include <cstring>
 #include <math.h>
+#include <list>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
 
 unsigned int atlasSize = 0;
 bool atlasSizeSet = false;
@@ -151,18 +155,13 @@ const unsigned char *Rendering::TextureAtlas::getPixels() const
 
 void Rendering::TextureAtlas::pack()
 {
-    std::cout << "Packing atlas" << std::endl;
+    // std::cout << "Packing atlas" << std::endl;
 
     // clear the atlas
     // sets all pixels to fully transparent black
     memset(pixels, 0, width * height * 4);
 
     // std::cout << "cleared atlas" << std::endl;
-
-    // start in top left corner
-    unsigned int curX = 0;
-    unsigned int curY = 0;
-    unsigned int curRowHeight = 0;
 
     // sort the textures by height
     std::vector<TextureId> sortedTextures;
@@ -179,81 +178,95 @@ void Rendering::TextureAtlas::pack()
 
     // ! weird bug here on wasm desktop where textures get corrupted? junk values end up being for width, height and channels
 
+    // represents empty spaces in the atlas
+    std::list<AtlasSpace> spaces;
+
+    // add the first space
+    // the first space is the entire atlas
+    spaces.push_front({glm::vec2(0, 0), width, height});
+
     // pack the textures
     for (auto texId : sortedTextures)
     {
-        std::cout << "texId: " << texId << std::endl;
-
         auto &texture = textures[texId];
 
         auto texWidth = texture->getWidth();
         auto texHeight = texture->getHeight();
         auto texPixels = texture->getPixels();
 
-        auto texChannels = texture->getChannels();
-
         // this should never happen
+        auto texChannels = texture->getChannels();
         if (texChannels != 4)
         {
-            std::cout << "width: " << texWidth << std::endl;
-            std::cout << "height: " << texHeight << std::endl;
-
             throw std::invalid_argument("TextureAtlas (pack): texture must have 4 channels, something has went severly wrong. Channels recieved: " + std::to_string(texChannels) + ".");
         }
 
-        // texture can't fit in row, x
-        if (curX + texWidth > width)
+        // find a space for the texture
+        AtlasSpace *space = nullptr;
+
+        for (auto it = spaces.begin(); it != spaces.end(); it++)
         {
-            curX = 0;
-            curY += curRowHeight + padding;
-            curRowHeight = 0;
+            auto &s = *it;
+
+            if (s.width >= texWidth && s.height >= texHeight)
+            {
+                space = &s;
+
+                // okay to not change it here as breaking out of the loop
+                spaces.erase(it);
+
+                break;
+            }
         }
 
-        // texture can't fit in atlas
-        if (curY + texHeight > height)
+        // if the texture doesn't fit in any of the spaces
+        if (space == nullptr)
         {
-            throw std::runtime_error("TextureAtlas (pack): atlas is full.");
-        }
-
-        // expand row height if needed
-        if (texHeight > curRowHeight)
-        {
-            curRowHeight = texHeight;
+            throw std::runtime_error("TextureAtlas (pack): can't find space for texture '" + std::to_string(texId) + "'.");
         }
 
         // copy the texture to the atlas
         for (unsigned int y = 0; y < texHeight; y++)
         {
             size_t texRow = y * texWidth * 4;
-            size_t atlasRow = (curY + y) * width * 4;
+            size_t atlasRow = (space->position.y + y) * width * 4;
+
+            size_t atlasIndex = atlasRow + space->position.x * 4;
 
             auto texPixelsRow = &texPixels[texRow];
-            auto pixelsRow = &pixels[atlasRow];
+            auto pixelsStart = &pixels[atlasIndex];
 
-            // memcpy(pixelsRow, texPixelsRow, texWidth * 4);
+            memcpy(pixelsStart, texPixelsRow, texWidth * 4);
 
-            for (unsigned int x = 0; x < texWidth; x++)
-            {
-                unsigned int texIndex = (y * texWidth + x) * 4;
+            // for (unsigned int x = 0; x < texWidth; x++)
+            // {
+            //     unsigned int texIndex = (y * texWidth + x) * 4;
 
-                unsigned int atlasX = curX + x;
-                unsigned int atlasY = curY + y;
-                unsigned int atlasIndex = (atlasY * width + atlasX) * 4;
+            //     unsigned int atlasX = curX + x;
+            //     unsigned int atlasY = curY + y;
+            //     unsigned int atlasIndex = (atlasY * width + atlasX) * 4;
 
-                pixels[atlasIndex] = texPixels[texIndex];
-                pixels[atlasIndex + 1] = texPixels[texIndex + 1];
-                pixels[atlasIndex + 2] = texPixels[texIndex + 2];
-                pixels[atlasIndex + 3] = texPixels[texIndex + 3];
-            }
+            //     pixels[atlasIndex] = texPixels[texIndex];
+            //     pixels[atlasIndex + 1] = texPixels[texIndex + 1];
+            //     pixels[atlasIndex + 2] = texPixels[texIndex + 2];
+            //     pixels[atlasIndex + 3] = texPixels[texIndex + 3];
+            // }
         }
 
         // save the position of the texture
-        positions[texId] = glm::vec2(curX, curY);
+        positions[texId] = glm::vec2(space->position);
 
-        // move the cursor
-        curX += texWidth + padding;
-        break;
+        // subdivide the space
+
+        // space below texture
+        spaces.push_front({glm::vec2(space->position.x, space->position.y + texHeight + padding), space->width, space->height - texHeight - padding});
+
+        // space to right of texture
+        spaces.push_front({glm::vec2(space->position.x + texWidth + padding, space->position.y), space->width - texWidth - padding, texHeight});
     }
+
+    // test atlas output
+    // writeTestAtlas(4);
 }
 
 glm::vec2 Rendering::TextureAtlas::posToUV(glm::vec2 pos)
@@ -269,4 +282,48 @@ glm::vec2 Rendering::TextureAtlas::posToUV(glm::vec2 pos)
     }
 
     return glm::vec2(pos.x / width, pos.y / height);
+}
+
+void Rendering::TextureAtlas::writeTestAtlas(int sample)
+{
+    if (sample < 1)
+    {
+        throw std::invalid_argument("TextureAtlas (writeTestAtlas): sample must be greater than 1.");
+    }
+
+    if (width % sample != 0)
+    {
+        throw std::invalid_argument("TextureAtlas (writeTestAtlas): width must be divisible by sample.");
+    }
+
+    std::string filename = "atlas.png";
+
+    int w = width / sample;
+    int h = height / sample;
+
+    unsigned char *pixels = new unsigned char[w * h * 4];
+
+    size_t j = 0;
+
+    for (size_t i = 0; i < width * height; i += sample)
+    {
+
+        pixels[j * 4] = this->pixels[i * 4];
+        pixels[j * 4 + 1] = this->pixels[i * 4 + 1];
+        pixels[j * 4 + 2] = this->pixels[i * 4 + 2];
+        pixels[j * 4 + 3] = this->pixels[i * 4 + 3];
+
+        j++;
+
+        // skip to next row
+        if (((i / 4) % width) == 0 && i != 0)
+        {
+            i += (sample - 1) * width * 4;
+        }
+    }
+
+    std::cout << "Writing atlas to '" << filename << "'" << std::endl;
+    stbi_write_png(filename.c_str(), w, h, 4, pixels, w * 4);
+
+    delete pixels;
 }

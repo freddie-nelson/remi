@@ -2,7 +2,7 @@
 
 #include "../Mesh/Mesh.h"
 
-#include "ttf2mesh.h"
+#include <ttf2mesh.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
