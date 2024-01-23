@@ -66,7 +66,7 @@ namespace Rendering
         /**
          * Destroys the material.
          */
-        ~Material();
+        virtual ~Material();
 
         /**
          * Gets the color of the material.
