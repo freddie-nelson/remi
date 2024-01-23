@@ -190,7 +190,7 @@ namespace Rendering
          *
          * 0 if the shader program has not been loaded.
          */
-        int program = 0;
+        unsigned int program = 0;
 
         /**
          * The OpenGL vertex array object ID.

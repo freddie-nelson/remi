@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./Material/Material.h"
+#include "./Material/ShaderMaterial.h"
 #include "./Mesh/Mesh.h"
 #include "./Shader/Shader.h"
 #include "../Core/Transform.h"
@@ -18,8 +19,26 @@
 #include <vector>
 #include <unordered_map>
 
+#define DEFAULT_SHADER_KEY 0
+
 namespace Rendering
 {
+    /**
+     * Represents the shaders used by the renderer.
+     */
+    struct RendererShaders
+    {
+        /**
+         * Creates a new RendererShaders instance.
+         *
+         * @param fragmentShader The fragment shader to use for the shaders.
+         */
+        RendererShaders(const std::string &fragmentShader);
+
+        Shader meshShader;
+        Shader instancedMeshShader;
+        Shader batchedMeshShader;
+    };
 
     /**
      * The renderer is responsible for rendering entities to the screen.
@@ -107,6 +126,8 @@ namespace Rendering
          *
          * This does not cull entities outside the camera's view.
          *
+         * Uses the shaders from the first entity (`instances[0]`).
+         *
          * @param registry The registry to read components from.
          * @param camera The camera to use for rendering.
          * @param mesh The mesh to use for each entity.
@@ -118,6 +139,8 @@ namespace Rendering
          * Batches the given entities and draws them to the screen.
          *
          * This does not cull entities outside the camera's view.
+         *
+         * Uses the shaders from the first entity (`renderables[0]`).
          *
          * @param registry The registry to read components from.
          * @param camera The camera to use for rendering.
@@ -295,6 +318,76 @@ namespace Rendering
         int width;
         int height;
 
+        TextureManager textureManager;
+
+        GLenum alphaBlendingSFactor = GL_SRC_ALPHA;
+        GLenum alphaBlendingDFactor = GL_ONE_MINUS_SRC_ALPHA;
+
+        Color clearColor = Color(0.0f);
+
+        GLFWwindow *glfwWindow;
+
+        GLenum bufferDrawType = GL_STREAM_DRAW;
+
+        /**
+         * The shaders used by the renderer.
+         *
+         * Key 0 is the default shaders.
+         *
+         * Other keys are the shaders for ShaderMaterials.
+         */
+        std::unordered_map<ShaderMaterial::FragShaderKey, RendererShaders> shaders;
+
+        /**
+         * Gets the default shaders.
+         *
+         * @returns The default shaders.
+         *
+         * @throws std::out_of_range if the default shaders do not exist.
+         */
+        RendererShaders &getShaders();
+
+        /**
+         * Gets the shaders for the given material.
+         *
+         * If the shaders do not exist, they will be created.
+         *
+         * @param material The material to get the shaders for.
+         *
+         * @returns The shaders for the given material.
+         */
+        RendererShaders &getShaders(const ShaderMaterial &material);
+
+        /**
+         * Gets the shaders for the given entity.
+         *
+         * Assumes the entity has a Material or ShaderMaterial component.
+         *
+         * If the entity has a ShaderMaterial component, the shaders for the ShaderMaterial will be returned.
+         *
+         * Otherwise the default shaders will be returned.
+         *
+         * @param registry The registry to read components from.
+         * @param entity The entity to get the shaders for.
+         *
+         * @returns The shaders for the given entity.
+         */
+        RendererShaders &getShaders(const ECS::Registry &registry, const ECS::Entity entity);
+
+        /**
+         * Gets the material for the given entity.
+         *
+         * Assumes the entity has a Material or ShaderMaterial component.
+         *
+         * This will prioritize the ShaderMaterial component over the Material component.
+         *
+         * @param registry The registry to read components from.
+         * @param entity The entity to get the material for.
+         *
+         * @returns The material for the given entity.
+         */
+        Material *getMaterial(const ECS::Registry &registry, const ECS::Entity entity) const;
+
         /**
          * The number of updates to wait before pruning the AABB tree.
          *
@@ -406,20 +499,5 @@ namespace Rendering
          * @returns The view projection matrix for the given camera.
          */
         glm::mat4 getViewProjectionMatrix(const ECS::Registry &registry, const ECS::Entity camera) const;
-
-        TextureManager textureManager;
-
-        Shader meshShader;
-        Shader instancedMeshShader;
-        Shader batchedMeshShader;
-
-        GLenum alphaBlendingSFactor = GL_SRC_ALPHA;
-        GLenum alphaBlendingDFactor = GL_ONE_MINUS_SRC_ALPHA;
-
-        Color clearColor = Color(0.0f);
-
-        GLFWwindow *glfwWindow;
-
-        GLenum bufferDrawType = GL_STREAM_DRAW;
     };
 }

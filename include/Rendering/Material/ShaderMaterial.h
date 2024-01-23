@@ -7,7 +7,6 @@
 
 namespace Rendering
 {
-    using FragShaderKey = size_t;
 
     /**
      * Represents an special type of material that contains a fragment shader.
@@ -33,6 +32,8 @@ namespace Rendering
     class ShaderMaterial : public Material
     {
     public:
+        using FragShaderKey = size_t;
+
         /**
          * Creates a ShaderMaterial instance.
          *
@@ -87,6 +88,13 @@ namespace Rendering
         static std::unordered_map<std::string, FragShaderKey> fragShaderToKey;
 
         static std::unordered_map<FragShaderKey, std::string> keyToFragShader;
+
+        /**
+         * The next key to assign to a fragment shader.
+         *
+         * Should start at 1 as 0 is reserved for the default shader.
+         */
+        static FragShaderKey nextKey;
 
         FragShaderKey fragShaderKey;
     };

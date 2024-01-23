@@ -21,6 +21,27 @@
 
 // ! TODO: don't rebuffer data for static meshes
 
+Rendering::RendererShaders::RendererShaders(const std::string &fragmentShader)
+{
+    meshShader = Shader();
+    if (!meshShader.loadFromSource(meshVertexShader, fragmentShader))
+    {
+        throw std::runtime_error("Failed to load mesh shader.");
+    }
+
+    instancedMeshShader = Shader();
+    if (!instancedMeshShader.loadFromSource(instancedMeshVertexShader, fragmentShader))
+    {
+        throw std::runtime_error("Failed to load instanced mesh shader.");
+    }
+
+    batchedMeshShader = Shader();
+    if (!batchedMeshShader.loadFromSource(batchedMeshVertexShader, fragmentShader))
+    {
+        throw std::runtime_error("Failed to load batched mesh shader.");
+    }
+}
+
 Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height)
 {
     this->glfwWindow = glfwWindow;
@@ -37,23 +58,10 @@ void Rendering::Renderer::init()
     enableDepthTest(true);
     enableAlphaBlending(false);
 
-    meshShader = Shader();
-    if (!meshShader.loadFromSource(meshVertexShader, meshFragShader))
-    {
-        throw std::runtime_error("Failed to load mesh shader.");
-    }
+    // init shaders
+    shaders.emplace(DEFAULT_SHADER_KEY, RendererShaders(meshFragShader));
 
-    instancedMeshShader = Shader();
-    if (!instancedMeshShader.loadFromSource(instancedMeshVertexShader, meshFragShader))
-    {
-        throw std::runtime_error("Failed to load instanced mesh shader.");
-    }
-
-    batchedMeshShader = Shader();
-    if (!batchedMeshShader.loadFromSource(batchedMeshVertexShader, meshFragShader))
-    {
-        throw std::runtime_error("Failed to load batched mesh shader.");
-    }
+    shaders.at(DEFAULT_SHADER_KEY).batchedMeshShader.use();
 }
 
 void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Timestep &timestep)
@@ -155,10 +163,10 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     const std::vector<glm::vec2> &uvs = mesh.getUvs();
 
     // material data
-    auto &material = registry.get<Material>(entity);
-    auto color = material.getColor().getColor();
+    auto *material = getMaterial(registry, entity);
+    auto color = material->getColor().getColor();
 
-    auto texture = material.getTexture();
+    auto texture = material->getTexture();
     auto boundTexture = textureManager.bind(texture);
     auto &texturesUniform = textureManager.getTexturesUniform();
 
@@ -189,6 +197,8 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     VertexIndices indices(indicesVec);
 
     // setup shader
+    auto &[meshShader, instancedMeshShader, batchedMeshShader] = getShaders(registry, entity);
+
     meshShader.use();
 
     meshShader.uniform(&uViewProjectionMatrix);
@@ -235,17 +245,17 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
     for (size_t i = 0; i < instanceCount; i++)
     {
         auto &t = registry.get<Core::Transform>(instances[i]);
-        auto &material = registry.get<Material>(instances[i]);
+        auto material = getMaterial(registry, instances[i]);
 
         transform[i] = t.getTransformationMatrix();
 
-        auto texture = material.getTexture();
+        auto texture = material->getTexture();
         const auto &boundTexture = boundTextures[texture->getId()];
 
         textureAtlasPos[i] = boundTexture.posInAtlas;
         textureUnit[i] = boundTexture.textureUnit;
         textureSize[i] = boundTexture.textureSize;
-        color[i] = material.getColor().getColor();
+        color[i] = material->getColor().getColor();
     }
 
     auto atlasSize = glm::vec2(TextureAtlas::getAtlasSize());
@@ -280,6 +290,8 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
     VertexIndices indices(indicesVec);
 
     // setup shader
+    auto &[meshShader, instancedMeshShader, batchedMeshShader] = getShaders(registry, instances[0]);
+
     instancedMeshShader.use();
 
     instancedMeshShader.uniform(&uViewProjectionMatrix);
@@ -338,10 +350,10 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
         const auto &transform = registry.get<Core::Transform>(e);
         auto &transformMatrix = transform.getTransformationMatrix();
 
-        const auto &material = registry.get<Material>(e);
-        const auto color = material.getColor().getColor();
+        const auto material = getMaterial(registry, e);
+        const auto color = material->getColor().getColor();
 
-        const auto texture = material.getTexture();
+        const auto texture = material->getTexture();
         const auto &boundTexture = boundTextures[texture->getId()];
 
         const std::vector<glm::vec2> &vertices = mesh.getVertices();
@@ -394,7 +406,11 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
     VertexIndices indices(batchedIndices);
 
     // set up shader
+    auto &[meshShader, instancedMeshShader, batchedMeshShader] = getShaders(registry, renderables[0]);
+
     batchedMeshShader.use();
+
+    std::cout << "renderables size: " << renderables.size() << std::endl;
 
     batchedMeshShader.uniform(&uViewProjectionMatrix);
     batchedMeshShader.uniform(&uTextureAtlasSize);
@@ -602,6 +618,52 @@ void Rendering::Renderer::syncActiveCameraSize(bool sync)
 bool Rendering::Renderer::getSyncActiveCameraSize() const
 {
     return syncActiveCameraSizeWithRenderer;
+}
+
+Rendering::RendererShaders &Rendering::Renderer::getShaders()
+{
+    return shaders.at(DEFAULT_SHADER_KEY);
+}
+
+Rendering::RendererShaders &Rendering::Renderer::getShaders(const ShaderMaterial &material)
+{
+    auto key = material.getFragmentShaderKey();
+
+    if (!shaders.contains(key))
+    {
+        shaders.emplace(key, RendererShaders(material.getFragmentShader()));
+    }
+
+    return shaders.at(key);
+}
+
+Rendering::RendererShaders &Rendering::Renderer::getShaders(const ECS::Registry &registry, const ECS::Entity entity)
+{
+    if (registry.has<ShaderMaterial>(entity))
+    {
+        auto &material = registry.get<ShaderMaterial>(entity);
+        return getShaders(material);
+    }
+    else
+    {
+        return getShaders();
+    }
+}
+
+Rendering::Material *Rendering::Renderer::getMaterial(const ECS::Registry &registry, const ECS::Entity entity) const
+{
+    Material *material = nullptr;
+
+    if (registry.has<ShaderMaterial>(entity))
+    {
+        material = &registry.get<ShaderMaterial>(entity);
+    }
+    else
+    {
+        material = &registry.get<Material>(entity);
+    }
+
+    return material;
 }
 
 void Rendering::Renderer::pruneTrees(const ECS::Registry &registry)
