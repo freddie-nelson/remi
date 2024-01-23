@@ -85,12 +85,14 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
     auto fatCameraAabb = getCullingAABB(registry, activeCamera);
 
     // cull entities outside camera's viewport to get renderables
-    std::vector<ECS::Entity> renderables;
+    std::vector<ECS::Entity> staticRenderables;
 
     // cull static renderables
-    auto dynamicsCount = getRenderables(registry, entities, fatCameraAabb, false, renderables);
+    auto dynamicsCount = getRenderables(registry, entities, fatCameraAabb, false, staticRenderables);
 
     // cull dynamic renderables
+    std::vector<ECS::Entity> renderables;
+
     if (dynamicsCount > 0)
         getRenderables(registry, entities, fatCameraAabb, true, renderables);
 
@@ -104,51 +106,17 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
 
     // std::cout << "cull time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
-    // exit if no renderables
-    if (renderables.size() == 0)
-    {
-        return;
-    }
-
     // now = Rendering::timeSinceEpochMillisec();
 
-    // split renderables
-    std::vector<ECS::Entity> opaqueRenderables;
-    std::vector<ECS::Entity> transparentRenderables;
-
-    if (isAlphaBlendingEnabled())
+    if (staticRenderables.size() != 0)
     {
-        for (auto &e : renderables)
-        {
-            auto &material = registry.get<Material>(e);
-
-            if (material.isTransparent())
-            {
-                transparentRenderables.push_back(e);
-            }
-            else
-            {
-                opaqueRenderables.push_back(e);
-            }
-        }
-
-        // sort transparent renderables by z index (back to front)
-        // for correct alpha blending
-        sortRenderables(registry, transparentRenderables);
-    }
-    else
-    {
-        opaqueRenderables = renderables;
+        batchRenderables(registry, activeCamera, staticRenderables, true);
     }
 
-    // std::cout << "sort time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
-
-    // batch render
-    if (opaqueRenderables.size() > 0)
-        batch(registry, activeCamera, opaqueRenderables);
-
-    if (transparentRenderables.size() > 0)
-        batch(registry, activeCamera, transparentRenderables);
+    if (renderables.size() != 0)
+    {
+        batchRenderables(registry, activeCamera, renderables, false);
+    }
 }
 
 void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer) const
@@ -745,6 +713,47 @@ size_t Rendering::Renderer::getRenderables(const ECS::Registry &registry, const 
     }
 
     return otherCount;
+}
+
+void Rendering::Renderer::batchRenderables(const ECS::Registry &registry, const ECS::Entity activeCamera, const std::vector<ECS::Entity> &renderables, bool isStatic)
+{
+    // split renderables into opaque and transparent
+    std::vector<ECS::Entity> opaqueRenderables;
+    std::vector<ECS::Entity> transparentRenderables;
+
+    if (isAlphaBlendingEnabled())
+    {
+        for (auto &e : renderables)
+        {
+            auto &material = registry.get<Material>(e);
+
+            if (material.isTransparent())
+            {
+                transparentRenderables.push_back(e);
+            }
+            else
+            {
+                opaqueRenderables.push_back(e);
+            }
+        }
+
+        // sort transparent renderables by z index (back to front)
+        // for correct alpha blending
+        sortRenderables(registry, transparentRenderables);
+    }
+    else
+    {
+        opaqueRenderables = renderables;
+    }
+
+    // std::cout << "sort time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
+
+    // batch render
+    if (opaqueRenderables.size() > 0)
+        batch(registry, activeCamera, opaqueRenderables);
+
+    if (transparentRenderables.size() > 0)
+        batch(registry, activeCamera, transparentRenderables);
 }
 
 std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture> Rendering::Renderer::bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables)

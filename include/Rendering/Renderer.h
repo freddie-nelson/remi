@@ -352,6 +352,18 @@ namespace Rendering
         size_t getRenderables(const ECS::Registry &registry, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
 
         /**
+         * Renders the given renderables.
+         *
+         * This does not cull entities outside the camera's view.
+         *
+         * @param registry The registry to read components from.
+         * @param camera The camera to use for rendering.
+         * @param renderables The renderables to render.
+         * @param isStatic Whether the renderables are static or not.
+         */
+        void batchRenderables(const ECS::Registry &registry, const ECS::Entity activeCamera, const std::vector<ECS::Entity> &renderables, bool isStatic);
+
+        /**
          * Binds the textures of the given renderables.
          *
          * This function may error if all the textures cannot fit into the atlases.

@@ -66,7 +66,7 @@ namespace blz
         /**
          * The maximum number of non fixed system updates per second.
          */
-        unsigned int updatesPerSecond = 60;
+        unsigned int updatesPerSecond = 10000;
 
         /**
          * The maximum number of fixed system updates per second.
