@@ -23,19 +23,16 @@
 
 Rendering::RendererShaders::RendererShaders(const std::string &fragmentShader)
 {
-    meshShader = Shader();
     if (!meshShader.loadFromSource(meshVertexShader, fragmentShader))
     {
         throw std::runtime_error("Failed to load mesh shader.");
     }
 
-    instancedMeshShader = Shader();
     if (!instancedMeshShader.loadFromSource(instancedMeshVertexShader, fragmentShader))
     {
         throw std::runtime_error("Failed to load instanced mesh shader.");
     }
 
-    batchedMeshShader = Shader();
     if (!batchedMeshShader.loadFromSource(batchedMeshVertexShader, fragmentShader))
     {
         throw std::runtime_error("Failed to load batched mesh shader.");
@@ -59,9 +56,7 @@ void Rendering::Renderer::init()
     enableAlphaBlending(false);
 
     // init shaders
-    shaders.emplace(DEFAULT_SHADER_KEY, RendererShaders(meshFragShader));
-
-    shaders.at(DEFAULT_SHADER_KEY).batchedMeshShader.use();
+    shaders.emplace(DEFAULT_SHADER_KEY, new RendererShaders(meshFragShader));
 }
 
 void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Timestep &timestep)
@@ -410,8 +405,6 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
 
     batchedMeshShader.use();
 
-    std::cout << "renderables size: " << renderables.size() << std::endl;
-
     batchedMeshShader.uniform(&uViewProjectionMatrix);
     batchedMeshShader.uniform(&uTextureAtlasSize);
     batchedMeshShader.uniform(&uTextures);
@@ -622,7 +615,7 @@ bool Rendering::Renderer::getSyncActiveCameraSize() const
 
 Rendering::RendererShaders &Rendering::Renderer::getShaders()
 {
-    return shaders.at(DEFAULT_SHADER_KEY);
+    return *shaders.at(DEFAULT_SHADER_KEY);
 }
 
 Rendering::RendererShaders &Rendering::Renderer::getShaders(const ShaderMaterial &material)
@@ -631,10 +624,10 @@ Rendering::RendererShaders &Rendering::Renderer::getShaders(const ShaderMaterial
 
     if (!shaders.contains(key))
     {
-        shaders.emplace(key, RendererShaders(material.getFragmentShader()));
+        shaders.emplace(key, new RendererShaders(material.getFragmentShader()));
     }
 
-    return shaders.at(key);
+    return *shaders.at(key);
 }
 
 Rendering::RendererShaders &Rendering::Renderer::getShaders(const ECS::Registry &registry, const ECS::Entity entity)

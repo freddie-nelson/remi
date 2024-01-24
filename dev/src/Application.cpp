@@ -11,6 +11,7 @@
 #include <blaze++/Rendering/Camera/ActiveCamera.h>
 #include <blaze++/Rendering/Font/Font.h>
 #include <blaze++/Rendering/Font/Text.h>
+#include <blaze++/Rendering/Material/ShaderMaterial.h>
 
 #include <math.h>
 #include <random>
@@ -111,8 +112,13 @@ void Application::init()
     ECS::Entity textEntity = registry->create();
     registry->add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
     registry->add(textEntity, Core::Transform());
-    registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), gradient));
+    // registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), gradient));
     registry->add(textEntity, Rendering::Renderable{true, true});
+
+    std::string textShader = "";
+
+    Rendering::ShaderMaterial m(textShader);
+    registry->add(textEntity, m);
 
     auto &t = registry->get<Core::Transform>(textEntity);
     t.scale(75);

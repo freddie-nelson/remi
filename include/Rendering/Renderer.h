@@ -336,7 +336,7 @@ namespace Rendering
          *
          * Other keys are the shaders for ShaderMaterials.
          */
-        std::unordered_map<ShaderMaterial::FragShaderKey, RendererShaders> shaders;
+        std::unordered_map<ShaderMaterial::FragShaderKey, RendererShaders *> shaders;
 
         /**
          * Gets the default shaders.

@@ -97,11 +97,11 @@ void Rendering::Shader::use()
         throw std::runtime_error("Shader must be loaded before it can be used.");
     }
 
-    std::cout << "using shader: " << program << std::endl;
+    // std::cout << "using shader: " << program << std::endl;
 
     glUseProgram(program);
 
-    std::cout << glGetError() << std::endl;
+    // std::cout << glGetError() << std::endl;
 
     // updateUniforms = true;
     // updateUniformArrays = true;
@@ -258,7 +258,7 @@ bool Rendering::Shader::inUse()
     int currentProgram;
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
 
-    std::cout << "currentProgram: " << currentProgram << std::endl;
+    // std::cout << "currentProgram: " << currentProgram << std::endl;
 
     return static_cast<unsigned int>(currentProgram) == program;
 }
