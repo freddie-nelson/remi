@@ -58,6 +58,7 @@ void Rendering::Material::setTexture(Rendering::Texture *texture)
     if (texture == nullptr)
     {
         this->texture = defaultTexture;
+        return;
     }
 
     this->texture = texture;

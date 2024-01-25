@@ -25,17 +25,17 @@ Rendering::RendererShaders::RendererShaders(const std::string &fragmentShader)
 {
     if (!meshShader.loadFromSource(meshVertexShader, fragmentShader))
     {
-        throw std::runtime_error("Failed to load mesh shader.");
+        throw std::runtime_error("Failed to load mesh shader. Fragment shader: \n\n" + fragmentShader);
     }
 
     if (!instancedMeshShader.loadFromSource(instancedMeshVertexShader, fragmentShader))
     {
-        throw std::runtime_error("Failed to load instanced mesh shader.");
+        throw std::runtime_error("Failed to load instanced mesh shader. Fragment shader: \n\n" + fragmentShader);
     }
 
     if (!batchedMeshShader.loadFromSource(batchedMeshVertexShader, fragmentShader))
     {
-        throw std::runtime_error("Failed to load batched mesh shader.");
+        throw std::runtime_error("Failed to load batched mesh shader. Fragment shader: \n\n" + fragmentShader);
     }
 }
 
@@ -67,7 +67,8 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
         setSize(size.x, size.y);
     }
 
-    auto &entities = registry.view<Mesh2D, Core::Transform, Material, Renderable>();
+    // get entities
+    auto &entities = registry.view<Mesh2D, Core::Transform, Renderable>();
 
     // exit if no entities
     if (entities.size() == 0)
@@ -645,18 +646,14 @@ Rendering::RendererShaders &Rendering::Renderer::getShaders(const ECS::Registry 
 
 Rendering::Material *Rendering::Renderer::getMaterial(const ECS::Registry &registry, const ECS::Entity entity) const
 {
-    Material *material = nullptr;
-
     if (registry.has<ShaderMaterial>(entity))
     {
-        material = &registry.get<ShaderMaterial>(entity);
+        return &registry.get<ShaderMaterial>(entity);
     }
     else
     {
-        material = &registry.get<Material>(entity);
+        return &registry.get<Material>(entity);
     }
-
-    return material;
 }
 
 void Rendering::Renderer::pruneTrees(const ECS::Registry &registry)
@@ -772,43 +769,61 @@ size_t Rendering::Renderer::getRenderables(const ECS::Registry &registry, const 
 
 void Rendering::Renderer::batchRenderables(const ECS::Registry &registry, const ECS::Entity activeCamera, const std::vector<ECS::Entity> &renderables, bool isStatic)
 {
+    std::vector<ShaderMaterial::FragShaderKey> keys;
+
     // split renderables into opaque and transparent
-    std::vector<ECS::Entity> opaqueRenderables;
-    std::vector<ECS::Entity> transparentRenderables;
+    std::unordered_map<ShaderMaterial::FragShaderKey, std::vector<ECS::Entity>> opaqueRenderables;
+    std::unordered_map<ShaderMaterial::FragShaderKey, std::vector<ECS::Entity>> transparentRenderables;
 
-    if (isAlphaBlendingEnabled())
+    for (auto &e : renderables)
     {
-        for (auto &e : renderables)
+        ShaderMaterial::FragShaderKey key = DEFAULT_SHADER_KEY;
+        if (registry.has<ShaderMaterial>(e))
         {
-            auto &material = registry.get<Material>(e);
-
-            if (material.isTransparent())
-            {
-                transparentRenderables.push_back(e);
-            }
-            else
-            {
-                opaqueRenderables.push_back(e);
-            }
+            auto &material = registry.get<ShaderMaterial>(e);
+            key = material.getFragmentShaderKey();
         }
 
-        // sort transparent renderables by z index (back to front)
-        // for correct alpha blending
-        sortRenderables(registry, transparentRenderables);
+        auto material = getMaterial(registry, e);
+
+        auto &map = material->isTransparent() && isAlphaBlendingEnabled() ? transparentRenderables : opaqueRenderables;
+
+        if (!map.contains(key))
+        {
+            // if key is not in any map yet, add it to keys
+            if (!opaqueRenderables.contains(key) && !transparentRenderables.contains(key))
+            {
+                keys.push_back(key);
+            }
+
+            map.emplace(key, std::vector<ECS::Entity>());
+        }
+
+        map[key].push_back(e);
     }
-    else
+
+    // sort transparent renderables by z index (back to front)
+    // for correct alpha blending
+    if (isAlphaBlendingEnabled())
     {
-        opaqueRenderables = renderables;
+        for (auto &map : transparentRenderables)
+        {
+            sortRenderables(registry, map.second);
+        }
     }
 
     // std::cout << "sort time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 
     // batch render
-    if (opaqueRenderables.size() > 0)
-        batch(registry, activeCamera, opaqueRenderables);
+    for (auto &key : keys)
+    {
+        if (opaqueRenderables.contains(key))
+            batch(registry, activeCamera, opaqueRenderables[key]);
 
-    if (transparentRenderables.size() > 0)
-        batch(registry, activeCamera, transparentRenderables);
+        // if alpha blending is not enabled, then this will be empty
+        if (transparentRenderables.contains(key))
+            batch(registry, activeCamera, transparentRenderables[key]);
+    }
 }
 
 std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture> Rendering::Renderer::bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables)
@@ -817,13 +832,8 @@ std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture
 
     for (auto &e : renderables)
     {
-        auto &material = registry.get<Material>(e);
-        auto texture = material.getTexture();
-
-        if (texture == nullptr)
-        {
-            continue;
-        }
+        auto material = getMaterial(registry, e);
+        auto texture = material->getTexture();
 
         if (!boundTextures.contains(texture->getId()))
         {

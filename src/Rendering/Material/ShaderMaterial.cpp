@@ -1,5 +1,7 @@
 #include "../../../include/Rendering/Material/ShaderMaterial.h"
 
+#include <iostream>
+
 std::unordered_map<std::string, Rendering::ShaderMaterial::FragShaderKey> Rendering::ShaderMaterial::fragShaderToKey = std::unordered_map<std::string, Rendering::ShaderMaterial::FragShaderKey>();
 
 std::unordered_map<Rendering::ShaderMaterial::FragShaderKey, std::string> Rendering::ShaderMaterial::keyToFragShader = std::unordered_map<Rendering::ShaderMaterial::FragShaderKey, std::string>();

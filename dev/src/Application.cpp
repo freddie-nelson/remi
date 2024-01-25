@@ -115,9 +115,28 @@ void Application::init()
     // registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), gradient));
     registry->add(textEntity, Rendering::Renderable{true, true});
 
-    std::string textShader = "";
+    const std::string textShader =
+        "#version 300 es\n"
+        "\n"
+        "precision mediump float;\n"
+        "\n"
+        "uniform sampler2D uTextures[__MAX_TEXTURE_UNITS__];\n"
+        "\n"
+        "flat in uint vTextureUnit;\n"
+        "in vec2 vTexCoord;\n"
+        "in vec4 vColor;\n"
+        "in vec2 vUv;\n"
+        "\n"
+        "out vec4 FragColor;\n"
+        "\n"
+        "__getTexture__"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   FragColor = getTexture(vTextureUnit, vTexCoord) * vColor;\n"
+        "}\n";
 
-    Rendering::ShaderMaterial m(textShader);
+    Rendering::ShaderMaterial m(textShader, gradient);
     registry->add(textEntity, m);
 
     auto &t = registry->get<Core::Transform>(textEntity);
