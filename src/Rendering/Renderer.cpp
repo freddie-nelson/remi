@@ -199,14 +199,20 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
 
     meshShader.uniform(&uViewProjectionMatrix);
     meshShader.uniform(&uColor);
-    meshShader.uniform(&uTextures);
 
+    meshShader.uniform(&uTextures);
     meshShader.uniform(&uTextureUnit);
     meshShader.uniform(&uTextureSize);
     meshShader.uniform(&uTextureAtlasPos);
     meshShader.uniform(&uTextureAtlasSize);
 
     meshShader.uniform(&uMeshTransform);
+
+    if (registry.has<ShaderMaterial>(entity))
+    {
+        auto &shaderMaterial = registry.get<ShaderMaterial>(entity);
+        meshShader.uniform(shaderMaterial.getUniforms());
+    }
 
     meshShader.attrib(&aPos);
     meshShader.attrib(&aTexCoord);
@@ -293,6 +299,12 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
     instancedMeshShader.uniform(&uViewProjectionMatrix);
     instancedMeshShader.uniform(&uTextureAtlasSize);
     instancedMeshShader.uniform(&uTextures);
+
+    if (registry.has<ShaderMaterial>(instances[0]))
+    {
+        auto &shaderMaterial = registry.get<ShaderMaterial>(instances[0]);
+        instancedMeshShader.uniform(shaderMaterial.getUniforms());
+    }
 
     instancedMeshShader.attrib(attribs);
 
@@ -402,13 +414,23 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
     VertexIndices indices(batchedIndices);
 
     // set up shader
-    auto &[meshShader, instancedMeshShader, batchedMeshShader] = getShaders(registry, renderables[0]);
+    auto &shaders = getShaders(registry, renderables[0]);
+    auto &batchedMeshShader = shaders.batchedMeshShader;
 
     batchedMeshShader.use();
 
     batchedMeshShader.uniform(&uViewProjectionMatrix);
     batchedMeshShader.uniform(&uTextureAtlasSize);
     batchedMeshShader.uniform(&uTextures);
+
+    if (registry.has<ShaderMaterial>(renderables[0]))
+    {
+        auto &shaderMaterial = registry.get<ShaderMaterial>(renderables[0]);
+        batchedMeshShader.uniform(shaderMaterial.getUniforms());
+
+        if (shaderMaterial.getUniforms().contains("uTime"))
+            std::cout << *static_cast<float *>(shaderMaterial.getUniforms().at("uTime")->getValuePointer()) << std::endl;
+    }
 
     batchedMeshShader.attrib(&aPos);
     batchedMeshShader.attrib(&aTexCoord);

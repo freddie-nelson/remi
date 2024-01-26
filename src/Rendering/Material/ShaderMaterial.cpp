@@ -6,6 +6,8 @@ std::unordered_map<std::string, Rendering::ShaderMaterial::FragShaderKey> Render
 
 std::unordered_map<Rendering::ShaderMaterial::FragShaderKey, std::string> Rendering::ShaderMaterial::keyToFragShader = std::unordered_map<Rendering::ShaderMaterial::FragShaderKey, std::string>();
 
+std::unordered_map<Rendering::ShaderMaterial::FragShaderKey, std::unordered_map<std::string, Rendering::UniformBase *>> Rendering::ShaderMaterial::uniforms = std::unordered_map<Rendering::ShaderMaterial::FragShaderKey, std::unordered_map<std::string, Rendering::UniformBase *>>();
+
 Rendering::ShaderMaterial::FragShaderKey Rendering::ShaderMaterial::nextKey = 1;
 
 Rendering::ShaderMaterial::ShaderMaterial(std::string fragmentShader, Color color, Texture *texture)
@@ -51,6 +53,26 @@ void Rendering::ShaderMaterial::setFragmentShader(std::string fragmentShader)
 Rendering::ShaderMaterial::FragShaderKey Rendering::ShaderMaterial::getFragmentShaderKey() const
 {
     return fragShaderKey;
+}
+
+void Rendering::ShaderMaterial::uniform(UniformBase *uniform)
+{
+    if (!uniforms.contains(fragShaderKey))
+    {
+        uniforms[fragShaderKey] = std::unordered_map<std::string, UniformBase *>();
+    }
+
+    uniforms[fragShaderKey][uniform->getName()] = uniform;
+}
+
+const std::unordered_map<std::string, Rendering::UniformBase *> &Rendering::ShaderMaterial::getUniforms() const
+{
+    if (!uniforms.contains(fragShaderKey))
+    {
+        uniforms[fragShaderKey] = std::unordered_map<std::string, UniformBase *>();
+    }
+
+    return uniforms.at(fragShaderKey);
 }
 
 Rendering::ShaderMaterial &Rendering::ShaderMaterial::operator=(const ShaderMaterial &m)

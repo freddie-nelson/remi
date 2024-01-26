@@ -84,55 +84,61 @@ namespace Rendering
          * Sets or updates the uniform value.
          *
          * @param name The name of the uniform.
+         * @param safe Whether or not to throw if the uniform is not found.
          *
          * @throws std::invalid_argument If the uniform is not found.
          */
-        void uniform(UniformBase *uniform);
+        void uniform(UniformBase *uniform, bool safe = false);
 
         /**
          * Sets or updates the uniform values.
          *
          * @param uniforms The uniforms to set or update.
+         * @param safe Whether or not to throw if any of the uniforms are not found.
          *
          * @throws std::invalid_argument If the uniform is not found.
          */
-        void uniform(const std::vector<UniformBase *> &uniforms);
+        void uniform(const std::vector<UniformBase *> &uniforms, bool safe = false);
 
         /**
          * Sets or updates the uniform values.
          *
          * @param uniforms The uniforms to set or update.
+         * @param safe Whether or not to throw if any of the uniforms are not found.
          *
          * @throws std::invalid_argument If the uniform is not found.
          */
-        void uniform(const std::unordered_map<std::string, UniformBase *> &uniforms);
+        void uniform(const std::unordered_map<std::string, UniformBase *> &uniforms, bool safe = false);
 
         /**
          * Sets or updates the vertex attribute value.
          *
          * @param name The name of the vertex attribute.
+         * @param safe Whether or not to throw if the vertex attribute is not found.
          *
          * @throws std::invalid_argument If the vertex attribute is not found.
          */
-        void attrib(VertexAttribBase *attrib);
+        void attrib(VertexAttribBase *attrib, bool safe = false);
 
         /**
          * Sets or updates the vertex attribute values.
          *
          * @param attribs The vertex attributes to set or update.
+         * @param safe Whether or not to throw if any of the vertex attributes are not found.
          *
          * @throws std::invalid_argument If the vertex attribute is not found.
          */
-        void attrib(const std::vector<VertexAttribBase *> &attribs);
+        void attrib(const std::vector<VertexAttribBase *> &attribs, bool safe = false);
 
         /**
          * Sets or updates the vertex attribute values.
          *
          * @param attribs The vertex attributes to set or update.
+         * @param safe Whether or not to throw if any of the vertex attributes are not found.
          *
          * @throws std::invalid_argument If the vertex attribute is not found.
          */
-        void attrib(const std::unordered_map<std::string, VertexAttribBase *> &attribs);
+        void attrib(const std::unordered_map<std::string, VertexAttribBase *> &attribs, bool safe = false);
 
         /**
          * Sets the vertex indices.

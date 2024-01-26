@@ -12,6 +12,8 @@
 #include <blaze++/Rendering/Font/Font.h>
 #include <blaze++/Rendering/Font/Text.h>
 #include <blaze++/Rendering/Material/ShaderMaterial.h>
+#include <blaze++/Rendering/Shader/Uniform.h>
+#include <blaze++/Core/Timestep.h>
 
 #include <math.h>
 #include <random>
@@ -120,6 +122,9 @@ void Application::init()
         "\n"
         "precision mediump float;\n"
         "\n"
+        // "uniform float uTime;\n"
+        "uniform float uColorAlpha;\n"
+        "\n"
         "uniform sampler2D uTextures[__MAX_TEXTURE_UNITS__];\n"
         "\n"
         "flat in uint vTextureUnit;\n"
@@ -133,7 +138,8 @@ void Application::init()
         "\n"
         "void main()\n"
         "{\n"
-        "   FragColor = getTexture(vTextureUnit, vTexCoord) * vColor;\n"
+        "   FragColor = vec4(1.0f, 1.0f, 1.0f, uColorAlpha) * vColor * getTexture(vTextureUnit, vTexCoord);\n"
+        // "   FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f / (uTime / 30.0f)) * vColor;\n"
         "}\n";
 
     Rendering::ShaderMaterial m(textShader, gradient);
@@ -151,6 +157,9 @@ void Application::destroy()
 
 unsigned long long totalFps = 0;
 unsigned long long frames = 0;
+unsigned long long averageFps = 0;
+float timeSinceStart = 0;
+float textAlpha = 1.0f;
 
 void Application::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
@@ -159,7 +168,8 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     totalFps += fps;
     frames++;
 
-    auto averageFps = totalFps / frames;
+    averageFps = totalFps / frames;
+    timeSinceStart = static_cast<float>(frames) / static_cast<float>(averageFps);
 
     std::cout << "\rdt: " << timestep.getSeconds() << ", fps: " << 1.0f / timestep.getSeconds() << ", average fps: " << averageFps << "        " << std::endl;
 
@@ -200,6 +210,14 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
         t.scale(1.0f - camZoomSpeed * timestep.getSeconds());
     if (keyboard->isPressed(Input::Key::ARROW_DOWN))
         t.scale(1.0f + camZoomSpeed * timestep.getSeconds());
+
+    // set text entity uniform
+    auto textEntity = registry.view<Rendering::ShaderMaterial>()[0];
+    auto &m = registry.get<Rendering::ShaderMaterial>(textEntity);
+
+    // m.uniform(new Rendering::Uniform("uTime", timeSinceStart));
+    textAlpha = sin(timeSinceStart) * 0.5f + 0.5f;
+    m.uniform(new Rendering::Uniform("uColorAlpha", textAlpha));
 
     // rotate all entities with a transform component except camera
     // auto entities = registry.view<Core::Transform>();

@@ -167,7 +167,7 @@ void Rendering::Shader::drawInstanced(size_t instanceCount, GLenum drawMode, siz
     glBindVertexArray(0);
 }
 
-void Rendering::Shader::uniform(UniformBase *uniform)
+void Rendering::Shader::uniform(UniformBase *uniform, bool safe)
 {
     if (!inUse())
     {
@@ -176,6 +176,11 @@ void Rendering::Shader::uniform(UniformBase *uniform)
 
     if (!hasUniform(uniform->getName()))
     {
+        if (safe)
+        {
+            return;
+        }
+
         throw std::invalid_argument("Uniform " + uniform->getName() + " not found.");
     }
 
@@ -187,23 +192,23 @@ void Rendering::Shader::uniform(UniformBase *uniform)
     uniforms[uniform->getName()] = uniform;
 }
 
-void Rendering::Shader::uniform(const std::vector<UniformBase *> &uniforms)
+void Rendering::Shader::uniform(const std::vector<UniformBase *> &uniforms, bool safe)
 {
     for (auto u : uniforms)
     {
-        uniform(u);
+        uniform(u, safe);
     }
 }
 
-void Rendering::Shader::uniform(const std::unordered_map<std::string, UniformBase *> &uniforms)
+void Rendering::Shader::uniform(const std::unordered_map<std::string, UniformBase *> &uniforms, bool safe)
 {
     for (auto u : uniforms)
     {
-        uniform(u.second);
+        uniform(u.second, safe);
     }
 }
 
-void Rendering::Shader::attrib(VertexAttribBase *attrib)
+void Rendering::Shader::attrib(VertexAttribBase *attrib, bool safe)
 {
     if (!isLoaded())
     {
@@ -212,6 +217,11 @@ void Rendering::Shader::attrib(VertexAttribBase *attrib)
 
     if (!hasAttrib(attrib->getName()))
     {
+        if (safe)
+        {
+            return;
+        }
+
         throw std::invalid_argument("Vertex attribute " + attrib->getName() + " not found.");
     }
 
@@ -225,19 +235,19 @@ void Rendering::Shader::attrib(VertexAttribBase *attrib)
     vertexAttribs[attrib->getName()] = attrib;
 }
 
-void Rendering::Shader::attrib(const std::vector<VertexAttribBase *> &attribs)
+void Rendering::Shader::attrib(const std::vector<VertexAttribBase *> &attribs, bool safe)
 {
     for (auto a : attribs)
     {
-        attrib(a);
+        attrib(a, safe);
     }
 }
 
-void Rendering::Shader::attrib(const std::unordered_map<std::string, VertexAttribBase *> &attribs)
+void Rendering::Shader::attrib(const std::unordered_map<std::string, VertexAttribBase *> &attribs, bool safe)
 {
     for (auto a : attribs)
     {
-        attrib(a.second);
+        attrib(a.second, safe);
     }
 }
 

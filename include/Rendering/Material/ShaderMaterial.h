@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Material.h"
+#include "../Shader/Uniform.h"
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace Rendering
 {
@@ -78,6 +80,22 @@ namespace Rendering
         FragShaderKey getFragmentShaderKey() const;
 
         /**
+         * Sets the uniform for the shader attached to this material.
+         *
+         * This will set the uniform for all shader materials that use the same fragment shader.
+         *
+         * @param uniform The uniform to set.
+         */
+        void uniform(UniformBase *uniform);
+
+        /**
+         * Gets the uniforms for the shader attached to this material.
+         *
+         * @returns The uniforms for the shader attached to this material.
+         */
+        const std::unordered_map<std::string, UniformBase *> &getUniforms() const;
+
+        /**
          * Copies the given ShaderMaterial into this ShaderMaterial.
          *
          * @param m The ShaderMaterial to copy.
@@ -88,6 +106,8 @@ namespace Rendering
         static std::unordered_map<std::string, FragShaderKey> fragShaderToKey;
 
         static std::unordered_map<FragShaderKey, std::string> keyToFragShader;
+
+        static std::unordered_map<FragShaderKey, std::unordered_map<std::string, UniformBase *>> uniforms;
 
         /**
          * The next key to assign to a fragment shader.
