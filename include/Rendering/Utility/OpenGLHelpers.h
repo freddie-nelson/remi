@@ -112,4 +112,13 @@ namespace Rendering
      * @returns The OpenGL component type of the given gl type.
      */
     GLenum glGetComponentType(GLenum type);
+
+    /**
+     * Gets the string representation of the given framebuffer status.
+     *
+     * @param status The framebuffer status.
+     *
+     * @returns The string representation of the given framebuffer status.
+     */
+    std::string glFramebufferStatusToString(GLenum status);
 }

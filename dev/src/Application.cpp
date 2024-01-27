@@ -80,7 +80,7 @@ void Application::init()
     registry->add(camera, Rendering::ActiveCamera());
 
     // create entities
-    int entityCount = 100;
+    int entityCount = 1000;
     int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
     int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
     int zRange = 10;

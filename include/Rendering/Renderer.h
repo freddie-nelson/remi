@@ -10,6 +10,7 @@
 #include "../ECS/Entity.h"
 #include "../Core/BoundingCircle.h"
 #include "../Core/AABB/AABBTree.h"
+#include "./RenderTarget.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -85,15 +86,15 @@ namespace Rendering
         /**
          * Updates the renderer.
          *
-         * This renders all entities in the registry with a Mesh2D, Transform, Material and Renderable component.
+         * This will prune the AABB trees every `treePruneFrequency` updates.
          *
-         * Culls entities outside the camera's view.
+         * This will also update the active camera's size to match the renderer's size if `syncActiveCameraSizeWithRenderer` is true.
          *
-         * This also prunes the AABB trees.
+         * This will also update the renderer's size to match the window size if `syncRendererSizeWithWindow` is true.
          *
-         * This also sorts the renderables by their z index, when alpha blending is enabled.
+         * This will also update the renderer's render target to match the renderer's size if the render target is not null.
          *
-         * @param registry The registry to render from.
+         * @param registry The registry to update from.
          * @param timestep The timestep since the last update.
          */
         void update(const ECS::Registry &registry, const Core::Timestep &timestep) override;
@@ -147,20 +148,6 @@ namespace Rendering
          * @param renderables The entities to render, these entities must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
         void batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables);
-
-        /**
-         * Sorts the given renderables by their z index.
-         *
-         * The renderables are sorted in ascending order, i.e. the renderable with the lowest z index will be first in the vector.
-         *
-         * This insures that the renderables work correctly with alpha blending.
-         *
-         * The renderables are sorted in place.
-         *
-         * @param registry The registry to read components from.
-         * @param renderables The renderables to sort.
-         */
-        void sortRenderables(const ECS::Registry &registry, std::vector<ECS::Entity> &renderables);
 
         /**
          * Sets the clear color.
@@ -271,16 +258,6 @@ namespace Rendering
         ECS::Entity getActiveCamera(const ECS::Registry &registry) const;
 
         /**
-         * Gets the AABB sufficient for culling entities outside the camera's view.
-         *
-         * @param registry The registry to get the camera's components from.
-         * @param camera The camera to get the culling AABB for.
-         *
-         * @returns The AABB sufficient for culling entities outside the camera's view.
-         */
-        Core::AABB getCullingAABB(const ECS::Registry &registry, const ECS::Entity camera) const;
-
-        /**
          * Sets whether the renderer should sync it's size with the window size.
          *
          * By default, this is true.
@@ -314,9 +291,36 @@ namespace Rendering
          */
         bool getSyncActiveCameraSize() const;
 
+        /**
+         * Sets the render target of the renderer.
+         *
+         * The renderer will output to the given target instead of the screen.
+         *
+         * The render target's size will be set to the renderer's size each update.
+         *
+         * The render target can be removed by setting the render target to nullptr.
+         *
+         * @param target The render target to render to.
+         */
+        void setRenderTarget(RenderTarget *texture);
+
+        /**
+         * Returns the render target of the renderer.
+         *
+         * @returns The render target of the renderer.
+         */
+        const RenderTarget *const getRenderTarget() const;
+
+        /**
+         * Returns the texture manager of the renderer.
+         *
+         * @returns The texture manager of the renderer.
+         */
+        TextureManager &getTextureManager();
+
     private:
-        int width;
-        int height;
+        int width = 0;
+        int height = 0;
 
         TextureManager textureManager;
 
@@ -328,6 +332,9 @@ namespace Rendering
         GLFWwindow *glfwWindow;
 
         GLenum bufferDrawType = GL_STREAM_DRAW;
+
+        bool ownsRenderTarget = true;
+        RenderTarget *renderTarget;
 
         /**
          * The shaders used by the renderer.
@@ -373,88 +380,6 @@ namespace Rendering
          * @returns The shaders for the given entity.
          */
         RendererShaders &getShaders(const ECS::Registry &registry, const ECS::Entity entity);
-
-        /**
-         * Gets the material for the given entity.
-         *
-         * Assumes the entity has a Material or ShaderMaterial component.
-         *
-         * This will prioritize the ShaderMaterial component over the Material component.
-         *
-         * @param registry The registry to read components from.
-         * @param entity The entity to get the material for.
-         *
-         * @returns The material for the given entity.
-         */
-        Material *getMaterial(const ECS::Registry &registry, const ECS::Entity entity) const;
-
-        /**
-         * The number of updates to wait before pruning the AABB tree.
-         *
-         * Pruning involves removing entities that are no longer in the registry.
-         */
-        unsigned int treePruneFrequency = 60;
-
-        /**
-         * The number of updates since the last prune.
-         */
-        unsigned int updatesSinceLastTreePrune = 0;
-
-        /**
-         * Prunes the AABB trees.
-         *
-         * This involves removing entities no longer have a Renderable component, or are no longer in the registry.
-         *
-         * @param registry The registry to prune against.
-         */
-        void pruneTrees(const ECS::Registry &registry);
-
-        /**
-         * Static renderables and their previously computed aabbs.
-         */
-        std::unordered_map<ECS::Entity, Core::AABB> staticRenderables;
-
-        /**
-         * The AABB tree for static renderables.
-         */
-        Core::AABBTree<ECS::Entity> staticRenderablesTree;
-
-        /**
-         * Dynamic renderables and their previously computed aabbs.
-         */
-        std::unordered_map<ECS::Entity, Core::AABB> dynamicRenderables;
-
-        /**
-         * The AABB tree for dynamic renderables.
-         *
-         * The tree gives fat aabb's a margin of 100 pixels.
-         */
-        Core::AABBTree<ECS::Entity> dynamicRenderablesTree = Core::AABBTree<ECS::Entity>(100.0f);
-
-        /**
-         * Populates the renderables vector with all the entities that are inside the given aabb.
-         *
-         * @param registry The registry to read components from.
-         * @param entities The entities to check.
-         * @param viewAabb The aabb to check against.
-         * @param isStatic When true only static entities will be checked, when false only non static entities are check.
-         * @param renderables The vector to populate with the entities that are inside the given aabb.
-         *
-         * @returns The number of entities of the other renderable type, i.e. returns number of static entities when isStatic is false, and vice versa.
-         */
-        size_t getRenderables(const ECS::Registry &registry, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
-
-        /**
-         * Renders the given renderables.
-         *
-         * This does not cull entities outside the camera's view.
-         *
-         * @param registry The registry to read components from.
-         * @param camera The camera to use for rendering.
-         * @param renderables The renderables to render.
-         * @param isStatic Whether the renderables are static or not.
-         */
-        void batchRenderables(const ECS::Registry &registry, const ECS::Entity activeCamera, const std::vector<ECS::Entity> &renderables, bool isStatic);
 
         /**
          * Binds the textures of the given renderables.

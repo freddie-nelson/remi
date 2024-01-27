@@ -2,6 +2,7 @@
 
 #include "Texture.h"
 #include "TextureAtlas.h"
+#include "../Utility/OpenGLHelpers.h"
 #include "../../gl.h"
 
 #include <unordered_map>
@@ -57,6 +58,15 @@ namespace Rendering
         BoundTexture bind(const Texture *texture);
 
         /**
+         * Binds the given render target so that it can be used for rendering.
+         *
+         * This will bind the render target texture to the last texture unit.
+         *
+         * @param texture The texture object to bind to the render target texture unit.
+         */
+        void bindRenderTarget(GLuint texture);
+
+        /**
          * Gets the number of texture units currently used.
          *
          * @returns The number of texture units currently used.
@@ -64,9 +74,29 @@ namespace Rendering
         int getTextureUnitsUsed() const;
 
         /**
+         * Gets the number of texture units that are reserved for the engine.
+         *
+         * These will be placed in the last texture units, after all atlas slots.
+         *
+         * They are in the last slots of the texturesUniform vector.
+         *
+         * @returns The number of texture units that are reserved for the engine.
+         */
+        int getReservedTextureUnits() const;
+
+        /**
+         * Gets the texture unit that the render target is bound to.
+         *
+         * This is reserved for the engine and should not be modified.
+         *
+         * @returns The texture unit that the render target is bound to.
+         */
+        int getRenderTargetTextureUnit() const;
+
+        /**
          * Gets the array of active texture units currently bound.
          *
-         * Any texture units that are not bound will be 0 and after textureUnitsUsed.
+         * The values which are 0 and after textureUnitsUsed, but before reservedTextureUnits indices from the end are not bound .
          *
          * @returns The array of active texture units currently bound.
          */
@@ -76,11 +106,27 @@ namespace Rendering
         int textureUnitsUsed = 0;
 
         /**
+         * The number of texture units that are reserved for the engine.
+         *
+         * These will be placed in the last texture units, after all atlas slots.
+         */
+        const int reservedTextureUnits = 3;
+
+        /**
+         * The texture unit that the render target is bound to.
+         *
+         * This is the last texture unit.
+         *
+         * This is reserved for the engine and should not be modified.
+         */
+        const int renderTargetTextureUnit = glGetMaxTextureUnits() - 1;
+
+        /**
          * The texture units that are currently bound.
          *
          * The size of the vector is always equal to the number of texture units supported by the GPU.
          *
-         * The values which are 0 and after textureUnitsUsed are not bound.
+         * The values which are 0 and after textureUnitsUsed, but before reservedTextureUnits indices from the end are not bound .
          */
         std::vector<int> texturesUniform;
 

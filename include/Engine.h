@@ -2,6 +2,8 @@
 
 #include "Core/Timestep.h"
 #include "Rendering/Renderer.h"
+#include "Rendering/RenderPipeline.h"
+#include "Rendering/RenderManager.h"
 #include "Core/Window.h"
 #include "ECS/Registry.h"
 #include "Input/Mouse.h"
@@ -170,6 +172,15 @@ namespace blz
         Rendering::Renderer *const getRenderer();
 
         /**
+         * Gets the render pipeline of the engine.
+         *
+         * This is the render pipeline that is used to render the game.
+         *
+         * @returns The render pipeline of the engine.
+         */
+        Rendering::RenderPipeline *const getPipeline();
+
+        /**
          * Gets the registry of the engine.
          *
          * This is the registry that is used to store all the entities and their components.
@@ -201,6 +212,8 @@ namespace blz
 
         Core::Window *window;
         Rendering::Renderer *renderer;
+        Rendering::RenderPipeline *pipeline;
+        Rendering::RenderManager *renderManager;
 
         ECS::Registry *registry;
 

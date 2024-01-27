@@ -44,9 +44,30 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
     };
 }
 
+void Rendering::TextureManager::bindRenderTarget(GLuint texture)
+{
+    if (texture == 0)
+    {
+        throw std::invalid_argument("TextureManager (bindRenderTarget): render target texture must not be 0.");
+    }
+
+    glActiveTexture(GL_TEXTURE0 + renderTargetTextureUnit);
+    glBindTexture(GL_TEXTURE_2D, texture);
+}
+
 int Rendering::TextureManager::getTextureUnitsUsed() const
 {
     return textureUnitsUsed;
+}
+
+int Rendering::TextureManager::getReservedTextureUnits() const
+{
+    return reservedTextureUnits;
+}
+
+int Rendering::TextureManager::getRenderTargetTextureUnit() const
+{
+    return renderTargetTextureUnit;
 }
 
 const std::vector<int> &Rendering::TextureManager::getTexturesUniform() const
@@ -123,7 +144,7 @@ unsigned int Rendering::TextureManager::createAtlas()
 
     auto maxTextureUnits = glGetMaxTextureUnits();
 
-    if (atlases.size() >= maxTextureUnits)
+    if (atlases.size() >= (maxTextureUnits - reservedTextureUnits))
     {
         throw std::runtime_error("TextureManager (createAtlas): no more texture units available.");
     }

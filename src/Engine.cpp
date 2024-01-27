@@ -1,5 +1,10 @@
 #include "../include/Engine.h"
 #include "../include/Config.h"
+#include "../include/Rendering/Passes/RenderablesPass.h"
+#include "../include/Rendering/Passes/CullingPass.h"
+#include "../include/Rendering/Passes/MaterialPass.h"
+#include "../include/Rendering/Passes/BatchPass.h"
+#include "../include/Rendering/Passes/OutputPass.h"
 
 #ifdef __EMSCRIPTEN__
 #include "../include/emscriptenHelpers.h"
@@ -12,11 +17,19 @@ blz::Engine::Engine(EngineConfig config)
 
     window = new Core::Window(config.windowTitle, config.windowWidth, config.windowHeight, config.windowFullscreen);
     window->init();
-    addSystem(window);
+    // addSystem(window);
 
     renderer = new Rendering::Renderer(window->getGLFWWindow(), config.windowWidth, config.windowHeight);
     renderer->init();
-    addSystem(renderer);
+
+    pipeline = new Rendering::RenderPipeline();
+    pipeline->add(new Rendering::RenderablesPass(), 0);
+    pipeline->add(new Rendering::CullingPass(), 1);
+    pipeline->add(new Rendering::MaterialPass(), 2);
+    pipeline->add(new Rendering::BatchPass(), 3);
+    pipeline->add(new Rendering::OutputPass(), 4);
+
+    renderManager = new Rendering::RenderManager(renderer, pipeline);
 
     registry = new ECS::Registry();
 
@@ -29,6 +42,8 @@ blz::Engine::~Engine()
     delete keyboard;
     delete mouse;
     delete registry;
+    delete renderManager;
+    delete pipeline;
     delete renderer;
     delete window;
 }
@@ -149,10 +164,17 @@ void blz::Engine::mainLoop(MainLoopArgs *args)
         // clear renderer
         renderer->clear();
 
+        // update window
+        window->update(*registry, timestep);
+        renderer->update(*registry, timestep);
+
         for (auto system : systems)
         {
             system->update(*registry, timestep);
         }
+
+        // render renderer
+        renderManager->render(*registry);
 
         // present renderer
         renderer->present();

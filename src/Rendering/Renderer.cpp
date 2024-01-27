@@ -6,6 +6,7 @@
 #include "../../include/Config.h"
 #include "../../include/Core/BoundingCircle.h"
 #include "../../include/Rendering/Renderable.h"
+#include "../../include/Rendering/Material/MaterialHelpers.h"
 #include "../../include/Rendering/Camera/ActiveCamera.h"
 #include "../../include/Rendering/Camera/Camera.h"
 #include "../../include/gl.h"
@@ -43,6 +44,9 @@ Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height)
 {
     this->glfwWindow = glfwWindow;
     setSize(width, height);
+
+    ownsRenderTarget = true;
+    renderTarget = new RenderTarget(width, height);
 }
 
 Rendering::Renderer::~Renderer()
@@ -67,59 +71,16 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
         setSize(size.x, size.y);
     }
 
-    // get entities
-    auto &entities = registry.view<Mesh2D, Core::Transform, Renderable>();
-
-    // exit if no entities
-    if (entities.size() == 0)
-    {
-        return;
-    }
-
-    // auto now = Rendering::timeSinceEpochMillisec();
-
     auto activeCamera = getActiveCamera(registry);
-
     if (syncActiveCameraSizeWithRenderer)
     {
         auto &camera = registry.get<Camera>(activeCamera);
         camera.setViewportSize(width, height);
     }
 
-    auto fatCameraAabb = getCullingAABB(registry, activeCamera);
-
-    // cull entities outside camera's viewport to get renderables
-    std::vector<ECS::Entity> staticRenderables;
-
-    // cull static renderables
-    auto dynamicsCount = getRenderables(registry, entities, fatCameraAabb, false, staticRenderables);
-
-    // cull dynamic renderables
-    std::vector<ECS::Entity> renderables;
-
-    if (dynamicsCount > 0)
-        getRenderables(registry, entities, fatCameraAabb, true, renderables);
-
-    // prune trees
-    updatesSinceLastTreePrune++;
-    if (updatesSinceLastTreePrune == treePruneFrequency)
+    if (renderTarget != nullptr)
     {
-        pruneTrees(registry);
-        updatesSinceLastTreePrune = 0;
-    }
-
-    // std::cout << "cull time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
-
-    // now = Rendering::timeSinceEpochMillisec();
-
-    if (staticRenderables.size() != 0)
-    {
-        batchRenderables(registry, activeCamera, staticRenderables, true);
-    }
-
-    if (renderables.size() != 0)
-    {
-        batchRenderables(registry, activeCamera, renderables, false);
+        renderTarget->resize(getSize());
     }
 }
 
@@ -448,44 +409,6 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
     // std::cout << "draw time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
 }
 
-void Rendering::Renderer::sortRenderables(const ECS::Registry &registry, std::vector<ECS::Entity> &renderables)
-{
-    std::map<unsigned int, std::vector<ECS::Entity>> layers;
-
-    for (auto &e : renderables)
-    {
-        auto &transform = registry.get<Core::Transform>(e);
-        auto zIndex = transform.getZIndex();
-
-        if (!layers.contains(zIndex))
-        {
-            layers.emplace(zIndex, std::vector<ECS::Entity>());
-        }
-
-        layers[zIndex].push_back(e);
-    }
-
-    renderables.clear();
-
-    for (auto &layer : layers)
-    {
-        for (auto &e : layer.second)
-        {
-            renderables.push_back(e);
-        }
-    }
-
-    // first renderable should be at lowest index and last renderable at highest index
-
-    // auto first = renderables.front();
-    // auto &firstTransform = registry.get<Core::Transform>(first);
-
-    // auto last = renderables.back();
-    // auto &lastTransform = registry.get<Core::Transform>(last);
-
-    // std::cout << "first: " << firstTransform.getZIndex() << ", last: " << lastTransform.getZIndex() << std::endl;
-}
-
 void Rendering::Renderer::setClearColor(const Color &color)
 {
     clearColor = color;
@@ -592,30 +515,6 @@ ECS::Entity Rendering::Renderer::getActiveCamera(const ECS::Registry &registry) 
     }
 }
 
-Core::AABB Rendering::Renderer::getCullingAABB(const ECS::Registry &registry, const ECS::Entity camera) const
-{
-    auto &cameraComponent = registry.get<Camera>(camera);
-    auto &cameraTransform = registry.get<Core::Transform>(camera);
-
-    auto cameraAabb = cameraComponent.getAABB();
-
-    Core::AABB fatCameraAabb;
-
-    // if camera is rotated use bounding circle aabb
-    if (cameraTransform.getRotation() != 0)
-    {
-        auto cameraBoundingCircle = Core::BoundingCircle(cameraAabb, cameraTransform);
-        fatCameraAabb = Core::AABB(cameraBoundingCircle.getCentre(), cameraBoundingCircle.getRadius());
-    }
-    else
-    {
-        // otherwise scaled and translated aabb is sufficient
-        fatCameraAabb = cameraComponent.getScaledAndTranslatedAabb(cameraTransform);
-    }
-
-    return fatCameraAabb;
-}
-
 void Rendering::Renderer::syncSizeWithWindow(bool sync)
 {
     syncRendererSizeWithWindow = sync;
@@ -634,6 +533,34 @@ void Rendering::Renderer::syncActiveCameraSize(bool sync)
 bool Rendering::Renderer::getSyncActiveCameraSize() const
 {
     return syncActiveCameraSizeWithRenderer;
+}
+
+void Rendering::Renderer::setRenderTarget(RenderTarget *target)
+{
+    if (ownsRenderTarget)
+    {
+        delete renderTarget;
+    }
+
+    if (target == nullptr)
+    {
+        ownsRenderTarget = true;
+        renderTarget = new RenderTarget(width, height);
+        return;
+    }
+
+    ownsRenderTarget = target == renderTarget;
+    renderTarget = target;
+}
+
+const Rendering::RenderTarget *const Rendering::Renderer::getRenderTarget() const
+{
+    return renderTarget;
+}
+
+Rendering::TextureManager &Rendering::Renderer::getTextureManager()
+{
+    return textureManager;
 }
 
 Rendering::RendererShaders &Rendering::Renderer::getShaders()
@@ -663,188 +590,6 @@ Rendering::RendererShaders &Rendering::Renderer::getShaders(const ECS::Registry 
     else
     {
         return getShaders();
-    }
-}
-
-Rendering::Material *Rendering::Renderer::getMaterial(const ECS::Registry &registry, const ECS::Entity entity) const
-{
-    if (registry.has<ShaderMaterial>(entity))
-    {
-        return &registry.get<ShaderMaterial>(entity);
-    }
-    else
-    {
-        return &registry.get<Material>(entity);
-    }
-}
-
-void Rendering::Renderer::pruneTrees(const ECS::Registry &registry)
-{
-    auto staticTreeEntities = staticRenderablesTree.getIds();
-    for (auto &e : staticTreeEntities)
-    {
-        if (!registry.has<Renderable>(e))
-        {
-            staticRenderablesTree.remove(e);
-            staticRenderables.erase(e);
-        }
-    }
-
-    auto dynamicTreeEntities = dynamicRenderablesTree.getIds();
-    for (auto &e : dynamicTreeEntities)
-    {
-        if (!registry.has<Renderable>(e))
-        {
-            dynamicRenderablesTree.remove(e);
-            dynamicRenderables.erase(e);
-        }
-    }
-}
-
-size_t Rendering::Renderer::getRenderables(const ECS::Registry &registry, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables)
-{
-    size_t otherCount = 0;
-
-    for (auto &e : entities)
-    {
-        auto &renderable = registry.get<Renderable>(e);
-        if (!renderable.isVisible)
-        {
-            continue;
-        }
-
-        if (isStatic && !renderable.isStatic)
-        {
-            // check if entity was previously static
-            if (staticRenderables.contains(e))
-            {
-                staticRenderablesTree.remove(e);
-                staticRenderables.erase(e);
-            }
-
-            otherCount++;
-
-            continue;
-        }
-
-        if (!isStatic && renderable.isStatic)
-        {
-            // check if entity was previously dynamic
-            if (dynamicRenderables.contains(e))
-            {
-                dynamicRenderablesTree.remove(e);
-                dynamicRenderables.erase(e);
-            }
-
-            otherCount++;
-
-            continue;
-        }
-
-        // skip if already in tree and is static
-        if (isStatic && staticRenderables.contains(e))
-        {
-            continue;
-        }
-
-        auto &transform = registry.get<Core::Transform>(e);
-        auto &mesh = registry.get<Mesh2D>(e);
-
-        auto boundingCircle = Core::BoundingCircle(mesh.getAABB(), transform);
-        auto aabb = Core::AABB(boundingCircle.getCentre(), boundingCircle.getRadius());
-
-        if (dynamicRenderablesTree.has(e))
-        {
-            bool updated = dynamicRenderablesTree.update(e, aabb);
-            if (updated)
-            {
-                dynamicRenderables.emplace(e, std::move(aabb));
-            }
-
-            continue;
-        }
-
-        if (isStatic)
-        {
-            staticRenderables.emplace(e, std::move(aabb));
-            staticRenderablesTree.insert(e, staticRenderables[e]);
-        }
-        else
-        {
-            dynamicRenderables.emplace(e, std::move(aabb));
-            dynamicRenderablesTree.insert(e, dynamicRenderables[e]);
-        }
-    }
-
-    // get entities in view
-    if (isStatic)
-    {
-        staticRenderablesTree.query(viewAabb, renderables);
-    }
-    else
-    {
-        dynamicRenderablesTree.query(viewAabb, renderables);
-    }
-
-    return otherCount;
-}
-
-void Rendering::Renderer::batchRenderables(const ECS::Registry &registry, const ECS::Entity activeCamera, const std::vector<ECS::Entity> &renderables, bool isStatic)
-{
-    std::vector<ShaderMaterial::FragShaderKey> keys;
-
-    // split renderables into opaque and transparent
-    std::unordered_map<ShaderMaterial::FragShaderKey, std::vector<ECS::Entity>> opaqueRenderables;
-    std::unordered_map<ShaderMaterial::FragShaderKey, std::vector<ECS::Entity>> transparentRenderables;
-
-    for (auto &e : renderables)
-    {
-        ShaderMaterial::FragShaderKey key = DEFAULT_SHADER_KEY;
-        if (registry.has<ShaderMaterial>(e))
-        {
-            auto &material = registry.get<ShaderMaterial>(e);
-            key = material.getFragmentShaderKey();
-        }
-
-        auto material = getMaterial(registry, e);
-
-        auto &map = material->isTransparent() && isAlphaBlendingEnabled() ? transparentRenderables : opaqueRenderables;
-
-        if (!map.contains(key))
-        {
-            // if key is not in any map yet, add it to keys
-            if (!opaqueRenderables.contains(key) && !transparentRenderables.contains(key))
-            {
-                keys.push_back(key);
-            }
-
-            map.emplace(key, std::vector<ECS::Entity>());
-        }
-
-        map[key].push_back(e);
-    }
-
-    // sort transparent renderables by z index (back to front)
-    // for correct alpha blending
-    if (isAlphaBlendingEnabled())
-    {
-        for (auto &map : transparentRenderables)
-        {
-            sortRenderables(registry, map.second);
-        }
-    }
-
-    // std::cout << "sort time: " << Rendering::timeSinceEpochMillisec() - now << std::endl;
-
-    // batch render
-    for (auto &key : keys)
-    {
-        if (opaqueRenderables.contains(key))
-            batch(registry, activeCamera, opaqueRenderables[key]);
-
-        // if alpha blending is not enabled, then this will be empty
-        if (transparentRenderables.contains(key))
-            batch(registry, activeCamera, transparentRenderables[key]);
     }
 }
 
