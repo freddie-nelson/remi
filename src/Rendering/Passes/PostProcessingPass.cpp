@@ -47,20 +47,29 @@ Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInp
     checkInput<int>(input);
     auto *typedInput = static_cast<RenderPassInputTyped<int> *>(input);
 
-    input->renderTarget->bind(*input->textureManager, !outputToScreen);
+    auto &renderer = *typedInput->renderer;
+    auto &textureManager = *typedInput->textureManager;
+    auto &renderTarget = *typedInput->renderTarget;
+
+    input->renderTarget->bind(textureManager, !outputToScreen);
+
+    // need to clear depth and stencil buffers
+    // this is because otherwise multiple post processing passes won't work due to early depth test exit
+    // also post processing square could be covered by other geometry
+    glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // create uniforms
-    Uniform uRenderTexture("uRenderTexture", input->textureManager->getRenderTargetTextureUnit(), false, 1, GL_SAMPLER_2D);
+    Uniform uRenderTexture("uRenderTexture", textureManager.getRenderTargetTextureUnit(), false, 1, GL_SAMPLER_2D);
 
     // resolution
     glm::vec2 resolution;
     if (outputToScreen)
     {
-        resolution = input->renderer->getSize();
+        resolution = renderer.getSize();
     }
     else
     {
-        resolution = glm::vec2(input->renderTarget->getWidth(), input->renderTarget->getHeight());
+        resolution = glm::vec2(renderTarget.getWidth(), renderTarget.getHeight());
     }
 
     Uniform uResolution("uResolution", resolution);
@@ -95,7 +104,9 @@ Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInp
     // unbind
     shader.unbind();
 
-    input->renderTarget->unbind(*input->textureManager);
+    renderTarget.unbind(textureManager);
+
+    std::cout << "executed " << getName() << std::endl;
 
     return input;
 }
