@@ -23,11 +23,14 @@ blz::Engine::Engine(EngineConfig config)
     renderer->init();
 
     pipeline = new Rendering::RenderPipeline();
-    pipeline->add(new Rendering::RenderablesPass(), 0);
-    pipeline->add(new Rendering::CullingPass(), 1);
-    pipeline->add(new Rendering::MaterialPass(), 2);
-    pipeline->add(new Rendering::BatchPass(), 3);
-    pipeline->add(new Rendering::OutputPass(), 4);
+    pipeline->add(new Rendering::RenderablesPass(), 1000);
+    pipeline->add(new Rendering::CullingPass(), 2000);
+    pipeline->add(new Rendering::MaterialPass(), 3000);
+    pipeline->add(new Rendering::BatchPass(), 4000);
+    pipeline->add(new Rendering::OutputPass(), 5000);
+
+    std::cout << "Default render pipeline:" << std::endl;
+    std::cout << pipeline->toString() << std::endl;
 
     renderManager = new Rendering::RenderManager(renderer, pipeline);
 

@@ -55,3 +55,15 @@ bool Rendering::RenderPipeline::has(unsigned int order) const
 {
     return passes.contains(order);
 }
+
+std::string Rendering::RenderPipeline::toString() const
+{
+    std::string str = "[RenderPipeline]\n";
+
+    for (auto &pass : passes)
+    {
+        str += "(" + std::to_string(pass.first) + "): " + pass.second->getName() + ",\n";
+    }
+
+    return str;
+}

@@ -177,11 +177,17 @@ namespace Rendering
          */
         virtual RenderPassInput *execute(RenderPassInput *input) = 0;
 
+        /**
+         * Gets the name of the render pass.
+         *
+         * @returns The name of the render pass.
+         */
+        virtual constexpr std::string getName() = 0;
+
     protected:
         /**
          * Checks if the given input is valid.
          *
-         * @param name The name of the render pass.
          * @param input The input to check.
          *
          * @tparam T The expected type of the input.
@@ -190,16 +196,16 @@ namespace Rendering
          * @throws std::invalid_argument If the input is not of the expected type.
          */
         template <typename T>
-        void checkInput(const std::string &name, RenderPassInput *input)
+        void checkInput(RenderPassInput *input)
         {
             if (input == nullptr)
             {
-                throw std::invalid_argument("Input to render pass is null.");
+                throw std::invalid_argument("[" + getName() + "]: Input to render pass is null.");
             }
 
             if (!isType<T>(input))
             {
-                throw std::invalid_argument("Input to render pass is of type '" + input->getDataTypeName() + "', expected '" + blz::TypeInfoGenerator::name<T> + "' in pass '" + name + "'.");
+                throw std::invalid_argument("[" + getName() + "]: Input to render pass is of type '" + input->getDataTypeName() + "', expected '" + blz::TypeInfoGenerator::name<T> + "'.");
             }
         }
 

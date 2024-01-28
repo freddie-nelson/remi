@@ -44,7 +44,7 @@ const std::vector<unsigned int> Rendering::PostProcessingPass::indices = {
 
 Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInput *input)
 {
-    checkInput<int>("PostProcessingPass", input);
+    checkInput<int>(input);
     auto *typedInput = static_cast<RenderPassInputTyped<int> *>(input);
 
     input->renderTarget->bind(*input->textureManager, !outputToScreen);

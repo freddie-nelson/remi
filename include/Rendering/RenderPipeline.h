@@ -13,8 +13,7 @@ namespace Rendering
      *
      * Each pass transforms the entities in the scene in some way, eventually rendering them to the screen.
      *
-     * The default render pipeline is:
-     * -
+     * The render pipeline passes and orders can be found by calling toString() and outputting the result.
      */
     class RenderPipeline
     {
@@ -68,6 +67,13 @@ namespace Rendering
          * @returns Whether the render pipeline has a pass with the given order.
          */
         bool has(unsigned int order) const;
+
+        /**
+         * Gets the passes and orders of passes in the pipeline as a human readable string.
+         *
+         * @returns The passes and orders of passes in the pipeline as a human readable string.
+         */
+        std::string toString() const;
 
     private:
         /**

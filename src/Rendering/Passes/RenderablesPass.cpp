@@ -7,7 +7,7 @@
 
 Rendering::RenderPassInput *Rendering::RenderablesPass::execute(RenderPassInput *input)
 {
-    checkInput<int>("RenderablesPass", input);
+    checkInput<int>(input);
 
     auto *inputTyped = static_cast<RenderPassInputTyped<int> *>(input);
     auto &registry = *input->registry;

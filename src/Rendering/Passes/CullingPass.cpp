@@ -7,7 +7,7 @@
 
 Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *input)
 {
-    checkInput<RenderablesPassData>("CullingPass", input);
+    checkInput<RenderablesPassData>(input);
 
     auto inputTyped = static_cast<RenderPassInputTyped<RenderablesPassData> *>(input);
 

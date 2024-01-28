@@ -60,6 +60,16 @@ namespace Rendering
          */
         void uniform(UniformBase *uniform);
 
+        /**
+         * Gets the name of the render pass.
+         *
+         * @returns The name of the render pass.
+         */
+        virtual constexpr std::string getName() override
+        {
+            return "PostProcessingPass";
+        };
+
     protected:
         /**
          * Whether or not to output the result of the post processor to the screen instead of the render target.

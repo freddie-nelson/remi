@@ -40,5 +40,15 @@ namespace Rendering
          * @param input The input to the renderables pass.
          */
         RenderPassInput *execute(RenderPassInput *input) override;
+
+        /**
+         * Gets the name of the render pass.
+         *
+         * @returns The name of the render pass.
+         */
+        virtual constexpr std::string getName() override
+        {
+            return "RenderablesPass";
+        };
     };
 }

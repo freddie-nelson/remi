@@ -45,6 +45,16 @@ namespace Rendering
          */
         RenderPassInput *execute(RenderPassInput *input) override;
 
+        /**
+         * Gets the name of the render pass.
+         *
+         * @returns The name of the render pass.
+         */
+        virtual constexpr std::string getName() override
+        {
+            return "CullingPass";
+        };
+
     private:
         /**
          * Gets the AABB sufficient for culling entities outside the camera's view.

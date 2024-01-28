@@ -3,7 +3,7 @@
 
 Rendering::RenderPassInput *Rendering::BatchPass::execute(Rendering::RenderPassInput *input)
 {
-    checkInput<MaterialPassData>("BatchPass", input);
+    checkInput<MaterialPassData>(input);
 
     auto inputTyped = static_cast<RenderPassInputTyped<MaterialPassData> *>(input);
 

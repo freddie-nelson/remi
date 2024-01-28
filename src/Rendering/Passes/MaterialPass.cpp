@@ -9,7 +9,7 @@
 
 Rendering::RenderPassInput *Rendering::MaterialPass::execute(RenderPassInput *input)
 {
-    checkInput<CullingPassData>("MaterialPass", input);
+    checkInput<CullingPassData>(input);
 
     auto inputTyped = static_cast<RenderPassInputTyped<CullingPassData> *>(input);
 

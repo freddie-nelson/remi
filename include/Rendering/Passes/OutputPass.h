@@ -18,6 +18,16 @@ namespace Rendering
 
         ~OutputPass() = default;
 
+        /**
+         * Gets the name of the render pass.
+         *
+         * @returns The name of the render pass.
+         */
+        virtual constexpr std::string getName() override
+        {
+            return "OutputPass";
+        };
+
     private:
         const std::string fragShader =
             "#version 300 es\n"
