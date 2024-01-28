@@ -52,6 +52,19 @@ Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInp
     // create uniforms
     Uniform uRenderTexture("uRenderTexture", input->textureManager->getRenderTargetTextureUnit(), false, 1, GL_SAMPLER_2D);
 
+    // resolution
+    glm::vec2 resolution;
+    if (outputToScreen)
+    {
+        resolution = input->renderer->getSize();
+    }
+    else
+    {
+        resolution = glm::vec2(input->renderTarget->getWidth(), input->renderTarget->getHeight());
+    }
+
+    Uniform uResolution("uResolution", resolution);
+
     // create attribs
     VertexAttrib aPos("aPos", vertices);
     VertexAttrib aTexCoord("aTexCoord", texCoords);
@@ -64,6 +77,7 @@ Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInp
 
     // setup uniforms
     shader.uniform(&uRenderTexture);
+    shader.uniform(&uResolution, true);
 
     // user uniforms
     shader.uniform(uniforms);

@@ -15,11 +15,13 @@ Rendering::RenderTarget::~RenderTarget()
 
 void Rendering::RenderTarget::bind(TextureManager &textureManager, bool bindFramebuffer) const
 {
-    glViewport(0, 0, width, height);
     textureManager.bindRenderTarget(texture);
 
     if (bindFramebuffer)
+    {
+        glViewport(0, 0, width, height);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    }
 }
 
 void Rendering::RenderTarget::unbind(TextureManager &textureManager) const
@@ -106,6 +108,7 @@ void Rendering::RenderTarget::create()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
     // set filtering options
+    // TODO: make filter mode configurable?
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 

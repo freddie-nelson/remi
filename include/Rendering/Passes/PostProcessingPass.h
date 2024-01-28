@@ -18,6 +18,9 @@ namespace Rendering
      * The fragment shader must contain the following uniforms:
      * - sampler2D uRenderTexture
      *
+     * The fragment shader may contain the following uniforms:
+     * - vec2 uResolution
+     *
      * The fragment shader must also contain the following inputs:
      * - vec2 vTexCoord
      *

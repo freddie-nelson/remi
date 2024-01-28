@@ -106,7 +106,16 @@ rendering_src += ['src/Rendering/Camera/Camera.cpp']
 rendering_src += ['src/Rendering/Font/Font.cpp', 'src/Rendering/Font/Text.cpp']
 rendering_src += ['src/Rendering/Material/Color.cpp', 'src/Rendering/Material/Material.cpp', 'src/Rendering/Material/ShaderMaterial.cpp', 'src/Rendering/Material/MaterialHelpers.cpp']
 rendering_src += ['src/Rendering/Mesh/Mesh.cpp', 'src/Rendering/Mesh/Polygons.cpp', 'src/Rendering/Mesh/Triangulate.cpp']
-rendering_src += ['src/Rendering/Passes/BatchPass.cpp', 'src/Rendering/Passes/CullingPass.cpp', 'src/Rendering/Passes/MaterialPass.cpp', 'src/Rendering/Passes/OutputPass.cpp', 'src/Rendering/Passes/PostProcessingPass.cpp', 'src/Rendering/Passes/RenderablesPass.cpp', 'src/Rendering/Passes/ColorBlendPass.cpp']
+rendering_src += [
+    'src/Rendering/Passes/BatchPass.cpp',
+    'src/Rendering/Passes/CullingPass.cpp',
+    'src/Rendering/Passes/MaterialPass.cpp', 
+    'src/Rendering/Passes/OutputPass.cpp', 
+    'src/Rendering/Passes/PostProcessingPass.cpp', 
+    'src/Rendering/Passes/RenderablesPass.cpp', 
+    'src/Rendering/Passes/ColorBlendPass.cpp', 
+    'src/Rendering/Passes/GaussianBlurPass.cpp'
+]
 rendering_src += ['src/Rendering/Shader/Shader.cpp', 'src/Rendering/Shader/VertexIndices.cpp']
 rendering_src += ['src/Rendering/Texture/Texture.cpp', 'src/Rendering/Texture/TextureAtlas.cpp', 'src/Rendering/Texture/TextureManager.cpp']
 rendering_src += ['src/Rendering/Utility/OpenGLHelpers.cpp']

@@ -15,6 +15,7 @@
 #include <blaze++/Rendering/Shader/Uniform.h>
 #include <blaze++/Core/Timestep.h>
 #include <blaze++/Rendering/Passes/ColorBlendPass.h>
+#include <blaze++/Rendering/Passes/GaussianBlurPass.h>
 
 #include <math.h>
 #include <random>
@@ -42,6 +43,7 @@ void Application::run()
 }
 
 Rendering::ColorBlendPass *colorBlendPass;
+Rendering::GaussianBlurPass *blurPass;
 
 void Application::init()
 {
@@ -60,6 +62,7 @@ void Application::init()
     auto pipeline = engine->getPipeline();
 
     colorBlendPass = new Rendering::ColorBlendPass(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    blurPass = new Rendering::GaussianBlurPass();
     // pipeline->add(colorBlendPass, 4500);
 
     // Rendering::Color clearColor(0.0f);
@@ -239,6 +242,21 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
         {
             pipeline->add(colorBlendPass, 4500);
             std::cout << "added color blend pass" << std::endl;
+        }
+    }
+
+    // toggle blur pass
+    if (keyboard->isPressed(Input::Key::B))
+    {
+        if (pipeline->has(4750))
+        {
+            pipeline->remove(blurPass);
+            std::cout << "removed blur pass" << std::endl;
+        }
+        else
+        {
+            pipeline->add(blurPass, 4750);
+            std::cout << "added blur pass" << std::endl;
         }
     }
 
