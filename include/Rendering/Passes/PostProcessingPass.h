@@ -15,6 +15,8 @@ namespace Rendering
      *
      * The shader must be created in the constructor of a class derived from the post processor.
      *
+     * When the post processor is executed, the depth and stencil buffers of the render target or screen will be cleared, depending on if outputToScreen is true/false.
+     *
      * The fragment shader must contain the following uniforms:
      * - sampler2D uRenderTexture
      *
