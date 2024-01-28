@@ -9,7 +9,7 @@
 
 Rendering::RenderPassInput *Rendering::MaterialPass::execute(RenderPassInput *input)
 {
-    checkInput<CullingPassData>(input);
+    checkInput<CullingPassData>("MaterialPass", input);
 
     auto inputTyped = static_cast<RenderPassInputTyped<CullingPassData> *>(input);
 
@@ -61,14 +61,8 @@ Rendering::RenderPassInput *Rendering::MaterialPass::execute(RenderPassInput *in
     }
 
     // create output
-    auto output = new RenderPassInputTyped<MaterialPassData>;
-    output->renderer = inputTyped->renderer;
-    output->registry = inputTyped->registry;
-    output->camera = inputTyped->camera;
-    output->renderTarget = inputTyped->renderTarget;
-    output->textureManager = inputTyped->textureManager;
-
-    output->data = new MaterialPassData{std::move(opaqueRenderables), std::move(transparentRenderables), std::move(keys)};
+    auto data = new MaterialPassData{std::move(opaqueRenderables), std::move(transparentRenderables), std::move(keys)};
+    auto output = new RenderPassInputTyped<MaterialPassData>(input, data);
 
     delete inputTyped;
 

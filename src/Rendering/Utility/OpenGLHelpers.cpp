@@ -495,3 +495,24 @@ std::string Rendering::glFramebufferStatusToString(GLenum status)
         return "Unknown framebuffer status";
     }
 }
+
+void Rendering::glClearWithColor(const Color &c, bool color, bool depth, bool stencil)
+{
+    glClearColor(c.r(), c.g(), c.b(), c.a());
+
+    int clearBits = 0;
+    if (color)
+    {
+        clearBits |= GL_COLOR_BUFFER_BIT;
+    }
+    if (depth)
+    {
+        clearBits |= GL_DEPTH_BUFFER_BIT;
+    }
+    if (stencil)
+    {
+        clearBits |= GL_STENCIL_BUFFER_BIT;
+    }
+
+    glClear(clearBits);
+}

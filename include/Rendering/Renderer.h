@@ -100,7 +100,7 @@ namespace Rendering
         void update(const ECS::Registry &registry, const Core::Timestep &timestep) override;
 
         /**
-         * Clears the render buffers.
+         * Clears the screen framebuffer and render target framebuffer.
          */
         void clear(bool clearColorBuffer = true, bool clearDepthBuffer = true, bool clearStencilBuffer = true) const;
 

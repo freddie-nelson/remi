@@ -23,13 +23,14 @@ void Rendering::RenderManager::render(const ECS::Registry &registry, ECS::Entity
         renderTarget = this->renderer->getRenderTarget();
     }
 
-    RenderPassInputTyped<int> input;
-    input.renderer = renderer;
-    input.registry = &registry;
-    input.camera = cameraEntity;
-    input.renderTarget = renderTarget;
-    input.textureManager = &this->renderer->getTextureManager();
-    input.data = 0;
+    // this will be deleted by the pipeline
+    auto input = new RenderPassInputTyped<int>();
+    input->renderer = renderer;
+    input->registry = &registry;
+    input->camera = cameraEntity;
+    input->renderTarget = renderTarget;
+    input->textureManager = &this->renderer->getTextureManager();
+    input->data = new int(0);
 
-    pipeline->execute(&input);
+    pipeline->execute(input);
 }

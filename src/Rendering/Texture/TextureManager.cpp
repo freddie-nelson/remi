@@ -55,6 +55,12 @@ void Rendering::TextureManager::bindRenderTarget(GLuint texture)
     glBindTexture(GL_TEXTURE_2D, texture);
 }
 
+void Rendering::TextureManager::unbindRenderTarget()
+{
+    glActiveTexture(GL_TEXTURE0 + renderTargetTextureUnit);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 int Rendering::TextureManager::getTextureUnitsUsed() const
 {
     return textureUnitsUsed;

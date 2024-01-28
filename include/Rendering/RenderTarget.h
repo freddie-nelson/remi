@@ -33,15 +33,32 @@ namespace Rendering
          * Binds the render target.
          *
          * This will make all rendering go to the texture.
+         *
+         * @param textureManager The texture manager to bind the texture to.
+         * @param bindFramebuffer Whether to bind the framebuffer.
          */
-        void bind(TextureManager &textureManager) const;
+        void bind(TextureManager &textureManager, bool bindFramebuffer = true) const;
 
         /**
          * Unbinds the render target.
          *
          * This will make all rendering go to the screen.
+         *
+         * @param textureManager The texture manager to unbind the texture from.
          */
-        void unbind() const;
+        void unbind(TextureManager &textureManager) const;
+
+        /**
+         * Clears the render target.
+         *
+         * This will bind the render target, clear it and then unbind it.
+         *
+         * @param c The color to clear the render target with.
+         * @param color Whether to clear the color buffer.
+         * @param depth Whether to clear the depth buffer.
+         * @param stencil Whether to clear the stencil buffer.
+         */
+        void clear(const Color &c, bool color, bool depth, bool stencil) const;
 
         /**
          * Gets the width of the render target.

@@ -3,7 +3,7 @@
 
 Rendering::RenderPassInput *Rendering::BatchPass::execute(Rendering::RenderPassInput *input)
 {
-    checkInput<MaterialPassData>(input);
+    checkInput<MaterialPassData>("BatchPass", input);
 
     auto inputTyped = static_cast<RenderPassInputTyped<MaterialPassData> *>(input);
 
@@ -30,16 +30,10 @@ Rendering::RenderPassInput *Rendering::BatchPass::execute(Rendering::RenderPassI
     }
 
     // unbind render target
-    renderTarget.unbind();
+    renderTarget.unbind(textureManager);
 
     // create output
-    auto output = new RenderPassInputTyped<int>;
-    output->renderer = inputTyped->renderer;
-    output->registry = inputTyped->registry;
-    output->camera = inputTyped->camera;
-    output->renderTarget = inputTyped->renderTarget;
-    output->textureManager = inputTyped->textureManager;
-    output->data = 0;
+    auto output = new RenderPassInputTyped<int>(input, new int(0));
 
     delete inputTyped;
 

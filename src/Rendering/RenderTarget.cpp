@@ -13,14 +13,24 @@ Rendering::RenderTarget::~RenderTarget()
     destroy();
 }
 
-void Rendering::RenderTarget::bind(TextureManager &textureManager) const
+void Rendering::RenderTarget::bind(TextureManager &textureManager, bool bindFramebuffer) const
 {
     textureManager.bindRenderTarget(texture);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    if (bindFramebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 }
 
-void Rendering::RenderTarget::unbind() const
+void Rendering::RenderTarget::unbind(TextureManager &textureManager) const
 {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    textureManager.unbindRenderTarget();
+}
+
+void Rendering::RenderTarget::clear(const Color &c, bool color, bool depth, bool stencil) const
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glClearWithColor(c, color, depth, stencil);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -92,24 +102,28 @@ void Rendering::RenderTarget::create()
     // create texture
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
     // set filtering options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    // create depth buffer render buffer object
-    glGenRenderbuffers(1, &depthBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+    // unbind texture
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     // attach texture to framebuffer
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 
-    // set draw buffers list
-    GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-    glDrawBuffers(1, drawBuffers);
+    // create depth/stencil buffer render buffer object
+    glGenRenderbuffers(1, &depthBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+
+    // unbind render buffer
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    // attach depth/stencil buffer to framebuffer
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
     std::cout << "width: " << width << ", height: " << height << std::endl;
 

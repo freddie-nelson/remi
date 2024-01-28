@@ -44,18 +44,20 @@ const std::vector<unsigned int> Rendering::PostProcessingPass::indices = {
 
 Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInput *input)
 {
-    // checkInput<RenderTarget>(input);
-    input->renderTarget->bind(*input->textureManager);
+    checkInput<int>("PostProcessingPass", input);
+    auto *typedInput = static_cast<RenderPassInputTyped<int> *>(input);
+
+    input->renderTarget->bind(*input->textureManager, !outputToScreen);
 
     // create uniforms
-    Uniform uRenderTexture("uRenderTexture", input->textureManager->getRenderTargetTextureUnit());
+    Uniform uRenderTexture("uRenderTexture", input->textureManager->getRenderTargetTextureUnit(), false, 1, GL_SAMPLER_2D);
 
     // create attribs
     VertexAttrib aPos("aPos", vertices);
     VertexAttrib aTexCoord("aTexCoord", texCoords);
 
     // create indices
-    VertexIndices indices(indices);
+    VertexIndices vIndices(indices);
 
     // setup shader
     shader.use();
@@ -71,14 +73,15 @@ Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInp
     shader.attrib(&aTexCoord);
 
     // indices
-    shader.indices(&indices);
+    shader.indices(&vIndices);
 
     // draw
-    shader.draw(GL_TRIANGLES, indices.size());
+    shader.draw(GL_TRIANGLES, vIndices.size());
 
     // unbind
     shader.unbind();
-    input->renderTarget->unbind();
+
+    input->renderTarget->unbind(*input->textureManager);
 
     return input;
 }

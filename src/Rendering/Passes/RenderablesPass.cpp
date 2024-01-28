@@ -7,6 +7,9 @@
 
 Rendering::RenderPassInput *Rendering::RenderablesPass::execute(RenderPassInput *input)
 {
+    checkInput<int>("RenderablesPass", input);
+
+    auto *inputTyped = static_cast<RenderPassInputTyped<int> *>(input);
     auto &registry = *input->registry;
 
     // get entities
@@ -22,10 +25,10 @@ Rendering::RenderPassInput *Rendering::RenderablesPass::execute(RenderPassInput 
     }
 
     // create output
-    auto *output = static_cast<RenderPassInputTyped<RenderablesPassData> *>(input);
+    RenderablesPassData *data = new std::vector<ECS::Entity>(entities.begin(), entities.end());
+    auto *output = new RenderPassInputTyped(input, data);
 
-    delete output->data;
-    output->data = new std::vector<ECS::Entity>(entities.begin(), entities.end());
+    delete inputTyped;
 
     return output;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <typeinfo>
+#include <string>
 
 namespace blz
 {
@@ -17,7 +18,7 @@ namespace blz
      */
     TypeId generateTypeId(const char *typeName);
 
-    class TypeIdGenerator
+    class TypeInfoGenerator
     {
     public:
         /**
@@ -29,5 +30,11 @@ namespace blz
          */
         template <typename T>
         inline static const TypeId id = generateTypeId(typeid(T).name());
+
+        /**
+         * Generates a unique name for a type.
+         */
+        template <typename T>
+        inline static const std::string name = typeid(T).name();
     };
 }

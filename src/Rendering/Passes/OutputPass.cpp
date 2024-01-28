@@ -2,5 +2,6 @@
 
 Rendering::OutputPass::OutputPass()
 {
+    outputToScreen = true;
     createShader(fragShader);
 }

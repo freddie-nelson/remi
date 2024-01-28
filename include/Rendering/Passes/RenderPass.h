@@ -71,10 +71,36 @@ namespace Rendering
      * Represents the input to a render pass.
      *
      * This is a typed version of the input.
+     *
+     * The input data to a render pass which does not require data should be set to 0.
      */
     template <typename T>
     struct RenderPassInputTyped : public RenderPassInput
     {
+        /**
+         * Creates a new render pass input.
+         */
+        RenderPassInputTyped() = default;
+
+        /**
+         * Creates a new render pass input.
+         *
+         * Will copy all fields from the given input, except from the data field.
+         *
+         * @param input The input to copy fields from.
+         * @param data The data to store.
+         */
+        RenderPassInputTyped(RenderPassInput *input, T *data)
+        {
+            renderer = input->renderer;
+            registry = input->registry;
+            camera = input->camera;
+            renderTarget = input->renderTarget;
+            textureManager = input->textureManager;
+
+            this->data = data;
+        }
+
         /**
          * The data.
          */
@@ -107,7 +133,7 @@ namespace Rendering
          */
         blz::TypeId getDataType()
         {
-            return blz::TypeIdGenerator::id<T>;
+            return blz::TypeInfoGenerator::id<T>;
         }
 
         /**
@@ -117,7 +143,7 @@ namespace Rendering
          */
         std::string getDataTypeName()
         {
-            return typeid(T).name();
+            return blz::TypeInfoGenerator::name<T>;
         }
     };
 
@@ -155,6 +181,7 @@ namespace Rendering
         /**
          * Checks if the given input is valid.
          *
+         * @param name The name of the render pass.
          * @param input The input to check.
          *
          * @tparam T The expected type of the input.
@@ -163,7 +190,7 @@ namespace Rendering
          * @throws std::invalid_argument If the input is not of the expected type.
          */
         template <typename T>
-        void checkInput(RenderPassInput *input)
+        void checkInput(const std::string &name, RenderPassInput *input)
         {
             if (input == nullptr)
             {
@@ -172,7 +199,7 @@ namespace Rendering
 
             if (!isType<T>(input))
             {
-                throw std::invalid_argument("Input to render pass is of type '" + input->getDataTypeName() + "', expected '" + typeid(T).name() + "'.");
+                throw std::invalid_argument("Input to render pass is of type '" + input->getDataTypeName() + "', expected '" + blz::TypeInfoGenerator::name<T> + "' in pass '" + name + "'.");
             }
         }
 
@@ -188,7 +215,7 @@ namespace Rendering
         template <typename T>
         bool isType(RenderPassInput *input)
         {
-            return input->getDataType() == blz::TypeIdGenerator::id<T>;
+            return input->getDataType() == blz::TypeInfoGenerator::id<T>;
         }
     };
 }

@@ -67,6 +67,11 @@ namespace Rendering
         void bindRenderTarget(GLuint texture);
 
         /**
+         * Unbinds the render target.
+         */
+        void unbindRenderTarget();
+
+        /**
          * Gets the number of texture units currently used.
          *
          * @returns The number of texture units currently used.

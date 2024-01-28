@@ -61,6 +61,11 @@ namespace Rendering
         void uniform(UniformBase *uniform);
 
     protected:
+        /**
+         * Whether or not to output the result of the post processor to the screen instead of the render target.
+         */
+        bool outputToScreen = false;
+
         std::unordered_map<std::string, UniformBase *> uniforms;
 
         /**

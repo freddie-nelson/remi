@@ -1,4 +1,5 @@
 #include "../../include/Rendering/RenderPipeline.h"
+#include "../../include/Rendering/Passes/RenderablesPass.h"
 
 #include <string>
 
@@ -18,6 +19,9 @@ void Rendering::RenderPipeline::execute(RenderPassInput *input)
     {
         output = pass.second->execute(output);
     }
+
+    auto *outputTyped = static_cast<RenderPassInputTyped<int> *>(output);
+    delete outputTyped;
 }
 
 void Rendering::RenderPipeline::add(RenderPass *pass, unsigned int order)

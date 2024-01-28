@@ -7,7 +7,7 @@
 
 Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *input)
 {
-    checkInput<RenderablesPassData>(input);
+    checkInput<RenderablesPassData>("CullingPass", input);
 
     auto inputTyped = static_cast<RenderPassInputTyped<RenderablesPassData> *>(input);
 
@@ -28,13 +28,7 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
     getRenderables(registry, entities, viewAabb, false, *renderables);
 
     // create output
-    RenderPassInputTyped<CullingPassData> *output = new RenderPassInputTyped<CullingPassData>;
-    output->registry = inputTyped->registry;
-    output->camera = inputTyped->camera;
-    output->renderTarget = inputTyped->renderTarget;
-    output->textureManager = inputTyped->textureManager;
-
-    output->data = renderables;
+    RenderPassInputTyped<CullingPassData> *output = new RenderPassInputTyped<CullingPassData>(input, renderables);
 
     delete inputTyped;
 

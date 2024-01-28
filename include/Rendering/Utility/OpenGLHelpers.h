@@ -2,6 +2,7 @@
 
 #include "../../gl.h"
 #include "../Shader/Uniform.h"
+#include "../Material/Color.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -121,4 +122,14 @@ namespace Rendering
      * @returns The string representation of the given framebuffer status.
      */
     std::string glFramebufferStatusToString(GLenum status);
+
+    /**
+     * Clears the currently bound framebuffer.
+     *
+     * @param c The clear color.
+     * @param color Whether to clear the color buffer.
+     * @param depth Whether to clear the depth buffer.
+     * @param stencil Whether to clear the stencil buffer.
+     */
+    void glClearWithColor(const Color &c, bool color, bool depth, bool stencil);
 }

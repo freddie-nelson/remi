@@ -86,23 +86,12 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
 
 void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer) const
 {
-    glClearColor(clearColor.r(), clearColor.g(), clearColor.b(), clearColor.a());
+    glClearWithColor(clearColor, clearColorBuffer, clearDepthBuffer, clearStencilBuffer);
 
-    int clearBits = 0;
-    if (clearColorBuffer)
+    if (renderTarget != nullptr)
     {
-        clearBits |= GL_COLOR_BUFFER_BIT;
+        renderTarget->clear(clearColor, clearColorBuffer, clearDepthBuffer, clearStencilBuffer);
     }
-    if (clearDepthBuffer)
-    {
-        clearBits |= GL_DEPTH_BUFFER_BIT;
-    }
-    if (clearStencilBuffer)
-    {
-        clearBits |= GL_STENCIL_BUFFER_BIT;
-    }
-
-    glClear(clearBits);
 }
 
 void Rendering::Renderer::present() const
