@@ -53,10 +53,17 @@ Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInp
 
     input->renderTarget->bind(textureManager, !outputToScreen);
 
-    // need to clear depth and stencil buffers
+    // save values
+    bool isDepthTestEnabled = renderer.isDepthTestEnabled();
+    bool isDepthWriteEnabled = renderer.isDepthWriteEnabled();
+
+    // need to disable depth testing for post processing
     // this is because otherwise multiple post processing passes won't work due to early depth test exit
     // also post processing square could be covered by other geometry
-    glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    renderer.enableDepthTest(false);
+
+    // and disable depth write in case later passes need depth buffer values
+    renderer.enableDepthWrite(false);
 
     // create uniforms
     Uniform uRenderTexture("uRenderTexture", textureManager.getRenderTargetTextureUnit(), false, 1, GL_SAMPLER_2D);
@@ -105,6 +112,10 @@ Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInp
     shader.unbind();
 
     renderTarget.unbind(textureManager);
+
+    // restore values
+    renderer.enableDepthTest(isDepthTestEnabled);
+    renderer.enableDepthWrite(isDepthWriteEnabled);
 
     return input;
 }
