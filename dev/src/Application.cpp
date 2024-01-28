@@ -112,7 +112,7 @@ void Application::init()
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, (t.getZIndex() + 1) / 10.0f));
-        material.setColor(Rendering::Color(r, g, b, (t.getZIndex() + 1) / static_cast<float>(zRange)));
+        material.setColor(Rendering::Color(r, g, b, (rand() % zRange) / static_cast<float>(zRange)));
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
 
         material.setTexture(texture);
@@ -153,11 +153,12 @@ void Application::init()
         "}\n";
 
     Rendering::ShaderMaterial m(textShader, gradient);
+    m.setTransparency(true);
     registry->add(textEntity, m);
 
     auto &t = registry->get<Core::Transform>(textEntity);
     t.scale(75);
-    t.setZIndex(zRange - 1);
+    t.setZIndex(zRange / 2);
 }
 
 void Application::destroy()

@@ -105,7 +105,7 @@ namespace Rendering
          *
          * @returns Whether the material is transparent or not.
          */
-        bool isTransparent() const;
+        virtual bool isTransparent() const;
 
         /**
          * Copys the texture and color from the given material into this material.

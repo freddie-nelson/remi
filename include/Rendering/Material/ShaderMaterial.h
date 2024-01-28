@@ -96,6 +96,28 @@ namespace Rendering
         const std::unordered_map<std::string, UniformBase *> &getUniforms() const;
 
         /**
+         * Sets if the material is transparent.
+         *
+         * This will override the values read from `Material.isTransparent()`.
+         *
+         * This is useful if you are using a custom shader that does not use the alpha channel of the texture or color.
+         *
+         * @param transparency Whether the material is transparent.
+         */
+        void setTransparency(bool transparency);
+
+        /**
+         * Gets whether the material is transparent or not.
+         *
+         * The material is transparent if the alpha value of the color is less than 1.0 or the texture has transparency.
+         *
+         * If the transparency has been set manually, this will return the value set.
+         *
+         * @returns Whether the material is transparent or not.
+         */
+        bool isTransparent() const override;
+
+        /**
          * Copies the given ShaderMaterial into this ShaderMaterial.
          *
          * @param m The ShaderMaterial to copy.
@@ -117,5 +139,8 @@ namespace Rendering
         static FragShaderKey nextKey;
 
         FragShaderKey fragShaderKey;
+
+        bool transparencySet = false;
+        bool transparency = false;
     };
 }

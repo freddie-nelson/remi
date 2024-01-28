@@ -57,6 +57,7 @@ Rendering::Renderer::~Renderer()
 void Rendering::Renderer::init()
 {
     enableDepthTest(true);
+    enableDepthWrite(true);
     enableAlphaBlending(false);
 
     // init shaders
@@ -423,6 +424,26 @@ void Rendering::Renderer::enableDepthTest(bool enable)
 bool Rendering::Renderer::isDepthTestEnabled() const
 {
     return glIsEnabled(GL_DEPTH_TEST);
+}
+
+void Rendering::Renderer::enableDepthWrite(bool enable)
+{
+    if (enable)
+    {
+        glDepthMask(GL_TRUE);
+    }
+    else
+    {
+        glDepthMask(GL_FALSE);
+    }
+}
+
+bool Rendering::Renderer::isDepthWriteEnabled() const
+{
+    GLboolean enabled;
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &enabled);
+
+    return enabled == GL_TRUE;
 }
 
 void Rendering::Renderer::enableAlphaBlending(bool enable)

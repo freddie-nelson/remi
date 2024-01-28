@@ -182,6 +182,24 @@ namespace Rendering
         bool isDepthTestEnabled() const;
 
         /**
+         * Enables or disables writing to the depth buffer.
+         * 
+         * Depth writing is enabled by default.
+         * 
+         * When depth writing is enabled, the renderer will write the depth of the fragment to the depth buffer.
+         * 
+         * @param enable Whether to enable or disable depth writing.
+        */
+        void enableDepthWrite(bool enable);
+
+        /**
+         * Returns whether depth writing is enabled.
+         * 
+         * @returns whether depth writing is enabled.
+        */
+        bool isDepthWriteEnabled() const;
+
+        /**
          * Enables or disables alpha blending.
          *
          * Alpha blending is disabled by default.

@@ -2,11 +2,6 @@
 
 #include "./Renderer.h"
 #include "./RenderPipeline.h"
-#include "./Passes/RenderablesPass.h"
-#include "./Passes/CullingPass.h"
-#include "./Passes/MaterialPass.h"
-#include "./Passes/BatchPass.h"
-#include "./Passes/OutputPass.h"
 
 namespace Rendering
 {

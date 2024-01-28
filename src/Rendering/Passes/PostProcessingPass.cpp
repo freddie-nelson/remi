@@ -106,8 +106,6 @@ Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInp
 
     renderTarget.unbind(textureManager);
 
-    std::cout << "executed " << getName() << std::endl;
-
     return input;
 }
 

@@ -26,6 +26,8 @@ Rendering::ShaderMaterial::ShaderMaterial(const ShaderMaterial &m)
     : Material(m)
 {
     setFragmentShader(m.getFragmentShader());
+    transparency = m.transparency;
+    transparencySet = m.transparencySet;
 }
 
 const std::string &Rendering::ShaderMaterial::getFragmentShader() const
@@ -75,11 +77,29 @@ const std::unordered_map<std::string, Rendering::UniformBase *> &Rendering::Shad
     return uniforms.at(fragShaderKey);
 }
 
+void Rendering::ShaderMaterial::setTransparency(bool transparency)
+{
+    transparencySet = true;
+    this->transparency = transparency;
+}
+
+bool Rendering::ShaderMaterial::isTransparent() const
+{
+    if (transparencySet)
+    {
+        return transparency;
+    }
+
+    return Material::isTransparent();
+}
+
 Rendering::ShaderMaterial &Rendering::ShaderMaterial::operator=(const ShaderMaterial &m)
 {
     Material::operator=(m);
 
     setFragmentShader(m.getFragmentShader());
+    transparencySet = m.transparencySet;
+    transparency = m.transparency;
 
     return *this;
 }

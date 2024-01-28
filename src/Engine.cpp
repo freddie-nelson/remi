@@ -2,8 +2,8 @@
 #include "../include/Config.h"
 #include "../include/Rendering/Passes/RenderablesPass.h"
 #include "../include/Rendering/Passes/CullingPass.h"
-#include "../include/Rendering/Passes/MaterialPass.h"
 #include "../include/Rendering/Passes/BatchPass.h"
+#include "../include/Rendering/Passes/DrawPass.h"
 #include "../include/Rendering/Passes/OutputPass.h"
 #include "../include/Rendering/Passes/ColorBlendPass.h"
 
@@ -26,8 +26,8 @@ blz::Engine::Engine(EngineConfig config)
     pipeline = new Rendering::RenderPipeline();
     pipeline->add(new Rendering::RenderablesPass(), 1000);
     pipeline->add(new Rendering::CullingPass(), 2000);
-    pipeline->add(new Rendering::MaterialPass(), 3000);
-    pipeline->add(new Rendering::BatchPass(), 4000);
+    pipeline->add(new Rendering::BatchPass(), 3000);
+    pipeline->add(new Rendering::DrawPass(), 4000);
     pipeline->add(new Rendering::OutputPass(), 5000);
 
     std::cout << "Default render pipeline:" << std::endl;
