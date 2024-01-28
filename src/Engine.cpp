@@ -5,6 +5,7 @@
 #include "../include/Rendering/Passes/MaterialPass.h"
 #include "../include/Rendering/Passes/BatchPass.h"
 #include "../include/Rendering/Passes/OutputPass.h"
+#include "../include/Rendering/Passes/ColorBlendPass.h"
 
 #ifdef __EMSCRIPTEN__
 #include "../include/emscriptenHelpers.h"
@@ -120,6 +121,11 @@ Core::Window *const blz::Engine::getWindow()
 Rendering::Renderer *const blz::Engine::getRenderer()
 {
     return renderer;
+}
+
+Rendering::RenderPipeline *const blz::Engine::getPipeline()
+{
+    return pipeline;
 }
 
 ECS::Registry *const blz::Engine::getRegistry()

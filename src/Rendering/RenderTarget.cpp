@@ -15,6 +15,7 @@ Rendering::RenderTarget::~RenderTarget()
 
 void Rendering::RenderTarget::bind(TextureManager &textureManager, bool bindFramebuffer) const
 {
+    glViewport(0, 0, width, height);
     textureManager.bindRenderTarget(texture);
 
     if (bindFramebuffer)

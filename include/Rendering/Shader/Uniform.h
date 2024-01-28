@@ -14,6 +14,8 @@ namespace Rendering
     class UniformBase
     {
     public:
+        virtual ~UniformBase() = default;
+
         /**
          * Gets the name of the uniform.
          *

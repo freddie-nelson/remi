@@ -14,8 +14,14 @@ namespace Rendering
     class OutputPass : public PostProcessingPass
     {
     public:
+        /**
+         * Creates an OutputPass instance.
+        */
         OutputPass();
 
+        /**
+         * Destroys the OutputPass instance.
+        */
         ~OutputPass() = default;
 
         /**

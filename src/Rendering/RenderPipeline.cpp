@@ -17,7 +17,9 @@ void Rendering::RenderPipeline::execute(RenderPassInput *input)
 
     for (auto pass : passes)
     {
+        // std::cout << "executing " << pass.second->getName() << std::endl;
         output = pass.second->execute(output);
+        // std::cout << "executed " << pass.second->getName() << std::endl;
     }
 
     auto *outputTyped = static_cast<RenderPassInputTyped<int> *>(output);
@@ -26,7 +28,7 @@ void Rendering::RenderPipeline::execute(RenderPassInput *input)
 
 void Rendering::RenderPipeline::add(RenderPass *pass, unsigned int order)
 {
-    passes[order] = pass;
+    passes.emplace(order, pass);
 }
 
 void Rendering::RenderPipeline::remove(RenderPass *pass)

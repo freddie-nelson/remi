@@ -18,6 +18,8 @@ namespace Rendering
     class VertexAttribBase
     {
     public:
+        virtual ~VertexAttribBase() = default;
+
         /**
          * Gets the name of the attrib.
          *

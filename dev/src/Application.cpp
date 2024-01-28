@@ -14,6 +14,7 @@
 #include <blaze++/Rendering/Material/ShaderMaterial.h>
 #include <blaze++/Rendering/Shader/Uniform.h>
 #include <blaze++/Core/Timestep.h>
+#include <blaze++/Rendering/Passes/ColorBlendPass.h>
 
 #include <math.h>
 #include <random>
@@ -40,6 +41,8 @@ void Application::run()
     engine->run();
 }
 
+Rendering::ColorBlendPass *colorBlendPass;
+
 void Application::init()
 {
     // init engine
@@ -54,6 +57,10 @@ void Application::init()
     auto window = engine->getWindow();
     auto renderer = engine->getRenderer();
     auto registry = engine->getRegistry();
+    auto pipeline = engine->getPipeline();
+
+    colorBlendPass = new Rendering::ColorBlendPass(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    // pipeline->add(colorBlendPass, 4500);
 
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
@@ -174,6 +181,7 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     std::cout << "\rdt: " << timestep.getSeconds() << ", fps: " << 1.0f / timestep.getSeconds() << ", average fps: " << averageFps << "        " << std::endl;
 
     auto renderer = engine->getRenderer();
+    auto pipeline = engine->getPipeline();
 
     // move camera
     auto keyboard = engine->getKeyboard();
@@ -218,6 +226,21 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     // m.uniform(new Rendering::Uniform("uTime", timeSinceStart));
     textAlpha = sin(timeSinceStart) * 0.5f + 0.5f;
     m.uniform(new Rendering::Uniform("uColorAlpha", textAlpha));
+
+    // toggle color blend pass
+    if (keyboard->isPressed(Input::Key::C))
+    {
+        if (pipeline->has(4500))
+        {
+            pipeline->remove(colorBlendPass);
+            std::cout << "removed color blend pass" << std::endl;
+        }
+        else
+        {
+            pipeline->add(colorBlendPass, 4500);
+            std::cout << "added color blend pass" << std::endl;
+        }
+    }
 
     // rotate all entities with a transform component except camera
     // auto entities = registry.view<Core::Transform>();
