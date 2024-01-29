@@ -67,6 +67,7 @@ namespace Rendering
          * If the texture is already in the atlas it will be overwritten, however no error will be thrown.
          *
          * @param texture The texture to add to the atlas.
+         * @param repack Whether to repack the atlas after adding the texture.
          *
          * @returns The position of the top left corner of the texture in the atlas.
          *
@@ -74,7 +75,7 @@ namespace Rendering
          * @throws std::invalid_argument If the texture is too big for the atlas.
          * @throws std::runtime_error If the texture cannot be packed into the atlas.
          */
-        glm::vec2 add(const Texture *texture);
+        glm::vec2 add(const Texture *texture, bool repack = true);
 
         /**
          * Removes a texture from the atlas.
@@ -82,8 +83,9 @@ namespace Rendering
          * Does nothing if the texture is not in the atlas.
          *
          * @param texId The texture to remove from the atlas.
+         * @param repack Whether to repack the atlas after removing the texture.
          */
-        void remove(TextureId texId);
+        void remove(TextureId texId, bool repack = true);
 
         /**
          * Gets the position of the top left corner of the texture in the atlas.
@@ -138,6 +140,13 @@ namespace Rendering
          */
         const unsigned char *getPixels() const;
 
+        /**
+         * Packs the textures into the atlas.
+         *
+         * @throws std::runtime_error If the textures cannot be packed into the atlas.
+         */
+        void pack();
+
     private:
         /**
          * The width of the atlas.
@@ -178,13 +187,6 @@ namespace Rendering
             unsigned int width;
             unsigned int height;
         };
-
-        /**
-         * Packs the textures into the atlas.
-         *
-         * @throws std::runtime_error If the textures cannot be packed into the atlas.
-         */
-        void pack();
 
         /**
          * Converts a position in the atlas to UV coordinates in the atlas.

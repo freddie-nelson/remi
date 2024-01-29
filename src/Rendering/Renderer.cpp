@@ -83,6 +83,9 @@ void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Time
     {
         renderTarget->resize(getSize());
     }
+
+    if (unbindUnusedTextures)
+        textureManager.unbindUnusedTextures();
 }
 
 void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bool clearStencilBuffer) const
@@ -543,6 +546,16 @@ void Rendering::Renderer::syncActiveCameraSize(bool sync)
 bool Rendering::Renderer::getSyncActiveCameraSize() const
 {
     return syncActiveCameraSizeWithRenderer;
+}
+
+void Rendering::Renderer::setUnbindUnusedTextures(bool unbind)
+{
+    unbindUnusedTextures = unbind;
+}
+
+bool Rendering::Renderer::getUnbindUnusedTextures() const
+{
+    return unbindUnusedTextures;
 }
 
 void Rendering::Renderer::setRenderTarget(RenderTarget *target)

@@ -61,7 +61,7 @@ void Application::init()
     auto registry = engine->getRegistry();
     auto pipeline = engine->getPipeline();
 
-    colorBlendPass = new Rendering::ColorBlendPass(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    colorBlendPass = new Rendering::ColorBlendPass(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f));
     blurPass = new Rendering::GaussianBlurPass();
     // pipeline->add(colorBlendPass, 4500);
 
@@ -77,7 +77,7 @@ void Application::init()
     // renderer->syncActiveCameraSize(true);
 
     // create texture
-    Rendering::Texture *texture = new Rendering::Texture("assets/liv piggy.jpg");
+    Rendering::Texture *texture = new Rendering::Texture("assets/liv.jpg");
     Rendering::Texture *gradient = new Rendering::Texture("assets/gradient.png");
 
     // create font
@@ -119,7 +119,7 @@ void Application::init()
     }
 
     // create text
-    auto text = Rendering::Text("Hello World!", *font);
+    auto text = Rendering::Text("LIV SMELLS", *font);
 
     ECS::Entity textEntity = registry->create();
     registry->add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
@@ -157,8 +157,8 @@ void Application::init()
     registry->add(textEntity, m);
 
     auto &t = registry->get<Core::Transform>(textEntity);
-    t.scale(75);
-    t.setZIndex(zRange / 2);
+    t.scale(100);
+    t.setZIndex(zRange - 2);
 }
 
 void Application::destroy()

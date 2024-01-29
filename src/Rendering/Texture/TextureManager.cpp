@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <unordered_set>
 
 Rendering::TextureManager::TextureManager()
 {
@@ -35,6 +36,8 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
         atlasIndex = addTextureToAtlas(texture);
     }
 
+    textureLastUsed[texture->getId()] = lastUsedCount;
+
     return {
         .texture = texture,
         .textureSize = glm::vec2(texture->getWidth(), texture->getHeight()),
@@ -42,6 +45,31 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
         .atlasSize = glm::vec2(atlases[atlasIndex].getWidth(), atlases[atlasIndex].getHeight()),
         .textureUnit = atlasIndex,
     };
+}
+
+void Rendering::TextureManager::unbind(const Texture *texture)
+{
+    if (texture == nullptr)
+    {
+        throw std::invalid_argument("TextureManager (unbind): texture must not be null.");
+    }
+
+    auto atlasIndex = getContainingAtlas(texture);
+    if (atlasIndex == -1)
+    {
+        // texture is not bound
+        return;
+    }
+
+    // remove from atlas
+    auto &atlas = atlases[atlasIndex];
+    atlas.remove(texture->getId());
+
+    // remove from textureToAtlas
+    textureToAtlas.erase(texture->getId());
+
+    // reload atlas
+    loadAtlas(atlasIndex);
 }
 
 void Rendering::TextureManager::bindRenderTarget(GLuint texture)
@@ -59,6 +87,40 @@ void Rendering::TextureManager::unbindRenderTarget()
 {
     glActiveTexture(GL_TEXTURE0 + renderTargetTextureUnit);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Rendering::TextureManager::unbindUnusedTextures()
+{
+    std::unordered_set<size_t> atlasesToRepack;
+
+    long long lastUsedCutoff = lastUsedCount - lastUsedTextureRemovalThreshold;
+
+    // remove textures that haven't been used in a while
+    for (auto it = textureLastUsed.begin(); it != textureLastUsed.end(); it++)
+    {
+        auto &[texId, lastUsed] = *it;
+
+        if (lastUsed < lastUsedCutoff)
+        {
+            // remove from atlas but don't repack yet
+            auto atlas = textureToAtlas[texId];
+            atlases[atlas].remove(texId, false);
+
+            atlasesToRepack.emplace(std::move(atlas));
+
+            textureToAtlas.erase(texId);
+            it = textureLastUsed.erase(it);
+        }
+    }
+
+    // repack and reload atlases
+    for (auto atlas : atlasesToRepack)
+    {
+        atlases[atlas].pack();
+        loadAtlas(atlas);
+    }
+
+    lastUsedCount++;
 }
 
 int Rendering::TextureManager::getTextureUnitsUsed() const

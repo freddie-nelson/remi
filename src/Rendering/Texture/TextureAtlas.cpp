@@ -52,7 +52,7 @@ Rendering::TextureAtlas::~TextureAtlas()
     delete pixels;
 }
 
-glm::vec2 Rendering::TextureAtlas::add(const Texture *texture)
+glm::vec2 Rendering::TextureAtlas::add(const Texture *texture, bool repack)
 {
     if (texture == nullptr)
     {
@@ -77,6 +77,11 @@ glm::vec2 Rendering::TextureAtlas::add(const Texture *texture)
 
     // std::cout << "Adding texture to atlas: " << texId << std::endl;
 
+    if (!repack)
+    {
+        return positions.contains(texId) ? positions.at(texId) : glm::vec2(-1, -1);
+    }
+
     try
     {
         // std::cout << "width: " << textures[texId]->getWidth() << ", height: " << textures[texId]->getHeight() << std::endl;
@@ -98,7 +103,7 @@ glm::vec2 Rendering::TextureAtlas::add(const Texture *texture)
     return positions[texId];
 }
 
-void Rendering::TextureAtlas::remove(TextureId texId)
+void Rendering::TextureAtlas::remove(TextureId texId, bool repack)
 {
     if (!has(texId))
     {
@@ -108,7 +113,8 @@ void Rendering::TextureAtlas::remove(TextureId texId)
     textures.erase(texId);
     positions.erase(texId);
 
-    pack();
+    if (repack)
+        pack();
 }
 
 glm::vec2 Rendering::TextureAtlas::get(TextureId texId)

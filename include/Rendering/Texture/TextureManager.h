@@ -58,6 +58,15 @@ namespace Rendering
         BoundTexture bind(const Texture *texture);
 
         /**
+         * Unbinds the given texture.
+         *
+         * If the texture is not bound then this will do nothing.
+         *
+         * @param texture The texture to unbind.
+         */
+        void unbind(const Texture *texture);
+
+        /**
          * Binds the given render target so that it can be used for rendering.
          *
          * This will bind the render target texture to the last texture unit.
@@ -70,6 +79,15 @@ namespace Rendering
          * Unbinds the render target.
          */
         void unbindRenderTarget();
+
+        /**
+         * Unbinds any unused textures.
+         *
+         * An unused texture is determined as a texture which has not been bound using `bind` in the last 1000 calls to `unbindUnusedTextures`.
+         *
+         * This will remove the texture from the atlas and update the atlas on the GPU.
+         */
+        void unbindUnusedTextures();
 
         /**
          * Gets the number of texture units currently used.
@@ -108,6 +126,22 @@ namespace Rendering
         const std::vector<int> &getTexturesUniform() const;
 
     private:
+        long long lastUsedCount = 0;
+
+        /**
+         * The number of times `unbindUnusedTextures` must be called before a texture is removed.
+         *
+         * At 60fps this is 10000 / 60 ~= 160 seconds.
+         *
+         * TODO: make this configurable.
+         */
+        const int lastUsedTextureRemovalThreshold = 10000;
+
+        /**
+         * The value of lastUsedCount the last time the texture was bound.
+         */
+        std::unordered_map<TextureId, long long> textureLastUsed;
+
         int textureUnitsUsed = 0;
 
         /**

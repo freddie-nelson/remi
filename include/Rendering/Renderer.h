@@ -57,7 +57,7 @@ namespace Rendering
      *
      * The default alpha blending function is `GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA`.
      *
-     * The renderer also contains a TextureManager for managing textures.
+     * The renderer also contains a TextureManager for managing textures. By default the renderer will remove unused textures on update.
      */
     class Renderer : public ECS::System
     {
@@ -183,20 +183,20 @@ namespace Rendering
 
         /**
          * Enables or disables writing to the depth buffer.
-         * 
+         *
          * Depth writing is enabled by default.
-         * 
+         *
          * When depth writing is enabled, the renderer will write the depth of the fragment to the depth buffer.
-         * 
+         *
          * @param enable Whether to enable or disable depth writing.
-        */
+         */
         void enableDepthWrite(bool enable);
 
         /**
          * Returns whether depth writing is enabled.
-         * 
+         *
          * @returns whether depth writing is enabled.
-        */
+         */
         bool isDepthWriteEnabled() const;
 
         /**
@@ -310,6 +310,24 @@ namespace Rendering
         bool getSyncActiveCameraSize() const;
 
         /**
+         * Whether the renderer should unbind unused textures.
+         *
+         * By default, this is true.
+         *
+         * This will call `textureManager.unbindUnusedTextures()` every update.
+         *
+         * @param unbind Whether to unbind unused textures.
+         */
+        void setUnbindUnusedTextures(bool unbind);
+
+        /**
+         * Returns whether the renderer is unbinding unused textures.
+         *
+         * @returns Whether the renderer is unbinding unused textures.
+         */
+        bool getUnbindUnusedTextures() const;
+
+        /**
          * Sets the render target of the renderer.
          *
          * The renderer will output to the given target instead of the screen.
@@ -340,6 +358,7 @@ namespace Rendering
         int width = 0;
         int height = 0;
 
+        bool unbindUnusedTextures = true;
         TextureManager textureManager;
 
         GLenum alphaBlendingSFactor = GL_SRC_ALPHA;
