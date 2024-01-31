@@ -36,6 +36,8 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
         atlasIndex = addTextureToAtlas(texture);
     }
 
+    // std::cout << "texture bound" << std::endl;
+
     textureLastUsed[texture->getId()] = lastUsedCount;
 
     return {

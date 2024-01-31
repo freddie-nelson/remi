@@ -16,6 +16,7 @@
 #include <blaze++/Core/Timestep.h>
 #include <blaze++/Rendering/Passes/ColorBlendPass.h>
 #include <blaze++/Rendering/Passes/GaussianBlurPass.h>
+#include <blaze++/Rendering/Texture/AnimatedTexture.h>
 
 #include <math.h>
 #include <random>
@@ -44,6 +45,9 @@ void Application::run()
 
 Rendering::ColorBlendPass *colorBlendPass;
 Rendering::GaussianBlurPass *blurPass;
+
+// ! Implement some kind of texture/asset loading system at engine level
+// would avoid user having to manage memory etc for textures and maybe other things
 
 void Application::init()
 {
@@ -152,13 +156,41 @@ void Application::init()
         // "   FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f / (uTime / 30.0f)) * vColor;\n"
         "}\n";
 
-    Rendering::ShaderMaterial m(textShader, gradient);
+    Rendering::ShaderMaterial m(textShader);
+    m.setTexture(gradient);
     m.setTransparency(true);
     registry->add(textEntity, m);
 
     auto &t = registry->get<Core::Transform>(textEntity);
     t.scale(100);
     t.setZIndex(zRange - 2);
+
+    // animation
+    auto character = registry->create();
+
+    auto &cm = registry->add(character, Rendering::Mesh2D(64.0f, 64.0f));
+    auto &ct = registry->add(character, Core::Transform());
+    auto &cMat = registry->add(character, Rendering::Material());
+    registry->add(character, Rendering::Renderable{true, false});
+
+    ct.scale(6);
+    ct.setZIndex(zRange + 1);
+
+    std::vector<std::string> frames = {
+        "assets/character/run0.png",
+        "assets/character/run1.png",
+        "assets/character/run2.png",
+        "assets/character/run3.png",
+        "assets/character/run4.png",
+        "assets/character/run5.png",
+        "assets/character/run6.png",
+        "assets/character/run7.png",
+    };
+
+    auto *animTexture = new Rendering::AnimatedTexture(frames, 1000.0f, Rendering::AnimatedTexture::AnimationMode::LOOP);
+    cMat.setTexture(animTexture);
+
+    std::cout << "character: " << character << std::endl;
 }
 
 void Application::destroy()

@@ -12,6 +12,10 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
+float Rendering::TextureAtlas::TextureAtlas::ATLAS_SIZE_MULTIPLIER = 0.50f;
+
+unsigned int Rendering::TextureAtlas::TextureAtlas::MAX_ATLAS_SIZE = 4096;
+
 unsigned int atlasSize = 0;
 bool atlasSizeSet = false;
 

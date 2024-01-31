@@ -57,7 +57,9 @@ namespace Rendering
      *
      * The default alpha blending function is `GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA`.
      *
-     * The renderer also contains a TextureManager for managing textures. By default the renderer will remove unused textures on update.
+     * The renderer also contains a TextureManager for managing textures.
+     *
+     * By default the renderer will not unbind unused textures. This can be toggled with `setUnbindUnusedTextures`. It most likely is not needed, unless you have a lot of textures.
      */
     class Renderer : public ECS::System
     {
@@ -358,7 +360,7 @@ namespace Rendering
         int width = 0;
         int height = 0;
 
-        bool unbindUnusedTextures = true;
+        bool unbindUnusedTextures = false;
         TextureManager textureManager;
 
         GLenum alphaBlendingSFactor = GL_SRC_ALPHA;

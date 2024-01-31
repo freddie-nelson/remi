@@ -116,8 +116,7 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     auto *material = getMaterial(registry, entity);
     auto color = material->getColor().getColor();
 
-    auto texture = material->getTexture();
-    auto boundTexture = textureManager.bind(texture);
+    auto boundTexture = bindTextures(registry, {entity})[0];
     auto &texturesUniform = textureManager.getTexturesUniform();
 
     // transform
@@ -623,6 +622,7 @@ std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture
     for (auto &e : renderables)
     {
         auto material = getMaterial(registry, e);
+
         auto texture = material->getTexture();
 
         if (!boundTextures.contains(texture->getId()))
@@ -631,7 +631,20 @@ std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture
             // std::cout << "width: " << texture->getWidth() << ", height: " << texture->getHeight() << std::endl;
             // std::cout << "channels: " << texture->getChannels() << std::endl;
 
-            boundTextures.emplace(texture->getId(), textureManager.bind(texture));
+            if (material->isAnimated())
+            {
+                auto animatedTexture = material->getAnimatedTexture();
+                auto &frames = animatedTexture->getFrames();
+
+                for (auto &frame : frames)
+                {
+                    boundTextures.emplace(frame->getId(), textureManager.bind(frame));
+                }
+            }
+            else
+            {
+                boundTextures.emplace(texture->getId(), textureManager.bind(texture));
+            }
         }
     }
 

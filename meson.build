@@ -117,7 +117,7 @@ rendering_src += [
     'src/Rendering/Passes/RenderablesPass.cpp', 
 ]
 rendering_src += ['src/Rendering/Shader/Shader.cpp', 'src/Rendering/Shader/VertexIndices.cpp']
-rendering_src += ['src/Rendering/Texture/Texture.cpp', 'src/Rendering/Texture/TextureAtlas.cpp', 'src/Rendering/Texture/TextureManager.cpp']
+rendering_src += ['src/Rendering/Texture/AnimatedTexture.cpp', 'src/Rendering/Texture/AnimationSystem.cpp', 'src/Rendering/Texture/Texture.cpp', 'src/Rendering/Texture/TextureAtlas.cpp', 'src/Rendering/Texture/TextureManager.cpp']
 rendering_src += ['src/Rendering/Utility/OpenGLHelpers.cpp']
 
 # utility

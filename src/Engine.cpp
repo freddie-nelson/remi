@@ -35,6 +35,9 @@ blz::Engine::Engine(EngineConfig config)
 
     renderManager = new Rendering::RenderManager(renderer, pipeline);
 
+    animationSystem = new Rendering::AnimationSystem();
+    addSystem(animationSystem);
+
     registry = new ECS::Registry();
 
     mouse = new Input::Mouse(window->getGLFWWindow());
@@ -126,6 +129,16 @@ Rendering::Renderer *const blz::Engine::getRenderer()
 Rendering::RenderPipeline *const blz::Engine::getPipeline()
 {
     return pipeline;
+}
+
+Rendering::RenderManager *const blz::Engine::getRenderManager()
+{
+    return renderManager;
+}
+
+Rendering::AnimationSystem *const blz::Engine::getAnimationSystem()
+{
+    return animationSystem;
 }
 
 ECS::Registry *const blz::Engine::getRegistry()

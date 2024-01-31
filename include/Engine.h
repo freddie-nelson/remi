@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Core/Timestep.h"
+#include "Core/Window.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/RenderPipeline.h"
 #include "Rendering/RenderManager.h"
-#include "Core/Window.h"
+#include "Rendering/Texture/AnimationSystem.h"
 #include "ECS/Registry.h"
 #include "Input/Mouse.h"
 #include "Input/Keyboard.h"
@@ -181,6 +182,24 @@ namespace blz
         Rendering::RenderPipeline *const getPipeline();
 
         /**
+         * Gets the render manager of the engine.
+         *
+         * This is the render manager that is used to render the game.
+         *
+         * @returns The render manager of the engine.
+         */
+        Rendering::RenderManager *const getRenderManager();
+
+        /**
+         * Gets the animation system of the engine.
+         *
+         * This is the animation system that is used to animate textures.
+         *
+         * @returns The animation system of the engine.
+         */
+        Rendering::AnimationSystem *const getAnimationSystem();
+
+        /**
          * Gets the registry of the engine.
          *
          * This is the registry that is used to store all the entities and their components.
@@ -214,6 +233,8 @@ namespace blz
         Rendering::Renderer *renderer;
         Rendering::RenderPipeline *pipeline;
         Rendering::RenderManager *renderManager;
+
+        Rendering::AnimationSystem *animationSystem;
 
         ECS::Registry *registry;
 

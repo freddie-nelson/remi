@@ -14,6 +14,10 @@ namespace Rendering
      *
      * The size of the texture atlas will be min(MAX_ATLAS_SIZE, GL_MAX_TEXTURE_SIZE * ATLAS_SIZE_MULTIPLIER) (width and height).
      *
+     * Large atlas sizes may crash the engine.
+     *
+     * ! TODO: investigate crashing when atlas size is large. Could also be happening when having multiple atlases?
+     *
      * The atlas does not own the Texture objects it contains, and so will not destroy them when it is destroyed.
      *
      * The atlas will not modify the textures it contains.
@@ -29,18 +33,24 @@ namespace Rendering
         /**
          * The multiplier for the size of the atlas.
          *
-         * By default this is 0.5f, so the atlas will be 50% of the maximum texture size.
+         * By default this is 0.75f, so the atlas will be 75% of the maximum texture size.
          *
          * This value must be between 0 (exclusive) and 1 (inclusive).
+         *
+         * This will only affect the size of the atlas when it is created.
          */
-        static constexpr float ATLAS_SIZE_MULTIPLIER = 0.5f;
+        static float ATLAS_SIZE_MULTIPLIER;
 
         /**
          * The maximum size of the atlas.
          *
          * Can be made smaller to improve precision of uv coordinates for smaller textures.
+         *
+         * By default this is 8192.
+         *
+         * This will only affect the size of the atlas when it is created.
          */
-        static constexpr unsigned int MAX_ATLAS_SIZE = 4096;
+        static unsigned int MAX_ATLAS_SIZE;
 
         /**
          * Gets the size of an atlas.
