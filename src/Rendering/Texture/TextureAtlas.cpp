@@ -167,6 +167,13 @@ void Rendering::TextureAtlas::pack()
 {
     // std::cout << "Packing atlas" << std::endl;
 
+    // std::cout << "width: " << width << ", height: " << height << std::endl;
+    // std::cout << "padding: " << padding << std::endl;
+    // std::cout << "textures: " << textures.size() << std::endl;
+    // std::cout << "pixels: " << pixels[0] << ", " << pixels[1] << ", " << pixels[2] << ", " << pixels[3] << std::endl;
+
+    // std::cout << "clearing atlas" << std::endl;
+
     // clear the atlas
     // sets all pixels to fully transparent black
     memset(pixels, 0, width * height * 4);
@@ -212,7 +219,7 @@ void Rendering::TextureAtlas::pack()
         }
 
         // find a space for the texture
-        AtlasSpace *space = nullptr;
+        auto spaceIt = spaces.end();
 
         for (auto it = spaces.begin(); it != spaces.end(); it++)
         {
@@ -220,28 +227,30 @@ void Rendering::TextureAtlas::pack()
 
             if (s.width >= texWidth && s.height >= texHeight)
             {
-                space = &s;
-
-                // okay to not change it here as breaking out of the loop
-                spaces.erase(it);
-
+                spaceIt = it;
                 break;
             }
         }
 
         // if the texture doesn't fit in any of the spaces
-        if (space == nullptr)
+        if (spaceIt == spaces.end())
         {
             throw std::runtime_error("TextureAtlas (pack): can't find space for texture '" + std::to_string(texId) + "'.");
         }
+
+        // make copy so we can erase the space without invalidating the iterator
+        auto space = *spaceIt;
+        spaces.erase(spaceIt);
+
+        // std::cout << "space: " << space.position.x << ", " << space.position.y << ", " << space.width << ", " << space.height << std::endl;
 
         // copy the texture to the atlas
         for (unsigned int y = 0; y < texHeight; y++)
         {
             size_t texRow = y * texWidth * 4;
-            size_t atlasRow = (space->position.y + y) * width * 4;
+            size_t atlasRow = (space.position.y + y) * width * 4;
 
-            size_t atlasIndex = atlasRow + space->position.x * 4;
+            size_t atlasIndex = atlasRow + space.position.x * 4;
 
             auto texPixelsRow = &texPixels[texRow];
             auto pixelsStart = &pixels[atlasIndex];
@@ -264,15 +273,17 @@ void Rendering::TextureAtlas::pack()
         }
 
         // save the position of the texture
-        positions[texId] = glm::vec2(space->position);
+        positions[texId] = glm::vec2(space.position);
 
         // subdivide the space
 
+        // remove the space
+
         // space below texture
-        spaces.push_front({glm::vec2(space->position.x, space->position.y + texHeight + padding), space->width, space->height - texHeight - padding});
+        spaces.push_front({glm::vec2(space.position.x, space.position.y + texHeight + padding), space.width, space.height - texHeight - padding});
 
         // space to right of texture
-        spaces.push_front({glm::vec2(space->position.x + texWidth + padding, space->position.y), space->width - texWidth - padding, texHeight});
+        spaces.push_front({glm::vec2(space.position.x + texWidth + padding, space.position.y), space.width - texWidth - padding, texHeight});
     }
 
     // test atlas output

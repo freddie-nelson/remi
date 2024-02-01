@@ -1,6 +1,7 @@
 #include "../../../include/Rendering/Texture/TextureManager.h"
 #include "../../../include/Rendering/Utility/OpenGLHelpers.h"
 
+#include <cstring>
 #include <stdexcept>
 #include <iostream>
 #include <unordered_set>
@@ -43,8 +44,8 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
     return {
         .texture = texture,
         .textureSize = glm::vec2(texture->getWidth(), texture->getHeight()),
-        .posInAtlas = atlases[atlasIndex].get(texture->getId()),
-        .atlasSize = glm::vec2(atlases[atlasIndex].getWidth(), atlases[atlasIndex].getHeight()),
+        .posInAtlas = atlases[atlasIndex]->get(texture->getId()),
+        .atlasSize = glm::vec2(atlases[atlasIndex]->getWidth(), atlases[atlasIndex]->getHeight()),
         .textureUnit = atlasIndex,
     };
 }
@@ -70,8 +71,8 @@ std::vector<Rendering::TextureManager::BoundTexture> Rendering::TextureManager::
         boundTextures.push_back({
             .texture = texture,
             .textureSize = glm::vec2(texture->getWidth(), texture->getHeight()),
-            .posInAtlas = atlases[atlasIndex].get(texture->getId()),
-            .atlasSize = glm::vec2(atlases[atlasIndex].getWidth(), atlases[atlasIndex].getHeight()),
+            .posInAtlas = atlases[atlasIndex]->get(texture->getId()),
+            .atlasSize = glm::vec2(atlases[atlasIndex]->getWidth(), atlases[atlasIndex]->getHeight()),
             .textureUnit = atlasIndex,
         });
     }
@@ -79,7 +80,8 @@ std::vector<Rendering::TextureManager::BoundTexture> Rendering::TextureManager::
     // reload atlases
     for (auto atlas : atlasesToReload)
     {
-        atlases[atlas].pack();
+        std::cout << "reloading atlas " << atlas << std::endl;
+        atlases[atlas]->pack();
         loadAtlas(atlas);
     }
 
@@ -102,7 +104,7 @@ void Rendering::TextureManager::unbind(const Texture *texture)
 
     // remove from atlas
     auto &atlas = atlases[atlasIndex];
-    atlas.remove(texture->getId());
+    atlas->remove(texture->getId());
 
     // remove from textureToAtlas
     textureToAtlas.erase(texture->getId());
@@ -143,7 +145,7 @@ void Rendering::TextureManager::unbindUnusedTextures()
         {
             // remove from atlas but don't repack yet
             auto atlas = textureToAtlas[texId];
-            atlases[atlas].remove(texId, false);
+            atlases[atlas]->remove(texId, false);
 
             atlasesToRepack.emplace(std::move(atlas));
 
@@ -155,7 +157,7 @@ void Rendering::TextureManager::unbindUnusedTextures()
     // repack and reload atlases
     for (auto atlas : atlasesToRepack)
     {
-        atlases[atlas].pack();
+        atlases[atlas]->pack();
         loadAtlas(atlas);
     }
 
@@ -224,7 +226,7 @@ unsigned int Rendering::TextureManager::addTextureToAtlas(const Texture *texture
     try
     {
         auto &atlas = atlases[atlasIndex];
-        atlas.add(texture, repack);
+        atlas->add(texture, repack);
     }
     catch (std::runtime_error &e)
     {
@@ -232,7 +234,7 @@ unsigned int Rendering::TextureManager::addTextureToAtlas(const Texture *texture
         atlasIndex = createAtlas();
         auto atlas = atlases[atlasIndex];
 
-        atlas.add(texture, repack);
+        atlas->add(texture, repack);
     }
 
     // reload atlas
@@ -255,7 +257,7 @@ unsigned int Rendering::TextureManager::createAtlas(bool loadAtlasOnCreation)
         throw std::runtime_error("TextureManager (createAtlas): no more texture units available.");
     }
 
-    atlases.push_back(TextureAtlas());
+    atlases.push_back(new TextureAtlas());
     texturesUniform[textureUnitsUsed++] = atlases.size() - 1;
 
     auto atlasIndex = atlases.size() - 1;
@@ -313,8 +315,10 @@ void Rendering::TextureManager::loadAtlas(unsigned int textureUnit)
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    // causing crash on my gtx 1060 3gb
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas.getWidth(), atlas.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, atlas.getPixels());
+    // std::cout << "sending texture to GPU " << textureId << std::endl;
+    // std::cout << "pixels: " << atlas->getPixels()[0] << std::endl;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, atlas->getWidth(), atlas->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, atlas->getPixels());
     // std::cout << "sent texture to GPU " << textureId << std::endl;
 
     // unbind texture

@@ -187,7 +187,7 @@ namespace Rendering
          *
          * The texture atlas will be bound to the texture unit when it is created.
          */
-        std::vector<TextureAtlas> atlases;
+        std::vector<TextureAtlas *> atlases;
 
         /**
          * Map of atlas index to opengl texture id.
