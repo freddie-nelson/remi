@@ -617,7 +617,8 @@ Rendering::RendererShaders &Rendering::Renderer::getShaders(const ECS::Registry 
 
 std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture> Rendering::Renderer::bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables)
 {
-    std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture> boundTextures;
+    std::unordered_set<Rendering::TextureId> texturesToBind;
+    std::vector<const Rendering::Texture *> texturesToBindVec;
 
     for (auto &e : renderables)
     {
@@ -625,7 +626,7 @@ std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture
 
         auto texture = material->getTexture();
 
-        if (!boundTextures.contains(texture->getId()))
+        if (!texturesToBind.contains(texture->getId()))
         {
             // std::cout << "binding texture: " << texture->getId() << std::endl;
             // std::cout << "width: " << texture->getWidth() << ", height: " << texture->getHeight() << std::endl;
@@ -638,14 +639,24 @@ std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture
 
                 for (auto &frame : frames)
                 {
-                    boundTextures.emplace(frame->getId(), textureManager.bind(frame));
+                    texturesToBind.emplace(frame->getId());
+                    texturesToBindVec.emplace_back(frame);
                 }
             }
             else
             {
-                boundTextures.emplace(texture->getId(), textureManager.bind(texture));
+                texturesToBind.emplace(texture->getId());
+                texturesToBindVec.emplace_back(texture);
             }
         }
+    }
+
+    std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture> boundTextures;
+    auto boundTexturesVec = textureManager.bind(texturesToBindVec);
+
+    for (auto &bd : boundTexturesVec)
+    {
+        boundTextures.emplace(bd.texture->getId(), std::move(bd));
     }
 
     return boundTextures;

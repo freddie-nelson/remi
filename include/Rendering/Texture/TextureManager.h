@@ -58,6 +58,17 @@ namespace Rendering
         BoundTexture bind(const Texture *texture);
 
         /**
+         * Binds the given textures so that they can be used for rendering.
+         *
+         * If binding more than one texture then it is more efficient to use this method than calling `bind` multiple times.
+         *
+         * @param textures The textures to bind.
+         *
+         * @returns The texture units and uvs of the textures in the bound atlases.
+         */
+        std::vector<BoundTexture> bind(const std::vector<const Texture *> &textures);
+
+        /**
          * Unbinds the given texture.
          *
          * If the texture is not bound then this will do nothing.
@@ -206,22 +217,28 @@ namespace Rendering
          *
          * If there are no available atlases then a new one will be created.
          *
+         * If the texture is just created and reload is false then the atlas will not be loaded onto the GPU, be cautious.
+         *
          * @param texture The texture to add to the atlas.
+         * @param repack Whether to repack the atlas after adding the texture.
+         * @param reload Whether to reload the atlas onto the GPU.
          *
          * @returns The index of the texture unit that the atlas is bound to, this is also the index of the atlas in the atlases vector.
          *
          * @throws std::invalid_argument If the texture is null.
          */
-        unsigned int addTextureToAtlas(const Texture *texture);
+        unsigned int addTextureToAtlas(const Texture *texture, bool repack = true, bool reload = true);
 
         /**
          * Creates a new texture atlas.
+         *
+         * @param loadAtlasOnCreation Whether to load the atlas onto the GPU.
          *
          * @returns The index of the texture unit that the atlas is bound to, this is also the index of the atlas in the atlases vector.
          *
          * @throws std::runtime_error If there are no more texture units available.
          */
-        unsigned int createAtlas();
+        unsigned int createAtlas(bool loadAtlasOnCreation = true);
 
         /**
          * Loads the atlas onto the GPU.

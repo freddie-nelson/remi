@@ -49,6 +49,43 @@ Rendering::TextureManager::BoundTexture Rendering::TextureManager::bind(const Te
     };
 }
 
+std::vector<Rendering::TextureManager::BoundTexture> Rendering::TextureManager::bind(const std::vector<const Texture *> &textures)
+{
+    auto boundTextures = std::vector<BoundTexture>();
+    boundTextures.reserve(textures.size());
+
+    std::unordered_set<unsigned int> atlasesToReload;
+
+    for (auto texture : textures)
+    {
+        auto atlasIndex = getContainingAtlas(texture);
+        if (atlasIndex == -1)
+        {
+            atlasIndex = addTextureToAtlas(texture, false, false);
+            atlasesToReload.emplace(atlasIndex);
+        }
+
+        textureLastUsed[texture->getId()] = lastUsedCount;
+
+        boundTextures.push_back({
+            .texture = texture,
+            .textureSize = glm::vec2(texture->getWidth(), texture->getHeight()),
+            .posInAtlas = atlases[atlasIndex].get(texture->getId()),
+            .atlasSize = glm::vec2(atlases[atlasIndex].getWidth(), atlases[atlasIndex].getHeight()),
+            .textureUnit = atlasIndex,
+        });
+    }
+
+    // reload atlases
+    for (auto atlas : atlasesToReload)
+    {
+        atlases[atlas].pack();
+        loadAtlas(atlas);
+    }
+
+    return boundTextures;
+}
+
 void Rendering::TextureManager::unbind(const Texture *texture)
 {
     if (texture == nullptr)
@@ -160,7 +197,7 @@ int Rendering::TextureManager::getContainingAtlas(const Texture *texture)
     return static_cast<int>(textureToAtlas[texture->getId()]);
 }
 
-unsigned int Rendering::TextureManager::addTextureToAtlas(const Texture *texture)
+unsigned int Rendering::TextureManager::addTextureToAtlas(const Texture *texture, bool repack, bool reload)
 {
     if (texture == nullptr)
     {
@@ -187,7 +224,7 @@ unsigned int Rendering::TextureManager::addTextureToAtlas(const Texture *texture
     try
     {
         auto &atlas = atlases[atlasIndex];
-        atlas.add(texture);
+        atlas.add(texture, repack);
     }
     catch (std::runtime_error &e)
     {
@@ -195,20 +232,19 @@ unsigned int Rendering::TextureManager::addTextureToAtlas(const Texture *texture
         atlasIndex = createAtlas();
         auto atlas = atlases[atlasIndex];
 
-        atlas.add(texture);
+        atlas.add(texture, repack);
     }
 
-    // std::cout << "Added texture to atlas " << atlasIndex << std::endl;
-
     // reload atlas
-    loadAtlas(atlasIndex);
+    if (reload)
+        loadAtlas(atlasIndex);
 
     textureToAtlas[texture->getId()] = atlasIndex;
 
     return atlasIndex;
 }
 
-unsigned int Rendering::TextureManager::createAtlas()
+unsigned int Rendering::TextureManager::createAtlas(bool loadAtlasOnCreation)
 {
     // std::cout << "Creating atlas" << std::endl;
 
@@ -223,7 +259,9 @@ unsigned int Rendering::TextureManager::createAtlas()
     texturesUniform[textureUnitsUsed++] = atlases.size() - 1;
 
     auto atlasIndex = atlases.size() - 1;
-    loadAtlas(atlasIndex);
+
+    if (loadAtlasOnCreation)
+        loadAtlas(atlasIndex);
 
     return atlasIndex;
 }
