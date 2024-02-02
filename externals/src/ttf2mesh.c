@@ -41,10 +41,11 @@
 #   define _DEFAULT_SOURCE 1
 #   define PATH_SEP '/'
 #   include <dirent.h>
-#elif defined(__linux) || defined(__linux__)
+#elif defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)
 #   define TTF_LINUX
 #   define _DEFAULT_SOURCE 1
 #   define PATH_SEP '/'
+#   define PATH_MAX 4096
 #   include <dirent.h>
 #elif defined(__WINNT__) || defined(_WIN32) || defined(_WIN64)
 #   define TTF_WINDOWS

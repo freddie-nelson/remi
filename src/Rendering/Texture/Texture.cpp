@@ -55,6 +55,11 @@ void Rendering::Texture::fromFile(std::string path, bool flip)
 
     if (pixels == nullptr)
     {
+        std::cout << "Failed to load image: " << path << std::endl;
+
+        char *error = (char *)stbi_failure_reason();
+        std::cout << "Error: " << error << std::endl;
+
         throw std::invalid_argument("Failed to load image.");
     }
 

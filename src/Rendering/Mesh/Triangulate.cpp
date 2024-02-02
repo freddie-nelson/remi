@@ -321,7 +321,7 @@ Rendering::IndexedVertices Rendering::triangulate(const std::vector<glm::vec2> &
     createIndexedVertices(meshVertices, meshIndices);
 
     return {
-        vertices : meshVertices,
-        indices : meshIndices
+        .vertices = meshVertices,
+        .indices = meshIndices,
     };
 }
