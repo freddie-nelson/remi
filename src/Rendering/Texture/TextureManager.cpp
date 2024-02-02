@@ -80,7 +80,7 @@ std::vector<Rendering::TextureManager::BoundTexture> Rendering::TextureManager::
     // reload atlases
     for (auto atlas : atlasesToReload)
     {
-        std::cout << "reloading atlas " << atlas << std::endl;
+        // std::cout << "reloading atlas " << atlas << std::endl;
         atlases[atlas]->pack();
         loadAtlas(atlas);
     }
@@ -318,7 +318,16 @@ void Rendering::TextureManager::loadAtlas(unsigned int textureUnit)
     // std::cout << "sending texture to GPU " << textureId << std::endl;
     // std::cout << "pixels: " << atlas->getPixels()[0] << std::endl;
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, atlas->getWidth(), atlas->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, atlas->getPixels());
+    if (needToGenerate)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, atlas->getWidth(), atlas->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, atlas->getPixels());
+    }
+    else
+    {
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, atlas->getWidth(), atlas->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, atlas->getPixels());
+    }
+
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, atlas->getWidth(), atlas->getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, atlas->getPixels());
     // std::cout << "sent texture to GPU " << textureId << std::endl;
 
     // unbind texture
