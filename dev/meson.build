@@ -38,7 +38,8 @@ if cross_target == 'wasm'
         # link_args += ['-sSAFE_HEAP=1',]
     endif
 
-    # link_args += ['--embed-file ' + join_paths(meson.current_source_dir(), 'assets')]
+    # shell file
+    link_args += ['--shell-file', join_paths(meson.current_source_dir(), 'em-shell.html')]
 
     # preload assets
     preload = ['assets'] # relative to the meson.build file directory

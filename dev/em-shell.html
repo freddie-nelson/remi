@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Blaze++ Wasm Build</title>
+    <style>
+      :root {
+        --primary-color: #f40f40;
+        --bg-color: #242526;
+        --text-color-light: #f5f6f7;
+        --text-color-dark: #161617;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 100vw;
+        height: 100vh;
+        color: var(--text-color-light);
+        background-color: var(--bg-color);
+        font-family: "Arial", sans-serif;
+      }
+
+      .canvas-container {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        user-select: none;
+        border: none;
+        outline: none;
+      }
+
+      #canvas {
+        user-select: none;
+        outline: none;
+        border: none;
+      }
+
+      #loader {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background-color: var(--bg-color);
+        color: var(--text-color-light);
+        padding: 1rem;
+        opacity: 1;
+        transition: opacity 0.5s ease;
+      }
+
+      #loader-title {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      #loader-info {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      #loader-progress-bar {
+        width: 100%;
+        max-width: 24rem;
+        height: 2.25rem;
+        border-radius: 2rem;
+        border: 0.25rem solid var(--text-color-light);
+        padding: 0.25rem;
+        overflow: hidden;
+      }
+
+      #loader-progress-bar-fill {
+        width: 0;
+        height: 100%;
+        background-color: var(--primary-color);
+        border-radius: inherit;
+        transition: width 0.2s linear;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loader">
+      <h1 id="loader-title">Loading...</h1>
+      <p id="loader-info"></p>
+
+      <div id="loader-progress-bar">
+        <div id="loader-progress-bar-fill"></div>
+      </div>
+    </div>
+
+    <div class="canvas-container" tabindex="-1">
+      <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    </div>
+
+    <script type="text/javascript">
+      let totalDependencies = 0;
+      let loadedDependencies = 0;
+
+      const loader = document.getElementById("loader");
+      const loaderTitle = document.getElementById("loader-title");
+      const loaderInfo = document.getElementById("loader-info");
+      const loaderProgress = document.getElementById("loader-progress-bar");
+      const loaderProgressFill = document.getElementById("loader-progress-bar-fill");
+
+      var Module = {
+        print: (function () {
+          return function (text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(" ");
+
+            console.log(text);
+          };
+        })(),
+        canvas: (() => {
+          const canvas = document.getElementById("canvas");
+
+          // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+          // application robust, you may want to override this behavior before shipping!
+          // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+          canvas.addEventListener(
+            "webglcontextlost",
+            (e) => {
+              alert("WebGL context lost. You will need to reload the page.");
+              e.preventDefault();
+            },
+            false
+          );
+
+          return canvas;
+        })(),
+        setStatus: (status) => {
+          // loading complete
+          if (!status) {
+            console.log("Loading complete");
+            loader.style.opacity = "0";
+
+            loader.addEventListener("transitionend", () => {
+              loader.style.display = "none";
+            });
+
+            return;
+          }
+
+          console.log(status);
+
+          if (status === "downloading" || status === "downloading-assets") {
+            loaderTitle.innerText = "Downloading...";
+            loaderInfo.innerText = `${loadedDependencies} / ${totalDependencies}`;
+            loaderProgress.style.display = "block";
+            loaderProgressFill.style.width = `${(loadedDependencies / totalDependencies) * 100}%`;
+          } else if (status.startsWith("Downloading data")) {
+            loaderTitle.innerText = "Downloading Data...";
+
+            const data = status.split("(")[1].slice(0, -1).split("/");
+            const loaded = parseInt(data[0]);
+            const total = parseInt(data[1]);
+
+            loaderInfo.innerText = `${loaded} / ${total}`;
+
+            loaderProgress.style.display = "block";
+            loaderProgressFill.style.width = `${(loaded / total) * 100}%`;
+          } else {
+            loaderTitle.innerText = status;
+            loaderInfo.innerText = "";
+
+            loaderProgress.style.display = "block";
+
+            // fake progress bar
+            loaderProgressFill.style.width = "10%";
+            requestAnimationFrame(() => {
+              loaderProgressFill.style.transitionDuration = "10s";
+              loaderProgressFill.style.width = `100%`;
+            });
+          }
+        },
+        monitorRunDependencies: (left) => {
+          totalDependencies = Math.max(totalDependencies, left);
+          loadedDependencies = totalDependencies - left;
+
+          Module.setStatus("downloading");
+        },
+      };
+
+      Module.setStatus("downloading-assets");
+
+      window.onerror = () => {
+        Module.setStatus("Exception thrown, see JavaScript console");
+
+        Module.setStatus = (text) => {
+          if (text) console.error("[post-exception status] " + text);
+        };
+      };
+
+      let isFullscreen = false;
+
+      window.addEventListener("fullscreenchange", () => {
+        if (document.fullscreenElement) {
+          console.log("Entered fullscreen");
+        } else {
+          console.log("Exited fullscreen");
+          isFullscreen = false;
+        }
+      });
+
+      window.addEventListener("keypress", (e) => {
+        if (e.code == "KeyF") {
+          if (isFullscreen) return;
+
+          console.log("Fullscreen requested");
+
+          const lockPointer = true;
+          const resizeCanvas = true;
+
+          isFullscreen = true;
+          Module.requestFullscreen(lockPointer, resizeCanvas);
+
+          e.preventDefault();
+        }
+      });
+    </script>
+
+    {{{ SCRIPT }}}
+  </body>
+</html>
