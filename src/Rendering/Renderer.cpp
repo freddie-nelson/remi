@@ -40,9 +40,8 @@ Rendering::RendererShaders::RendererShaders(const std::string &fragmentShader)
     }
 }
 
-Rendering::Renderer::Renderer(GLFWwindow *glfwWindow, int width, int height)
+Rendering::Renderer::Renderer(Core::Window *window, int width, int height) : window(window)
 {
-    this->glfwWindow = glfwWindow;
     setSize(width, height);
 
     ownsRenderTarget = true;
@@ -100,7 +99,7 @@ void Rendering::Renderer::clear(bool clearColorBuffer, bool clearDepthBuffer, bo
 
 void Rendering::Renderer::present() const
 {
-    glfwSwapBuffers(glfwWindow);
+    window->swapBuffers();
 }
 
 void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entity camera, ECS::Entity &entity)
@@ -498,10 +497,7 @@ glm::uvec2 Rendering::Renderer::getSize() const
 
 glm::uvec2 Rendering::Renderer::getWindowSize() const
 {
-    int width, height;
-    glfwGetFramebufferSize(glfwWindow, &width, &height);
-
-    return glm::uvec2(width, height);
+    return window->getSize();
 }
 
 ECS::Entity Rendering::Renderer::getActiveCamera(const ECS::Registry &registry) const

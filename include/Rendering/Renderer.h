@@ -10,6 +10,7 @@
 #include "../ECS/Entity.h"
 #include "../Core/BoundingCircle.h"
 #include "../Core/AABB/AABBTree.h"
+#include "../Core/Window.h"
 #include "./RenderTarget.h"
 
 #define GLFW_INCLUDE_NONE
@@ -44,8 +45,6 @@ namespace Rendering
     /**
      * The renderer is responsible for rendering entities to the screen.
      *
-     * It is also responsible for clearing the screen and swapping the front and back buffers.
-     *
      * The renderer does not handle the window, it only handles the rendering through OpenGL.
      *
      * The renderer also handles the camera, by default it will create a camera with the same size as the renderer.
@@ -65,15 +64,15 @@ namespace Rendering
     {
     public:
         /**
-         * Creates a new renderer attached to the given GLFWwindow.
+         * Creates a new renderer instance.
          *
          * Will also create a default camera with the given width and height, and centre at (0, 0).
          *
-         * @param glfwWindow The GLFWwindow to attach to.
+         * @param window The window to attach the renderer to.
          * @param width The width of the renderer viewport.
          * @param height The height of the renderer viewport.
          */
-        Renderer(GLFWwindow *glfwWindow, int width, int height);
+        Renderer(Core::Window *window, int width, int height);
 
         /**
          * Destroys the renderer.
@@ -107,7 +106,7 @@ namespace Rendering
         void clear(bool clearColorBuffer = true, bool clearDepthBuffer = true, bool clearStencilBuffer = true) const;
 
         /**
-         * Swaps the front and back buffers, presenting the rendered image to the screen.
+         * Swaps the front and back buffers of the attached window, presenting the rendered image to the screen.
          */
         void present() const;
 
@@ -255,9 +254,9 @@ namespace Rendering
         glm::uvec2 getSize() const;
 
         /**
-         * Returns the width and height of the attached GLFWwindow.
+         * Returns the width and height of the attached window.
          *
-         * @returns The width and height of the attached GLFWwindow.
+         * @returns The width and height of the attached window.
          */
         glm::uvec2 getWindowSize() const;
 
@@ -368,9 +367,9 @@ namespace Rendering
 
         Color clearColor = Color(0.0f);
 
-        GLFWwindow *glfwWindow;
-
         GLenum bufferDrawType = GL_STREAM_DRAW;
+
+        Core::Window *window;
 
         bool ownsRenderTarget = true;
         RenderTarget *renderTarget;

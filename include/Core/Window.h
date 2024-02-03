@@ -62,6 +62,15 @@ namespace Core
         void update(const ECS::Registry &registry, const Core::Timestep &timestep) override;
 
         /**
+         * Swaps the front and back buffers of the window.
+         *
+         * This will display the rendered image to the window.
+         *
+         * This should be called after rendering to the window.
+         */
+        void swapBuffers();
+
+        /**
          * Shows the window.
          */
         void show();

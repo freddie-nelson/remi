@@ -20,7 +20,7 @@ blz::Engine::Engine(EngineConfig config)
     window->init();
     // addSystem(window);
 
-    renderer = new Rendering::Renderer(window->getGLFWWindow(), config.windowWidth, config.windowHeight);
+    renderer = new Rendering::Renderer(window, config.windowWidth, config.windowHeight);
     renderer->init();
 
     pipeline = new Rendering::RenderPipeline();
@@ -69,8 +69,8 @@ void blz::Engine::run()
 
     args->timeSinceLastUpdate = 0;
 
-    std::cout << "Time between fixed updates: " << args->timeBetweenFixedUpdates << std::endl;
-    std::cout << "Time between updates: " << args->timeBetweenUpdates << std::endl;
+    // std::cout << "Time between fixed updates: " << args->timeBetweenFixedUpdates << std::endl;
+    // std::cout << "Time between updates: " << args->timeBetweenUpdates << std::endl;
 
     // create timestep at current time
     args->tick = Core::Timestep();

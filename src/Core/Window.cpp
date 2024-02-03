@@ -68,6 +68,11 @@ void Core::Window::update(const ECS::Registry &registry, const Core::Timestep &t
 {
 }
 
+void Core::Window::swapBuffers()
+{
+    glfwSwapBuffers(glfwWindow);
+}
+
 void Core::Window::show()
 {
     showWindow = true;
