@@ -40,27 +40,24 @@ Rendering::RendererShaders::RendererShaders(const std::string &fragmentShader)
     }
 }
 
-Rendering::Renderer::Renderer(Core::Window *window, int width, int height) : window(window)
+Rendering::Renderer::Renderer(Core::Window *window, unsigned int width, unsigned int height) : window(window)
 {
     setSize(width, height);
 
     ownsRenderTarget = true;
     renderTarget = new RenderTarget(width, height);
-}
 
-Rendering::Renderer::~Renderer()
-{
-    delete this;
-}
-
-void Rendering::Renderer::init()
-{
     enableDepthTest(true);
     enableDepthWrite(true);
     enableAlphaBlending(false);
 
     // init shaders
     shaders.emplace(DEFAULT_SHADER_KEY, new RendererShaders(meshFragShader));
+}
+
+Rendering::Renderer::~Renderer()
+{
+    delete this;
 }
 
 void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Timestep &timestep)
@@ -477,17 +474,37 @@ bool Rendering::Renderer::isAlphaBlendingEnabled() const
     return glIsEnabled(GL_BLEND);
 }
 
-void Rendering::Renderer::setSize(int w, int h)
+void Rendering::Renderer::setWidth(unsigned int w)
 {
-    if (w <= 0 || h <= 0)
-    {
-        throw std::runtime_error("Renderer::resize: width and height must be greater than 0.");
-    }
+    setSize(w, height);
+}
 
+unsigned int Rendering::Renderer::getWidth() const
+{
+    return width;
+}
+
+void Rendering::Renderer::setHeight(unsigned int h)
+{
+    setSize(width, h);
+}
+
+unsigned int Rendering::Renderer::getHeight() const
+{
+    return height;
+}
+
+void Rendering::Renderer::setSize(unsigned int w, unsigned int h)
+{
     width = w;
     height = h;
 
     glViewport(0, 0, width, height);
+}
+
+void Rendering::Renderer::setSize(const glm::uvec2 &size)
+{
+    setSize(size.x, size.y);
 }
 
 glm::uvec2 Rendering::Renderer::getSize() const

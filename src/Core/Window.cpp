@@ -7,36 +7,15 @@
 #include <thread>
 
 Core::Window::Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, bool fullscreen)
-    : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight), isFullscreen(fullscreen)
+    : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight)
 {
     if (!glfwInit())
     {
         throw std::runtime_error("Failed to initialize GLFW.");
     }
-}
-
-Core::Window::~Window()
-{
-    destroy();
-}
-
-void Core::Window::init()
-{
-    // if (openglMajorVersion < 3)
-    // {
-    //     throw std::invalid_argument("openglMajorVersion must be greater than or equal to 3.");
-    // }
-    // else if (openglMajorVersion == 3 && openglMinorVersion < 3)
-    // {
-    //     throw std::invalid_argument("openglMinorVersion must be greater than or equal to 3.3.");
-    // }
-    // else if (openglMajorVersion == 4 && openglMinorVersion > 6)
-    // {
-    //     throw std::invalid_argument("openglMinorVersion must be less than or equal to 4.6.");
-    // }
 
     GLFWmonitor *monitor = nullptr;
-    if (isFullscreen)
+    if (fullscreen)
     {
         monitor = glfwGetPrimaryMonitor();
     }
@@ -47,15 +26,23 @@ void Core::Window::init()
         throw std::runtime_error("Failed to create GLFW window.");
     }
 
-    std::cout
-        << "Window created." << std::endl;
+    // std::cout << "Window created." << std::endl;
 
     // create opengl context
     auto context = createOpenGLContext(glfwWindow);
 
     // Output the opengl version
-    std::cout << "OpenGL version: " << context->versionString << std::endl;
-    std::cout << "OpenGL vendor: " << context->vendor << std::endl;
+    // std::cout << "OpenGL version: " << context->versionString << std::endl;
+    // std::cout << "OpenGL vendor: " << context->vendor << std::endl;
+}
+
+Core::Window::~Window()
+{
+    destroy();
+}
+
+void Core::Window::update(const Core::Timestep &timestep)
+{
 }
 
 void Core::Window::destroy()
@@ -64,13 +51,14 @@ void Core::Window::destroy()
     glfwTerminate();
 }
 
-void Core::Window::update(const ECS::Registry &registry, const Core::Timestep &timestep)
-{
-}
-
 void Core::Window::swapBuffers()
 {
     glfwSwapBuffers(glfwWindow);
+}
+
+void Core::Window::pollEvents()
+{
+    glfwPollEvents();
 }
 
 void Core::Window::show()
@@ -101,6 +89,11 @@ void Core::Window::setSize(unsigned int width, unsigned int height)
 {
     setWidth(width);
     setHeight(height);
+}
+
+void Core::Window::setSize(const glm::uvec2 &size)
+{
+    setSize(size.x, size.y);
 }
 
 unsigned int Core::Window::getWidth() const
@@ -157,6 +150,33 @@ void Core::Window::setPosition(int x, int y)
     glfwSetWindowPos(glfwWindow, x, y);
 }
 
+void Core::Window::toggleFullscreen(bool fullscreen)
+{
+    if (fullscreen)
+    {
+        glfwSetWindowMonitor(glfwWindow, glfwGetPrimaryMonitor(), 0, 0, initialWindowWidth, initialWindowHeight, GLFW_DONT_CARE);
+    }
+    else
+    {
+        glfwSetWindowMonitor(glfwWindow, nullptr, 0, 0, initialWindowWidth, initialWindowHeight, GLFW_DONT_CARE);
+    }
+}
+
+bool Core::Window::isFullscreen() const
+{
+    return glfwGetWindowMonitor(glfwWindow) != nullptr;
+}
+
+void Core::Window::toggleResizeable(bool resizeable)
+{
+    glfwSetWindowAttrib(glfwWindow, GLFW_RESIZABLE, resizeable);
+}
+
+bool Core::Window::isResizeable() const
+{
+    return glfwGetWindowAttrib(glfwWindow, GLFW_RESIZABLE);
+}
+
 void Core::Window::toggleVsync(bool enable)
 {
     glfwSwapInterval(enable ? 1 : 0);
@@ -165,6 +185,21 @@ void Core::Window::toggleVsync(bool enable)
 GLFWwindow *Core::Window::getGLFWWindow() const
 {
     return glfwWindow;
+}
+
+bool Core::Window::getWindowShouldClose() const
+{
+    return glfwWindowShouldClose(glfwWindow);
+}
+
+bool Core::Window::isMinimized() const
+{
+    return glfwGetWindowAttrib(glfwWindow, GLFW_ICONIFIED);
+}
+
+bool Core::Window::isMaximized() const
+{
+    return glfwGetWindowAttrib(glfwWindow, GLFW_MAXIMIZED);
 }
 
 GLFWwindow *Core::Window::createGLFWWindow(int openglMajorVersion, int openglMinorVersion, bool debugContext, GLFWmonitor *monitor)

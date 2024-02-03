@@ -43,12 +43,11 @@ namespace Rendering
     };
 
     /**
-     * The renderer is responsible for rendering entities to the screen.
+     * The renderer is responsible for drawing entities.
      *
      * The renderer does not handle the window, it only handles the rendering through OpenGL.
      *
-     * The renderer also handles the camera, by default it will create a camera with the same size as the renderer.
-     * The camera's size can be synced to the renderer's size, or it can be set manually. By default, the camera's size is not synced.
+     * The acitve camera's size can be synced to the renderer's size, or it can be set manually. By default, the active camera's size is not synced.
      *
      * Depth testing is enabled by default.
      *
@@ -66,23 +65,16 @@ namespace Rendering
         /**
          * Creates a new renderer instance.
          *
-         * Will also create a default camera with the given width and height, and centre at (0, 0).
-         *
          * @param window The window to attach the renderer to.
          * @param width The width of the renderer viewport.
          * @param height The height of the renderer viewport.
          */
-        Renderer(Core::Window *window, int width, int height);
+        Renderer(Core::Window *window, unsigned int width, unsigned int height);
 
         /**
          * Destroys the renderer.
          */
         virtual ~Renderer();
-
-        /**
-         * Initializes the renderer.
-         */
-        void init();
 
         /**
          * Updates the renderer.
@@ -237,6 +229,38 @@ namespace Rendering
         bool isAlphaBlendingEnabled() const;
 
         /**
+         * Sets the width of the renderer.
+         *
+         * This will also set the glViewport.
+         *
+         * @param w The width of the renderer.
+         */
+        void setWidth(unsigned int w);
+
+        /**
+         * Returns the width of the renderer.
+         *
+         * @returns The width of the renderer.
+         */
+        unsigned int getWidth() const;
+
+        /**
+         * Sets the height of the renderer.
+         *
+         * This will also set the glViewport.
+         *
+         * @param h The height of the renderer.
+         */
+        void setHeight(unsigned int h);
+
+        /**
+         * Returns the height of the renderer.
+         *
+         * @returns The height of the renderer.
+         */
+        unsigned int getHeight() const;
+
+        /**
          * Sets the width and height of the renderer.
          *
          * This will also set the glViewport.
@@ -244,7 +268,16 @@ namespace Rendering
          * @param w The width of the renderer
          * @param h The height of the renderer
          */
-        void setSize(int w, int h);
+        void setSize(unsigned int w, unsigned int h);
+
+        /**
+         * Sets the width and height of the renderer.
+         *
+         * This will also set the glViewport.
+         *
+         * @param size The width and height of the renderer.
+         */
+        void setSize(const glm::uvec2 &size);
 
         /**
          * Returns the width and height of the renderer.
@@ -356,8 +389,8 @@ namespace Rendering
         TextureManager &getTextureManager();
 
     private:
-        int width = 0;
-        int height = 0;
+        unsigned int width = 0;
+        unsigned int height = 0;
 
         bool unbindUnusedTextures = false;
         TextureManager textureManager;

@@ -17,11 +17,7 @@ blz::Engine::Engine(EngineConfig config)
     Config::MAX_Z_INDEX = config.maxZIndex;
 
     window = new Core::Window(config.windowTitle, config.windowWidth, config.windowHeight, config.windowFullscreen);
-    window->init();
-    // addSystem(window);
-
     renderer = new Rendering::Renderer(window, config.windowWidth, config.windowHeight);
-    renderer->init();
 
     pipeline = new Rendering::RenderPipeline();
     pipeline->add(new Rendering::RenderablesPass(), 1000);
@@ -187,25 +183,37 @@ void blz::Engine::mainLoop(MainLoopArgs *args)
         renderer->clear();
 
         // update window
-        window->update(*registry, timestep);
-        renderer->update(*registry, timestep);
+        window->update(timestep);
+
+        bool isMinimized = window->isMinimized();
+
+        // only update renderer if window is not minimized
+        // otherwise resizing render target will cause a crash
+        if (!isMinimized)
+        {
+            renderer->update(*registry, timestep);
+        }
 
         for (auto system : systems)
         {
             system->update(*registry, timestep);
         }
 
-        // render renderer
-        renderManager->render(*registry);
+        // no need to render if window is minimized
+        if (!isMinimized)
+        {
+            // render
+            renderManager->render(*registry);
+        }
 
         // present renderer
         renderer->present();
 
         // poll for new events after frame has been rendered
-        glfwPollEvents();
+        window->pollEvents();
 
         // check if window should close
-        if (glfwWindowShouldClose(window->getGLFWWindow()))
+        if (window->getWindowShouldClose())
         {
 #ifdef __EMSCRIPTEN__
             emscripten_cancel_main_loop();

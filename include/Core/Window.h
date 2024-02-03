@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../ECS/System.h"
-#include "../ECS/Registry.h"
+#include "../Core/Timestep.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -18,7 +17,7 @@ namespace Core
      *
      * The window must be initialized before it can be used.
      */
-    class Window : public ECS::System
+    class Window
     {
     public:
         /**
@@ -39,27 +38,16 @@ namespace Core
         virtual ~Window();
 
         /**
-         * Initializes the window.
+         * Updates the window
          *
-         * This will crash if the opengl version is not supported.
-         *
-         * @throws std::runtime_error if the window failed to initialize.
-         * @throws std::invalid_argument if the opengl version is not supported.
+         * @param timestep The timestep since the last update.
          */
-        void init();
+        void update(const Core::Timestep &timestep);
 
         /**
          * Destroys the window, freeing all resources and closing the window.
          */
         void destroy();
-
-        /**
-         * Updates the window
-         *
-         * @param registry The registry to update with.
-         * @param timestep The timestep since the last update.
-         */
-        void update(const ECS::Registry &registry, const Core::Timestep &timestep) override;
 
         /**
          * Swaps the front and back buffers of the window.
@@ -69,6 +57,11 @@ namespace Core
          * This should be called after rendering to the window.
          */
         void swapBuffers();
+
+        /**
+         * Polls for window events.
+         */
+        void pollEvents();
 
         /**
          * Shows the window.
@@ -92,6 +85,13 @@ namespace Core
          * @param height The height of the window.
          */
         void setSize(unsigned int width, unsigned int height);
+
+        /**
+         * Sets the width and height of the window.
+         *
+         * @param size The width and height of the window.
+         */
+        void setSize(const glm::uvec2 &size);
 
         /**
          * Gets the width of the window.
@@ -141,6 +141,34 @@ namespace Core
         void setPosition(int x, int y);
 
         /**
+         * Toggles fullscreen mode.
+         *
+         * @param fullscreen Whether to enable or disable fullscreen mode.
+         */
+        void toggleFullscreen(bool fullscreen);
+
+        /**
+         * Returns whether the window is in fullscreen mode.
+         *
+         * @returns Whether the window is in fullscreen mode.
+         */
+        bool isFullscreen() const;
+
+        /**
+         * Toggles whether the window is resizable.
+         *
+         * @param resizeable Whether to enable or disable window resizing.
+         */
+        void toggleResizeable(bool resizeable);
+
+        /**
+         * Returns whether the window is resizable.
+         *
+         * @returns Whether the window is resizable.
+         */
+        bool isResizeable() const;
+
+        /**
          * Enables or disables vsync.
          *
          * By default vsync is disabled.
@@ -158,11 +186,32 @@ namespace Core
          */
         GLFWwindow *getGLFWWindow() const;
 
+        /**
+         * Gets whether or not the window should close.
+         *
+         * @returns Whether or not the window should close.
+         */
+        bool getWindowShouldClose() const;
+
+        /**
+         * Returns whether the window is minimized.
+         *
+         * @returns Whether the window is minimized.
+         */
+        bool isMinimized() const;
+
+        /**
+         * Returns whether the window is maximized.
+         *
+         * @returns Whether the window is maximized.
+         */
+        bool isMaximized() const;
+
     private:
         std::string windowTitle;
         unsigned int initialWindowWidth;
         unsigned int initialWindowHeight;
-        bool isFullscreen;
+        bool isWindowFullscreen;
 
         /**
          * OpenGL ES 3.0 for webgl 2.0 matching.
