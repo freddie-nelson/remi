@@ -30,10 +30,22 @@ if cross_target == 'wasm'
     link_args += includes
     cpp_args += includes 
 
-    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1', '-sFORCE_FILESYSTEM']
-    link_args += ['-sASSERTIONS=1', '-sSAFE_HEAP=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
+    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1']
+    if get_option('buildtype') == 'debug'
+        link_args += ['-sASSERTIONS=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
+
+        # crashing on wasm with SAFE_HEAP when trying to load a font
+        # link_args += ['-sSAFE_HEAP=1',]
+    endif
 
     # link_args += ['--embed-file ' + join_paths(meson.current_source_dir(), 'assets')]
+
+    # preload assets
+    preload = ['assets'] # relative to the meson.build file directory
+
+    foreach p : preload
+        link_args += ['--preload-file', join_paths(meson.current_source_dir(), p) + '@/' + p]
+    endforeach
 
     # must have built blaze for wasm previously
     blaze = cpp_compiler.find_library('blaze++', dirs : join_paths(lib_dir, 'lib'), required : true) 

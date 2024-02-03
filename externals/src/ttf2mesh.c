@@ -1745,8 +1745,12 @@ static bool try_strdup(const char *s, char **dest)
     return true;
 }
 
+#include <stdio.h>
+
 int ttf_load_from_file(const char *filename, ttf_t **output, bool headers_only)
 {
+    printf("start loading font");
+
     FILE *f;
     int result;
     uint8_t *data;
@@ -1755,6 +1759,8 @@ int ttf_load_from_file(const char *filename, ttf_t **output, bool headers_only)
 
     data = NULL;
     *output = NULL;
+
+    printf("loading font");
 
     /* open file and get it size */
     f = fopen(filename, "rb");
@@ -1766,9 +1772,13 @@ int ttf_load_from_file(const char *filename, ttf_t **output, bool headers_only)
     check(size > 0 && size < (TTF_MAX_FILE * 1024 * 1024), TTF_ERR_SIZE);
     check(fseek(f, 0, SEEK_SET) == 0, TTF_ERR_FMT);
 
+    printf("opened font");
+
     /* allocate memory to file content */
     data = (uint8_t *)malloc(size);
     check(data != NULL, TTF_ERR_NOMEM);
+
+    printf("allocated memory");
 
     /* read file content */
     check(fread(data, 1, size, f) == (size_t)size, TTF_ERR_FMT);
@@ -1776,6 +1786,8 @@ int ttf_load_from_file(const char *filename, ttf_t **output, bool headers_only)
     fclose(f);
     result = ttf_load_from_mem(data, size, output, headers_only);
     free(data);
+
+    printf("loaded from mem");
 
     if (*output != NULL)
         try_strdup(filename, (char **)&(*output)->filename);

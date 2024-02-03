@@ -6,6 +6,12 @@
 
 std::vector<std::string> Rendering::Font::getSystemFonts()
 {
+#ifdef __EMSCRIPTEN__
+    std::cout << "Font::getSystemFonts() is not implemented for Emscripten." << std::endl;
+
+    return {};
+#endif
+
     auto list = ttf_list_system_fonts(nullptr);
     if (list == nullptr || list[0] == nullptr)
     {
@@ -70,15 +76,23 @@ float Rendering::Font::getSpaceWidth() const
 
 void Rendering::Font::load()
 {
+    std::cout << "Loading font: " << path << std::endl;
+
     // load font if not already loaded
     if (font == nullptr)
     {
+        std::cout << "Loading font from file: " << path.c_str() << std::endl;
+
         ttf_load_from_file(path.c_str(), &font, false);
+        std::cout << "Loaded font from file: " << path << std::endl;
+
         if (font == nullptr)
         {
             throw std::runtime_error("Failed to load font from file: " + path);
         }
     }
+
+    std::cout << "Loaded font: " << path << std::endl;
 
     for (int i = 0; i < font->nglyphs; i++)
     {
@@ -96,6 +110,8 @@ void Rendering::Font::load()
     // set space width
     int spaceId = ttf_find_glyph(font, ' ');
     spaceWidth = font->glyphs[spaceId].advance;
+
+    std::cout << "Loaded glyphs: " << path << std::endl;
 }
 
 void Rendering::Font::loadGlyph(ttf_glyph_t &glyph)

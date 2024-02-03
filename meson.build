@@ -13,6 +13,13 @@ install_headers = true
 incdir = include_directories('externals/include')
 lib_dir = meson.current_source_dir() / 'lib'
 
+wasm_link_args = ['-sEXPORT_ALL=1', '-sALLOW_MEMORY_GROWTH=1', '-sINVOKE_RUN=0', '-sFORCE_FILESYTEM']
+
+if get_option('buildtype') == 'debug'
+    # crashing on wasm when trying to load a font
+    # wasm_link_args += ['-sSAFE_HEAP=1'] 
+endif
+
 #
 # glad
 #
@@ -22,15 +29,14 @@ glad_kwargs = {
     'include_directories' : incdir,
     'install' : install_libs,
     'install_dir' : lib_dir / 'lib',
-    'link_args' : [],
 }
 
 if cross_target == 'native'
-    glad = library('glad', glad_src, kwargs : glad_kwargs)
+    glad = library('glad', glad_src, link_args : [], kwargs : glad_kwargs)
 endif
 
 if cross_target == 'wasm'
-    glad = static_library('glad', glad_src, kwargs : glad_kwargs)
+    glad = static_library('glad', glad_src, link_args : wasm_link_args, kwargs : glad_kwargs)
 endif
 
 if install_headers
@@ -47,15 +53,14 @@ ttf2mesh_kwargs = {
     'include_directories' : incdir,
     'install' : install_libs,
     'install_dir' : lib_dir / 'lib',
-    'link_args' : [],
 }
 
 if cross_target == 'native'
-    ttf2mesh = library('ttf2mesh', ttf2mesh_src, kwargs : ttf2mesh_kwargs)
+    ttf2mesh = library('ttf2mesh', ttf2mesh_src, link_args : [], kwargs : ttf2mesh_kwargs)
 endif
 
 if cross_target == 'wasm'
-    ttf2mesh = static_library('ttf2mesh', ttf2mesh_src, kwargs : ttf2mesh_kwargs)
+    ttf2mesh = static_library('ttf2mesh', ttf2mesh_src, link_args : wasm_link_args, kwargs : ttf2mesh_kwargs)
 endif
 
 if install_headers
@@ -78,8 +83,12 @@ if cross_target == 'native'
 endif
 
 if cross_target == 'wasm'
-    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sEXPORT_ALL=1', '-sALLOW_MEMORY_GROWTH=1', '-sINVOKE_RUN=0', '-sFORCE_FILESYTEM']
-    link_args += ['-sASSERTIONS=1', '-sSAFE_HEAP=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
+    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2'] + wasm_link_args
+
+    if get_option('buildtype') == 'debug'
+        link_args += ['-sASSERTIONS=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
+    endif
+
     link_with += [ttf2mesh]
 endif
 

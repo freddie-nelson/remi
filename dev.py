@@ -61,39 +61,39 @@ print("Copying assets...")
 shutil.copytree(dev_assets_path, os.path.join(dev_build_path, "assets"), dirs_exist_ok=True)
 
 # package assets emscripten
-if os.path.exists(os.path.join(dev_build_path, "dev.html")):
-    print("Packaging assets for emscripten...")
+# if os.path.exists(os.path.join(dev_build_path, "dev.html")):
+#     print("Packaging assets for emscripten...")
 
-    sdk = os.environ["EMSDK"]
-    file_packager = os.path.join(sdk, "upstream/emscripten/tools/file_packager.py")
+#     sdk = os.environ["EMSDK"]
+#     file_packager = os.path.join(sdk, "upstream/emscripten/tools/file_packager.py")
 
-    os.chdir(dev_build_path)
+#     os.chdir(dev_build_path)
 
-    exit_code, output = subprocess.getstatusoutput(["python", file_packager, 'assets.data', "--embed", f"{os.path.join(dev_build_path, 'assets')}@/assets"])
-    if exit_code != 0:
-        print("Failed to package assets for emscripten!")
-        exit(exit_code)
+#     exit_code, output = subprocess.getstatusoutput(["python", file_packager, 'assets.data', "--embed", f"{os.path.join(dev_build_path, 'assets')}@/assets"])
+#     if exit_code != 0:
+#         print("Failed to package assets for emscripten!")
+#         exit(exit_code)
     
-    os.chdir(dir_path)
+#     os.chdir(dir_path)
     
-    # remove first 2 lines of output as these contain a user message
-    output = "\n".join(output.split("\n")[2:])
+#     # remove first 2 lines of output as these contain a user message
+#     output = "\n".join(output.split("\n")[2:])
 
-    file_path = os.path.join(dev_build_path, "assets.js")
-    with open(file_path, "wb") as file:
-        file.write(output.encode())
+#     file_path = os.path.join(dev_build_path, "assets.js")
+#     with open(file_path, "wb") as file:
+#         file.write(output.encode())
     
-    dev = os.path.join(dev_build_path, "dev.html")
-    with open(dev, "r+") as file:
-        lines = file.readlines()
+#     dev = os.path.join(dev_build_path, "dev.html")
+#     with open(dev, "r+") as file:
+#         lines = file.readlines()
 
-        for i in range(len(lines)):
-            if "<script" in lines[i]:
-                lines[i] = "<script type=\"text/javascript\" src=\"assets.js\"></script>\n" + lines[i]
-                break
+#         for i in range(len(lines)):
+#             if "<script" in lines[i]:
+#                 lines[i] = "<script type=\"text/javascript\" src=\"assets.js\"></script>\n" + lines[i]
+#                 break
         
-        file.seek(0)
-        file.write("\n".join(lines))
+#         file.seek(0)
+#         file.write("\n".join(lines))
     
     
 

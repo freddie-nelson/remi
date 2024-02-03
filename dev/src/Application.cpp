@@ -53,7 +53,7 @@ void Application::init()
 {
     // init engine
     blz::EngineConfig config;
-    config.updatesPerSecond = 60;
+    config.updatesPerSecond = 100000;
 
     engine = new blz::Engine(config);
 

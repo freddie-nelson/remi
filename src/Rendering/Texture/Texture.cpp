@@ -92,6 +92,8 @@ void Rendering::Texture::fromFile(std::string path, bool flip)
         }
     }
 
+    std::cout << "Loaded image: " << path << std::endl;
+
     width = w;
     height = h;
     channels = 4;
