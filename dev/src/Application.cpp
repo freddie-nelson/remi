@@ -16,6 +16,8 @@
 #include <blaze++/Core/Timestep.h>
 #include <blaze++/Rendering/Passes/ColorBlendPass.h>
 #include <blaze++/Rendering/Passes/GaussianBlurPass.h>
+#include <blaze++/Rendering/Passes/BrightnessPass.h>
+#include <blaze++/Rendering/Passes/PosterizePass.h>
 #include <blaze++/Rendering/Texture/AnimatedTexture.h>
 
 #include <math.h>
@@ -45,6 +47,8 @@ void Application::run()
 
 Rendering::ColorBlendPass *colorBlendPass;
 Rendering::GaussianBlurPass *blurPass;
+Rendering::BrightnessPass *brightnessPass;
+Rendering::PosterizePass *posterizePass;
 
 // ! Implement some kind of texture/asset loading system at engine level
 // would avoid user having to manage memory etc for textures and maybe other things
@@ -67,9 +71,11 @@ void Application::init()
 
     colorBlendPass = new Rendering::ColorBlendPass(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f));
     blurPass = new Rendering::GaussianBlurPass();
+    brightnessPass = new Rendering::BrightnessPass(0.5f);
+    posterizePass = new Rendering::PosterizePass(8.0f);
     // pipeline->add(colorBlendPass, 4500);
 
-    renderer->setProjectionMode(Rendering::RendererProjectionMode::MATCH);
+    // renderer->setProjectionMode(Rendering::RendererProjectionMode::MATCH);
 
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
@@ -264,14 +270,14 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     // toggle color blend pass
     if (keyboard->isPressed(Input::Key::C))
     {
-        if (pipeline->has(4500))
+        if (pipeline->has(4100))
         {
             pipeline->remove(colorBlendPass);
             std::cout << "removed color blend pass" << std::endl;
         }
         else
         {
-            pipeline->add(colorBlendPass, 4500);
+            pipeline->add(colorBlendPass, 4100);
             std::cout << "added color blend pass" << std::endl;
         }
     }
@@ -279,15 +285,45 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     // toggle blur pass
     if (keyboard->isPressed(Input::Key::B))
     {
-        if (pipeline->has(4750))
+        if (pipeline->has(4200))
         {
             pipeline->remove(blurPass);
             std::cout << "removed blur pass" << std::endl;
         }
         else
         {
-            pipeline->add(blurPass, 4750);
+            pipeline->add(blurPass, 4200);
             std::cout << "added blur pass" << std::endl;
+        }
+    }
+
+    // toggle brightness pass
+    if (keyboard->isPressed(Input::Key::V))
+    {
+        if (pipeline->has(4300))
+        {
+            pipeline->remove(brightnessPass);
+            std::cout << "removed brightness pass" << std::endl;
+        }
+        else
+        {
+            pipeline->add(brightnessPass, 4300);
+            std::cout << "added brightness pass" << std::endl;
+        }
+    }
+
+    // toggle posterize pass
+    if (keyboard->isPressed(Input::Key::P))
+    {
+        if (pipeline->has(4400))
+        {
+            pipeline->remove(posterizePass);
+            std::cout << "removed posterize pass" << std::endl;
+        }
+        else
+        {
+            pipeline->add(posterizePass, 4400);
+            std::cout << "added posterize pass" << std::endl;
         }
     }
 

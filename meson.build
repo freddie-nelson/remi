@@ -117,11 +117,13 @@ rendering_src += ['src/Rendering/Material/Color.cpp', 'src/Rendering/Material/Ma
 rendering_src += ['src/Rendering/Mesh/Mesh.cpp', 'src/Rendering/Mesh/Polygons.cpp', 'src/Rendering/Mesh/Triangulate.cpp']
 rendering_src += [
     'src/Rendering/Passes/BatchPass.cpp', 
+    'src/Rendering/Passes/BrightnessPass.cpp',
     'src/Rendering/Passes/ColorBlendPass.cpp', 
     'src/Rendering/Passes/CullingPass.cpp',
     'src/Rendering/Passes/DrawPass.cpp',
     'src/Rendering/Passes/GaussianBlurPass.cpp',
     'src/Rendering/Passes/OutputPass.cpp', 
+    'src/Rendering/Passes/PosterizePass.cpp',
     'src/Rendering/Passes/PostProcessingPass.cpp', 
     'src/Rendering/Passes/RenderablesPass.cpp', 
 ]
