@@ -69,16 +69,14 @@ void Application::init()
     blurPass = new Rendering::GaussianBlurPass();
     // pipeline->add(colorBlendPass, 4500);
 
+    renderer->setProjectionMode(Rendering::RendererProjectionMode::MATCH);
+
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
 
     registry->view<Rendering::ActiveCamera>();
 
     renderer->enableAlphaBlending(true);
-    // renderer->setClearColor(clearColor);
-
-    // window->syncRendererSize(false);
-    // renderer->syncActiveCameraSize(true);
 
     // create texture
     Rendering::Texture *texture = new Rendering::Texture("assets/liv.jpg");

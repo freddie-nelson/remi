@@ -43,6 +43,18 @@ namespace Rendering
     };
 
     /**
+     * The projection mode of the renderer.
+     *
+     * STRETCH: will stretch the rendered image to fit the window's size. This does not resize the active camera's size.
+     * MATCH: will match the rendered image to the window's size. This resizes the active camera's size to match the renderer's size.
+     */
+    enum RendererProjectionMode
+    {
+        STRETCH,
+        MATCH,
+    };
+
+    /**
      * The renderer is responsible for drawing entities.
      *
      * The renderer does not handle the window, it only handles the rendering through OpenGL.
@@ -69,7 +81,7 @@ namespace Rendering
          * @param width The width of the renderer viewport.
          * @param height The height of the renderer viewport.
          */
-        Renderer(Core::Window *window, unsigned int width, unsigned int height);
+        Renderer(Core::Window *window, unsigned int width, unsigned int height, RendererProjectionMode projectionMode = RendererProjectionMode::STRETCH);
 
         /**
          * Destroys the renderer.
@@ -310,40 +322,6 @@ namespace Rendering
         ECS::Entity getActiveCamera(const ECS::Registry &registry) const;
 
         /**
-         * Sets whether the renderer should sync it's size with the window size.
-         *
-         * By default, this is true.
-         *
-         * When true, the renderer will set it's size to the window size on update.
-         *
-         * @param sync Whether to sync the renderer's size with the window size.
-         */
-        void syncSizeWithWindow(bool sync);
-
-        /**
-         * Gets whether the renderer is syncing it's size with the window size.
-         *
-         * @returns Whether the renderer is syncing it's size with the window size.
-         */
-        bool getSyncSizeWithWindow() const;
-
-        /**
-         * Sets whether the renderer should update the active camera size to match the renderer size on update.
-         *
-         * By default, this is false.
-         *
-         * @param sync Whether to sync the active camera size to the renderer size.
-         */
-        void syncActiveCameraSize(bool sync);
-
-        /**
-         * Returns whether the renderer is syncing the active camera size to the renderer size.
-         *
-         * @returns Whether the renderer is syncing the active camera size to the renderer size.
-         */
-        bool getSyncActiveCameraSize() const;
-
-        /**
          * Whether the renderer should unbind unused textures.
          *
          * By default, this is true.
@@ -388,9 +366,25 @@ namespace Rendering
          */
         TextureManager &getTextureManager();
 
+        /**
+         * Returns the projection mode of the renderer.
+         *
+         * @returns The projection mode of the renderer.
+         */
+        RendererProjectionMode getProjectionMode() const;
+
+        /**
+         * Sets the projection mode of the renderer.
+         *
+         * @param mode The new projection mode of the renderer.
+         */
+        void setProjectionMode(RendererProjectionMode mode);
+
     private:
         unsigned int width = 0;
         unsigned int height = 0;
+
+        RendererProjectionMode projectionMode = RendererProjectionMode::STRETCH;
 
         bool unbindUnusedTextures = false;
         TextureManager textureManager;
@@ -465,24 +459,6 @@ namespace Rendering
          * @returns A map of the texture ids to the bound textures.
          */
         std::unordered_map<TextureId, TextureManager::BoundTexture> bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables);
-
-        /**
-         * Whether the renderer should sync it's size with the window size.
-         *
-         * By default, this is true.
-         *
-         * When true, the renderer will set it's size to the window size on update.
-         */
-        bool syncRendererSizeWithWindow = true;
-
-        /**
-         * Whether the renderer should sync the active camera size to the renderer size.
-         *
-         * By default, this is false.
-         *
-         * When this is true, the renderer will modify the active camera's viewport size to match the renderer's size.
-         */
-        bool syncActiveCameraSizeWithRenderer = false;
 
         /**
          * Gets the view projection matrix for the given camera.

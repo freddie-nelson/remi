@@ -40,7 +40,7 @@ Rendering::RendererShaders::RendererShaders(const std::string &fragmentShader)
     }
 }
 
-Rendering::Renderer::Renderer(Core::Window *window, unsigned int width, unsigned int height) : window(window)
+Rendering::Renderer::Renderer(Core::Window *window, unsigned int width, unsigned int height, RendererProjectionMode projectionMode) : window(window), projectionMode(projectionMode)
 {
     setSize(width, height);
 
@@ -62,14 +62,13 @@ Rendering::Renderer::~Renderer()
 
 void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
-    if (syncRendererSizeWithWindow)
-    {
-        auto size = getWindowSize();
+    // resize renderer to match window size
+    auto size = getWindowSize();
+    if (size != getSize())
         setSize(size.x, size.y);
-    }
 
     auto activeCamera = getActiveCamera(registry);
-    if (syncActiveCameraSizeWithRenderer)
+    if (projectionMode == RendererProjectionMode::MATCH)
     {
         auto &camera = registry.get<Camera>(activeCamera);
         camera.setViewportSize(width, height);
@@ -540,26 +539,6 @@ ECS::Entity Rendering::Renderer::getActiveCamera(const ECS::Registry &registry) 
     }
 }
 
-void Rendering::Renderer::syncSizeWithWindow(bool sync)
-{
-    syncRendererSizeWithWindow = sync;
-}
-
-bool Rendering::Renderer::getSyncSizeWithWindow() const
-{
-    return syncRendererSizeWithWindow;
-}
-
-void Rendering::Renderer::syncActiveCameraSize(bool sync)
-{
-    syncActiveCameraSizeWithRenderer = sync;
-}
-
-bool Rendering::Renderer::getSyncActiveCameraSize() const
-{
-    return syncActiveCameraSizeWithRenderer;
-}
-
 void Rendering::Renderer::setUnbindUnusedTextures(bool unbind)
 {
     unbindUnusedTextures = unbind;
@@ -596,6 +575,16 @@ const Rendering::RenderTarget *const Rendering::Renderer::getRenderTarget() cons
 Rendering::TextureManager &Rendering::Renderer::getTextureManager()
 {
     return textureManager;
+}
+
+Rendering::RendererProjectionMode Rendering::Renderer::getProjectionMode() const
+{
+    return projectionMode;
+}
+
+void Rendering::Renderer::setProjectionMode(RendererProjectionMode mode)
+{
+    projectionMode = mode;
 }
 
 Rendering::RendererShaders &Rendering::Renderer::getShaders()

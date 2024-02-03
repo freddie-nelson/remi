@@ -44,13 +44,13 @@ unsigned int Rendering::RenderTarget::getWidth() const
 
 void Rendering::RenderTarget::setWidth(unsigned int width)
 {
-    auto oldWidth = this->width;
-    this->width = width;
-
-    if (oldWidth != width)
+    if (this->width == width)
     {
-        update();
+        return;
     }
+
+    this->width = width;
+    update();
 }
 
 unsigned int Rendering::RenderTarget::getHeight() const
@@ -60,27 +60,26 @@ unsigned int Rendering::RenderTarget::getHeight() const
 
 void Rendering::RenderTarget::setHeight(unsigned int height)
 {
-    auto oldHeight = this->height;
-    this->height = height;
-
-    if (oldHeight != height)
+    if (this->height == height)
     {
-        update();
+        return;
     }
+
+    this->height = height;
+    update();
 }
 
 void Rendering::RenderTarget::resize(glm::uvec2 size)
 {
-    auto oldWidth = width;
-    width = size.x;
+    if (size.x == width && size.y == height)
+    {
+        return;
+    }
 
-    auto oldHeight = height;
+    width = size.x;
     height = size.y;
 
-    if (oldWidth != width || oldHeight != height)
-    {
-        update();
-    }
+    update();
 }
 
 GLuint Rendering::RenderTarget::getFramebuffer() const
