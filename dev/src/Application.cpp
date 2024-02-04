@@ -11,6 +11,7 @@
 #include <blaze++/Rendering/Camera/ActiveCamera.h>
 #include <blaze++/Rendering/Font/Font.h>
 #include <blaze++/Rendering/Font/Text.h>
+#include <blaze++/Rendering/Font/MemoizedText.h>
 #include <blaze++/Rendering/Material/ShaderMaterial.h>
 #include <blaze++/Rendering/Shader/Uniform.h>
 #include <blaze++/Core/Timestep.h>
@@ -49,6 +50,13 @@ Rendering::ColorBlendPass *colorBlendPass;
 Rendering::GaussianBlurPass *blurPass;
 Rendering::BrightnessPass *brightnessPass;
 Rendering::PosterizePass *posterizePass;
+
+Rendering::Font *font;
+
+struct FPS
+{
+    unsigned int fps;
+};
 
 // ! Implement some kind of texture/asset loading system at engine level
 // would avoid user having to manage memory etc for textures and maybe other things
@@ -89,7 +97,7 @@ void Application::init()
     Rendering::Texture *gradient = new Rendering::Texture("assets/gradient.png");
 
     // create font
-    Rendering::Font *font = new Rendering::Font("assets/Roboto-Regular.ttf");
+    font = new Rendering::Font("assets/Roboto-Regular.ttf");
 
     // create camera
     auto camera = registry->create();
@@ -112,7 +120,7 @@ void Application::init()
         auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>((rand() % 50) / 100.0f + 0.2f), static_cast<unsigned int>(rand() % 13 + 3)));
         auto &t = registry->add(e, Core::Transform());
         auto &material = registry->add(e, Rendering::Material());
-        auto &renderable = registry->add(e, Rendering::Renderable{true, true});
+        auto &renderable = registry->add(e, Rendering::Renderable(true, true));
 
         t.setZIndex(rand() % zRange);
         t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2} / pixelsPerMeter);
@@ -134,7 +142,7 @@ void Application::init()
     registry->add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
     registry->add(textEntity, Core::Transform());
     // registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), gradient));
-    registry->add(textEntity, Rendering::Renderable{true, true});
+    registry->add(textEntity, Rendering::Renderable(true, true));
 
     const std::string textShader =
         "#version 300 es\n"
@@ -176,7 +184,7 @@ void Application::init()
     auto &cm = registry->add(character, Rendering::Mesh2D(1.0f, 1.0f));
     auto &ct = registry->add(character, Core::Transform());
     auto &cMat = registry->add(character, Rendering::Material());
-    registry->add(character, Rendering::Renderable{true, false});
+    registry->add(character, Rendering::Renderable(true, false));
 
     ct.scale(3);
     ct.setZIndex(zRange + 1);
@@ -196,6 +204,18 @@ void Application::init()
     cMat.setTexture(animTexture);
 
     std::cout << "character: " << character << std::endl;
+
+    // fps text
+    auto fpsText = Rendering::MemoizedText::text("FPS: 0", font);
+    auto fps = registry->create();
+    registry->add(fps, FPS{});
+    auto &fpsMesh = registry->add(fps, fpsText.mesh(Rendering::Text::TextAlignment::LEFT));
+    auto &fpsTransform = registry->add(fps, Core::Transform());
+    auto &fpsMaterial = registry->add(fps, Rendering::Material());
+    auto &fpsRenderable = registry->add(fps, Rendering::Renderable(true, false));
+
+    fpsTransform.scale(0.25f);
+    fpsTransform.setZIndex(Config::MAX_Z_INDEX);
 }
 
 void Application::destroy()
@@ -211,6 +231,10 @@ float textAlpha = 1.0f;
 
 void Application::update(const ECS::Registry &registry, const Core::Timestep &timestep)
 {
+    auto spaceTransformer = engine->getSpaceTransformer();
+    auto renderer = engine->getRenderer();
+    auto pipeline = engine->getPipeline();
+
     // print timestep info
     auto fps = 1.0f / timestep.getSeconds();
     totalFps += fps;
@@ -219,10 +243,9 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     averageFps = totalFps / frames;
     timeSinceStart = static_cast<float>(frames) / static_cast<float>(averageFps);
 
-    std::cout << "\rdt: " << timestep.getSeconds() << ", fps: " << 1.0f / timestep.getSeconds() << ", average fps: " << averageFps << "        " << std::endl;
+    // std::cout << "\rdt: " << timestep.getSeconds() << ", fps: " << fps << ", average fps: " << averageFps << "        " << std::endl;
 
-    auto renderer = engine->getRenderer();
-    auto pipeline = engine->getPipeline();
+    // std::cout << "fps pos: " << fpsTransform.getTranslation().x << ", " << fpsTransform.getTranslation().y << std::endl;
 
     // move camera
     auto keyboard = engine->getKeyboard();
@@ -259,6 +282,28 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
         t.scale(1.0f - camZoomSpeed * timestep.getSeconds());
     if (keyboard->isPressed(Input::Key::ARROW_DOWN))
         t.scale(1.0f + camZoomSpeed * timestep.getSeconds());
+
+    // update fps text
+    auto fpsEntity = registry.view<FPS>()[0];
+    auto &fpsComponent = registry.get<FPS>(fpsEntity);
+    auto &fpsMesh = registry.get<Rendering::Mesh2D>(fpsEntity);
+
+    if (fpsComponent.fps != static_cast<unsigned int>(fps))
+    {
+        fpsComponent.fps = fps;
+
+        auto fpsText = Rendering::MemoizedText::text("FPS: " + std::to_string(fpsComponent.fps), font);
+        fpsMesh = fpsText.mesh(Rendering::Text::TextAlignment::LEFT);
+    }
+
+    auto &fpsTransform = registry.get<Core::Transform>(fpsEntity);
+    auto transformedAABB = fpsMesh.getAABB().transform(fpsTransform);
+    float fpsPadding = 10.0f;
+    float fpsScale = 0.25f;
+
+    fpsTransform.setTranslation(spaceTransformer->transform(glm::vec2(spaceTransformer->metersToPixels(transformedAABB.getWidth()) / 2.0f + fpsPadding, renderer->getHeight() - spaceTransformer->metersToPixels(transformedAABB.getHeight()) / 2.0f - fpsPadding), Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD));
+    fpsTransform.setScale(fpsScale * t.getScale());
+    fpsTransform.setRotation(t.getRotation());
 
     // set text entity uniform
     auto textEntity = registry.view<Rendering::ShaderMaterial>()[0];

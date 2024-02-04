@@ -1,23 +1,24 @@
 #include "../../include/Core/SpaceTransformer.h"
 #include "../../include/Rendering/Camera/Camera.h"
 
+#include <glm/gtx/string_cast.hpp>
 #include <stdexcept>
 
-Core::SpaceTransformer::SpaceTransformer(const Rendering::Renderer *const renderer, const ECS::Registry *const registry, unsigned int pixelsPerMeter) : renderer(renderer), registry(registry), pixelsPerMeter(pixelsPerMeter), pixelsPerMeterFloat(pixelsPerMeter) {}
+Core::SpaceTransformer::SpaceTransformer(const Rendering::Renderer *renderer, const ECS::Registry *registry, unsigned int pixelsPerMeter) : renderer(renderer), registry(registry), pixelsPerMeter(pixelsPerMeter), pixelsPerMeterFloat(pixelsPerMeter) {}
 
-glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, Spaces from, Spaces to) const
+glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, Space from, Space to) const
 {
     return transform(v, nullptr, from, to);
 }
 
-glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, const Core::Transform &localTransform, Spaces from, Spaces to) const
+glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, const Core::Transform &localTransform, Space from, Space to) const
 {
     return transform(v, &localTransform, from, to);
 }
 
-glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, const Core::Transform *const localTransform, Spaces from, Spaces to) const
+glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, const Core::Transform *localTransform, Space from, Space to) const
 {
-    if (from == Spaces::LOCAL || to == Spaces::LOCAL)
+    if ((from == Space::LOCAL || to == Space::LOCAL) && localTransform == nullptr)
     {
         throw std::invalid_argument("SpaceTransformer (transform): Cannot convert to/from local space without local transform.");
     }
@@ -28,7 +29,7 @@ glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, const Core::Tran
         return v;
     }
 
-    Spaces curr = from;
+    Space curr = from;
     glm::vec2 transformed = v;
 
     while (curr != to)
@@ -64,30 +65,34 @@ float Core::SpaceTransformer::getPixelsPerMeter() const
     return pixelsPerMeterFloat;
 }
 
-Core::SpaceTransformer::Spaces Core::SpaceTransformer::getNextSpace(Spaces s, Spaces goal, glm::vec2 &v, const Core::Transform *const localTransform) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::getNextSpace(Space s, Space goal, glm::vec2 &v, const Core::Transform *localTransform) const
 {
-    if (s > goal)
+    if (s == goal)
+    {
+        return s;
+    }
+    else if (s > goal)
     {
         // we are going towards local space
         switch (s)
         {
-        case Spaces::SCREEN:
+        case Space::SCREEN:
             screenToClip(v);
-            return Spaces::CLIP;
-        case Spaces::CLIP:
+            return Space::CLIP;
+        case Space::CLIP:
             clipToView(v);
-            return Spaces::VIEW;
-        case Spaces::VIEW:
+            return Space::VIEW;
+        case Space::VIEW:
             viewToWorld(v);
-            return Spaces::WORLD;
-        case Spaces::WORLD:
+            return Space::WORLD;
+        case Space::WORLD:
             if (localTransform == nullptr)
             {
                 throw std::invalid_argument("SpaceTransform (getNextSpace): can't convert from world to local without local transform.");
             }
 
             worldToLocal(v, *localTransform);
-            return Spaces::LOCAL;
+            return Space::LOCAL;
         default:
             throw std::invalid_argument("SpaceTransformer (getNextSpace): can't convert space any further.");
         }
@@ -97,30 +102,30 @@ Core::SpaceTransformer::Spaces Core::SpaceTransformer::getNextSpace(Spaces s, Sp
         // we are going towards screen space
         switch (s)
         {
-        case Spaces::LOCAL:
+        case Space::LOCAL:
             if (localTransform == nullptr)
             {
                 throw std::invalid_argument("SpaceTransform (getNextSpace): can't convert from local to world without local transform.");
             }
 
             localToWorld(v, *localTransform);
-            return Spaces::WORLD;
-        case Spaces::WORLD:
+            return Space::WORLD;
+        case Space::WORLD:
             worldToView(v);
-            return Spaces::VIEW;
-        case Spaces::VIEW:
+            return Space::VIEW;
+        case Space::VIEW:
             viewToClip(v);
-            return Spaces::CLIP;
-        case Spaces::CLIP:
+            return Space::CLIP;
+        case Space::CLIP:
             clipToScreen(v);
-            return Spaces::SCREEN;
+            return Space::SCREEN;
         default:
             throw std::invalid_argument("SpaceTransformer (getNextSpace): can't convert space any further.");
         }
     }
 }
 
-Core::SpaceTransformer::Spaces Core::SpaceTransformer::screenToClip(glm::vec2 &v) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::screenToClip(glm::vec2 &v) const
 {
     // since we are in 2d and orthographic there is no perspective divide (w component is always 1)
     // so our calculation can be a lot simpler
@@ -131,10 +136,12 @@ Core::SpaceTransformer::Spaces Core::SpaceTransformer::screenToClip(glm::vec2 &v
     v *= 2.0f;
     v -= 1.0f;
 
-    return Spaces::CLIP;
+    // std::cout << "[clip] x: " << v.x << " y: " << v.y << std::endl;
+
+    return Space::CLIP;
 }
 
-Core::SpaceTransformer::Spaces Core::SpaceTransformer::clipToScreen(glm::vec2 &v) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::clipToScreen(glm::vec2 &v) const
 {
     auto viewportSize = renderer->getSize();
 
@@ -142,11 +149,12 @@ Core::SpaceTransformer::Spaces Core::SpaceTransformer::clipToScreen(glm::vec2 &v
     v /= 2.0f;
     v *= viewportSize;
 
-    return Spaces::SCREEN;
+    return Space::SCREEN;
 }
 
-Core::SpaceTransformer::Spaces Core::SpaceTransformer::clipToView(glm::vec2 &v) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::clipToView(glm::vec2 &v) const
 {
+
     auto camera = renderer->getActiveCamera(*registry);
     auto &cameraComponent = registry->get<Rendering::Camera>(camera);
     auto &t = registry->get<Core::Transform>(camera);
@@ -156,13 +164,15 @@ Core::SpaceTransformer::Spaces Core::SpaceTransformer::clipToView(glm::vec2 &v) 
 
     glm::vec4 transformed = inverseProjection * glm::vec4(v, 0, 1);
 
-    v.x = pixelsToMeters(transformed.x);
-    v.y = pixelsToMeters(transformed.y);
+    v.x = transformed.x;
+    v.y = transformed.y;
 
-    return Spaces::VIEW;
+    // std::cout << "[view] x: " << v.x << " y: " << v.y << std::endl;
+
+    return Space::VIEW;
 }
 
-Core::SpaceTransformer::Spaces Core::SpaceTransformer::viewToClip(glm::vec2 &v) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::viewToClip(glm::vec2 &v) const
 {
     auto camera = renderer->getActiveCamera(*registry);
     auto &cameraComponent = registry->get<Rendering::Camera>(camera);
@@ -170,15 +180,15 @@ Core::SpaceTransformer::Spaces Core::SpaceTransformer::viewToClip(glm::vec2 &v) 
 
     auto projection = cameraComponent.getProjectionMatrix(t);
 
-    glm::vec4 transformed = projection * glm::vec4(metersToPixels(v.x), metersToPixels(v.y), 0, 1);
+    glm::vec4 transformed = projection * glm::vec4(v, 0, 1);
 
     v.x = transformed.x;
     v.y = transformed.y;
 
-    return Spaces::CLIP;
+    return Space::CLIP;
 }
 
-Core::SpaceTransformer::Spaces Core::SpaceTransformer::viewToWorld(glm::vec2 &v) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::viewToWorld(glm::vec2 &v) const
 {
     auto camera = renderer->getActiveCamera(*registry);
     auto &cameraComponent = registry->get<Rendering::Camera>(camera);
@@ -189,13 +199,15 @@ Core::SpaceTransformer::Spaces Core::SpaceTransformer::viewToWorld(glm::vec2 &v)
 
     glm::vec4 transformed = inverseView * glm::vec4(v, 0, 1);
 
-    v.x = transformed.x;
-    v.y = transformed.y;
+    v.x = pixelsToMeters(transformed.x);
+    v.y = pixelsToMeters(transformed.y);
 
-    return Spaces::WORLD;
+    // std::cout << "[world] x: " << v.x << " y: " << v.y << std::endl;
+
+    return Space::WORLD;
 }
 
-Core::SpaceTransformer::Spaces Core::SpaceTransformer::worldToView(glm::vec2 &v) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::worldToView(glm::vec2 &v) const
 {
     auto camera = renderer->getActiveCamera(*registry);
     auto &cameraComponent = registry->get<Rendering::Camera>(camera);
@@ -203,15 +215,15 @@ Core::SpaceTransformer::Spaces Core::SpaceTransformer::worldToView(glm::vec2 &v)
 
     auto view = cameraComponent.getViewMatrix(t, pixelsPerMeterFloat);
 
-    glm::vec4 transformed = view * glm::vec4(v, 0, 1);
+    glm::vec4 transformed = view * glm::vec4(metersToPixels(v), 0, 1);
 
     v.x = transformed.x;
     v.y = transformed.y;
 
-    return Spaces::VIEW;
+    return Space::VIEW;
 }
 
-Core::SpaceTransformer::Spaces Core::SpaceTransformer::worldToLocal(glm::vec2 &v, const Core::Transform &localTransform) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::worldToLocal(glm::vec2 &v, const Core::Transform &localTransform) const
 {
     auto &transform = localTransform.getTransformationMatrix();
     auto inverse = glm::inverse(transform);
@@ -221,10 +233,10 @@ Core::SpaceTransformer::Spaces Core::SpaceTransformer::worldToLocal(glm::vec2 &v
     v.x = transformed.x;
     v.y = transformed.y;
 
-    return Spaces::LOCAL;
+    return Space::LOCAL;
 }
 
-Core::SpaceTransformer::Spaces Core::SpaceTransformer::localToWorld(glm::vec2 &v, const Core::Transform &localTransform) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::localToWorld(glm::vec2 &v, const Core::Transform &localTransform) const
 {
     auto &transform = localTransform.getTransformationMatrix();
     glm::vec4 transformed = transform * glm::vec4(v, 0, 1);
@@ -232,5 +244,5 @@ Core::SpaceTransformer::Spaces Core::SpaceTransformer::localToWorld(glm::vec2 &v
     v.x = transformed.x;
     v.y = transformed.y;
 
-    return Spaces::WORLD;
+    return Space::WORLD;
 }

@@ -6,7 +6,7 @@
 #include <iostream>
 #include <algorithm>
 
-Rendering::Text::Text(const std::string &text, const Font &font) : text(text), font(font)
+Rendering::Text::Text(std::string text, const Font &font) : text(text), font(font)
 {
     createMesh();
 }
@@ -98,7 +98,7 @@ const Rendering::Mesh2D &Rendering::Text::createMesh(TextAlignment align) const
     auto &centre = aabb.getCentre();
 
     // save
-    meshs.emplace(align, std::move(mesh));
+    meshs.insert_or_assign(align, std::move(mesh));
 
     return meshs.at(align);
 }

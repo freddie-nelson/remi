@@ -20,7 +20,7 @@ namespace Core
      *
      * - Local (Entity) [meters]
      * - World [meters]
-     * - View [meters]
+     * - View [pixels (but relative to camera's centre)]
      * - Clip [Normalized Device Coordinates (-1, 1)]
      * - Screen (Pixel) [pixels]
      */
@@ -34,12 +34,12 @@ namespace Core
          * @param registry The registry to read components/entities from.
          * @param pixelsPerMeter The number of pixels (screen space) per meter (world space).
          */
-        SpaceTransformer(const Rendering::Renderer *const renderer, const ECS::Registry *const registry, unsigned int pixelsPerMeter);
+        SpaceTransformer(const Rendering::Renderer *renderer, const ECS::Registry *registry, unsigned int pixelsPerMeter);
 
         /**
          * The coordinate systems available for conversion.
          */
-        enum Spaces
+        enum Space
         {
             LOCAL,
             WORLD,
@@ -57,7 +57,7 @@ namespace Core
          * @param from The space to convert from, this is the current coordinate system the point lies in.
          * @param to The space to convert to.
          */
-        glm::vec2 transform(const glm::vec2 &v, Spaces from, Spaces to) const;
+        glm::vec2 transform(const glm::vec2 &v, Space from, Space to) const;
 
         /**
          * Converts the given point between coordinate systems.
@@ -67,7 +67,7 @@ namespace Core
          * @param from The space to convert from, this is the current coordinate system the point lies in.
          * @param to The space to convert to.
          */
-        glm::vec2 transform(const glm::vec2 &v, const Core::Transform &localTransform, Spaces from, Spaces to) const;
+        glm::vec2 transform(const glm::vec2 &v, const Core::Transform &localTransform, Space from, Space to) const;
 
         /**
          * Converts the given point between coordinate systems.
@@ -77,7 +77,7 @@ namespace Core
          * @param from The space to convert from, this is the current coordinate system the point lies in.
          * @param to The space to convert to.
          */
-        glm::vec2 transform(const glm::vec2 &v, const Core::Transform *const localTransform, Spaces from, Spaces to) const;
+        glm::vec2 transform(const glm::vec2 &v, const Core::Transform *localTransform, Space from, Space to) const;
 
         /**
          * Converts the given distance from pixels to meters.
@@ -123,8 +123,8 @@ namespace Core
         float getPixelsPerMeter() const;
 
     private:
-        const Rendering::Renderer *const renderer;
-        const ECS::Registry *const registry;
+        const Rendering::Renderer *renderer;
+        const ECS::Registry *registry;
         const unsigned int pixelsPerMeter;
         const float pixelsPerMeterFloat;
 
@@ -138,7 +138,7 @@ namespace Core
          *
          * @returns The space `v` was converted to.
          */
-        Spaces getNextSpace(Spaces s, Spaces goal, glm::vec2 &v, const Core::Transform *const localTransform = nullptr) const;
+        Space getNextSpace(Space s, Space goal, glm::vec2 &v, const Core::Transform *localTransform = nullptr) const;
 
         /**
          * Converts the given point from screen space to clip space.
@@ -147,7 +147,7 @@ namespace Core
          *
          * @returns Spaces::CLIP
          */
-        Spaces screenToClip(glm::vec2 &v) const;
+        Space screenToClip(glm::vec2 &v) const;
 
         /**
          * Converts the given point from clip space to screen space.
@@ -156,7 +156,7 @@ namespace Core
          *
          * @returns Spaces::SCREEN
          */
-        Spaces clipToScreen(glm::vec2 &v) const;
+        Space clipToScreen(glm::vec2 &v) const;
 
         /**
          * Converts the given point from clip space to view space.
@@ -165,7 +165,7 @@ namespace Core
          *
          * @returns Spaces::VIEW
          */
-        Spaces clipToView(glm::vec2 &v) const;
+        Space clipToView(glm::vec2 &v) const;
 
         /**
          * Converts the given point from view space to clip space.
@@ -174,7 +174,7 @@ namespace Core
          *
          * @returns Spaces::CLIP
          */
-        Spaces viewToClip(glm::vec2 &v) const;
+        Space viewToClip(glm::vec2 &v) const;
 
         /**
          * Converts the given point from view space to world space.
@@ -183,7 +183,7 @@ namespace Core
          *
          * @returns Spaces::WORLD
          */
-        Spaces viewToWorld(glm::vec2 &v) const;
+        Space viewToWorld(glm::vec2 &v) const;
 
         /**
          * Converts the given point from world space to view space.
@@ -192,7 +192,7 @@ namespace Core
          *
          * @returns Spaces::VIEW
          */
-        Spaces worldToView(glm::vec2 &v) const;
+        Space worldToView(glm::vec2 &v) const;
 
         /**
          * Converts the given point form world space to local space.
@@ -201,7 +201,7 @@ namespace Core
          *
          * @returns Spaces::LOCAL
          */
-        Spaces worldToLocal(glm::vec2 &v, const Core::Transform &localTransform) const;
+        Space worldToLocal(glm::vec2 &v, const Core::Transform &localTransform) const;
 
         /**
          * Converts the given point from local space to world space.
@@ -210,6 +210,6 @@ namespace Core
          *
          * @returns Spaces::WORLD
          */
-        Spaces localToWorld(glm::vec2 &v, const Core::Transform &localTransform) const;
+        Space localToWorld(glm::vec2 &v, const Core::Transform &localTransform) const;
     };
 }

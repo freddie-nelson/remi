@@ -10,6 +10,14 @@ namespace Rendering
     struct Renderable
     {
         /**
+         * Creates a renderable.
+         *
+         * @param isVisible Whether or not the entity is visible.
+         * @param isStatic Whether or not the entity is static.
+         */
+        Renderable(bool isVisible, bool isStatic);
+
+        /**
          * Whether or not the entity is visible.
          *
          * If this is set to false, the entity will not be rendered by Renderer::update.

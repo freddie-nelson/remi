@@ -127,7 +127,7 @@ const Rendering::Shader &Rendering::PostProcessingPass::getShader() const
 
 void Rendering::PostProcessingPass::uniform(UniformBase *u)
 {
-    uniforms.emplace(u->getName(), u);
+    uniforms.insert_or_assign(u->getName(), u);
 }
 
 void Rendering::PostProcessingPass::createShader(std::string fragmentShader)

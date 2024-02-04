@@ -29,14 +29,14 @@ blz::Engine::Engine(EngineConfig config)
     std::cout << "Default render pipeline:" << std::endl;
     std::cout << pipeline->toString() << std::endl;
 
+    registry = new ECS::Registry();
+
     spaceTransformer = new Core::SpaceTransformer(renderer, registry, config.pixelsPerMeter);
 
     renderManager = new Rendering::RenderManager(renderer, pipeline, spaceTransformer);
 
     animationSystem = new Rendering::AnimationSystem();
     addSystem(animationSystem);
-
-    registry = new ECS::Registry();
 
     mouse = new Input::Mouse(window->getGLFWWindow());
     keyboard = new Input::Keyboard(window->getGLFWWindow());
@@ -46,9 +46,9 @@ blz::Engine::~Engine()
 {
     delete keyboard;
     delete mouse;
-    delete registry;
     delete renderManager;
     delete spaceTransformer;
+    delete registry;
     delete pipeline;
     delete renderer;
     delete window;

@@ -28,7 +28,7 @@ void Rendering::RenderPipeline::execute(RenderPassInput *input)
 
 void Rendering::RenderPipeline::add(RenderPass *pass, unsigned int order)
 {
-    passes.emplace(order, pass);
+    passes.insert_or_assign(order, pass);
 }
 
 void Rendering::RenderPipeline::remove(RenderPass *pass)

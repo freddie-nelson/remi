@@ -125,7 +125,7 @@ namespace Rendering
          * @param camera The camera to use for rendering.
          * @param entity The entity to render, this entity must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
-        void entity(const ECS::Registry &registry, const ECS::Entity camera, ECS::Entity &entity);
+        void entity(const ECS::Registry &registry, const ECS::Entity camera, ECS::Entity &entity) const;
 
         /**
          * Renders the given entities using instanced rendering.
@@ -141,7 +141,7 @@ namespace Rendering
          * @param mesh The mesh to use for each entity.
          * @param instances The entities to render, these entities must have atleast a Core::Transform and a Rendering::Material component.
          */
-        void instance(const ECS::Registry &registry, const ECS::Entity camera, const Rendering::Mesh2D &mesh, const std::vector<ECS::Entity> &instances);
+        void instance(const ECS::Registry &registry, const ECS::Entity camera, const Rendering::Mesh2D &mesh, const std::vector<ECS::Entity> &instances) const;
 
         /**
          * Batches the given entities and draws them to the screen.
@@ -154,7 +154,7 @@ namespace Rendering
          * @param camera The camera to use for rendering.
          * @param renderables The entities to render, these entities must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
-        void batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables);
+        void batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables) const;
 
         /**
          * Sets the clear color.
@@ -390,7 +390,7 @@ namespace Rendering
         RendererProjectionMode projectionMode = RendererProjectionMode::STRETCH;
 
         bool unbindUnusedTextures = false;
-        TextureManager textureManager;
+        mutable TextureManager textureManager;
 
         GLenum alphaBlendingSFactor = GL_SRC_ALPHA;
         GLenum alphaBlendingDFactor = GL_ONE_MINUS_SRC_ALPHA;
@@ -411,7 +411,7 @@ namespace Rendering
          *
          * Other keys are the shaders for ShaderMaterials.
          */
-        std::unordered_map<ShaderMaterial::FragShaderKey, RendererShaders *> shaders;
+        mutable std::unordered_map<ShaderMaterial::FragShaderKey, RendererShaders *> shaders;
 
         /**
          * Gets the default shaders.
@@ -420,7 +420,7 @@ namespace Rendering
          *
          * @throws std::out_of_range if the default shaders do not exist.
          */
-        RendererShaders &getShaders();
+        RendererShaders &getShaders() const;
 
         /**
          * Gets the shaders for the given material.
@@ -431,7 +431,7 @@ namespace Rendering
          *
          * @returns The shaders for the given material.
          */
-        RendererShaders &getShaders(const ShaderMaterial &material);
+        RendererShaders &getShaders(const ShaderMaterial &material) const;
 
         /**
          * Gets the shaders for the given entity.
@@ -447,7 +447,7 @@ namespace Rendering
          *
          * @returns The shaders for the given entity.
          */
-        RendererShaders &getShaders(const ECS::Registry &registry, const ECS::Entity entity);
+        RendererShaders &getShaders(const ECS::Registry &registry, const ECS::Entity entity) const;
 
         /**
          * Binds the textures of the given renderables.
@@ -461,7 +461,7 @@ namespace Rendering
          *
          * @returns A map of the texture ids to the bound textures.
          */
-        std::unordered_map<TextureId, TextureManager::BoundTexture> bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables);
+        std::unordered_map<TextureId, TextureManager::BoundTexture> bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables) const;
 
         /**
          * Gets the view projection matrix for the given camera.

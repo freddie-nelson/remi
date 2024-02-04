@@ -109,9 +109,9 @@ namespace Rendering
         /**
          * The AABB tree for dynamic renderables.
          *
-         * The tree gives fat aabb's a margin of 1 metre.
+         * The tree gives fat aabb's a margin of 2 metres.
          */
-        Core::AABBTree<ECS::Entity> dynamicRenderablesTree = Core::AABBTree<ECS::Entity>(1.0f);
+        Core::AABBTree<ECS::Entity> dynamicRenderablesTree = Core::AABBTree<ECS::Entity>(2.0f);
 
         /**
          * Populates the renderables vector with all the entities that are inside the given aabb.
@@ -127,5 +127,16 @@ namespace Rendering
          * @returns The number of entities of the other renderable type, i.e. returns number of static entities when isStatic is false, and vice versa.
          */
         size_t getRenderables(const ECS::Registry &registry, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
+
+        /**
+         * Draws the AABB tree.
+         *
+         * @param tree The tree to draw.
+         * @param registry The registry to use.
+         * @param renderer The renderer to use.
+         * @param renderTarget The render target to use.
+         * @param textureManager The texture manager to use.
+         */
+        void drawAABBTree(const Core::AABBTree<ECS::Entity> &tree, ECS::Registry &registry, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const;
     };
 }

@@ -161,7 +161,12 @@ Core::AABB Core::AABB::transform(const Core::Transform &t) const
     auto tMin = m * glm::vec4(min, 0, 1);
     auto tMax = m * glm::vec4(max, 0, 1);
 
-    return AABB(glm::vec2(tMin), glm::vec2(tMax));
+    auto minX = std::min(tMin.x, tMax.x);
+    auto minY = std::min(tMin.y, tMax.y);
+    auto maxX = std::max(tMin.x, tMax.x);
+    auto maxY = std::max(tMin.y, tMax.y);
+
+    return AABB(glm::vec2(minX, minY), glm::vec2(maxX, maxY));
 }
 
 void Core::AABB::scale(const glm::vec2 &scale)

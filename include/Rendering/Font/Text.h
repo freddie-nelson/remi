@@ -29,7 +29,7 @@ namespace Rendering
          * @param text The text to render.
          * @param font The font to use.
          */
-        Text(const std::string &text, const Font &font);
+        Text(std::string text, const Font &font);
 
         /**
          * Gets the mesh component to render.
@@ -41,7 +41,7 @@ namespace Rendering
         const Mesh2D &mesh(TextAlignment align = TextAlignment::CENTRE) const;
 
     private:
-        const std::string &text;
+        std::string text;
         const Font &font;
 
         /**

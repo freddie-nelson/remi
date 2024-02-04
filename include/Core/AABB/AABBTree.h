@@ -254,7 +254,9 @@ namespace Core
 
             AABBTreeNode<T> *node = leaves[id];
 
-            if (node->fatAabb.contains(aabb))
+            node->aabb = &aabb;
+
+            if (node->fatAabb.contains(*node->aabb))
             {
                 return false;
             }
@@ -411,6 +413,16 @@ namespace Core
                     }
                 }
             }
+        }
+
+        /**
+         * Gets the root of the tree.
+         *
+         * @returns the root of the tree.
+         */
+        AABBTreeNode<T> *getRoot() const
+        {
+            return root;
         }
 
     private:

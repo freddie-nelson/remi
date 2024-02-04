@@ -98,7 +98,7 @@ void Rendering::Renderer::present() const
     window->swapBuffers();
 }
 
-void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entity camera, ECS::Entity &entity)
+void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entity camera, ECS::Entity &entity) const
 {
     // mesh data
     auto &mesh = registry.get<Mesh2D>(entity);
@@ -127,7 +127,7 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     Uniform uColor("uColor", color);
     Uniform uTextures("uTextures", texturesUniform, true, texturesUniform.size(), GL_SAMPLER_2D);
 
-    Uniform uTextureUnit("uTextureUnit", boundTexture.textureUnit);
+    Uniform uTextureUnit("uTextureUnit", static_cast<unsigned int>(boundTexture.textureUnit));
     Uniform uTextureSize("uTextureSize", boundTexture.textureSize);
     Uniform uTextureAtlasPos("uTextureAtlasPos", boundTexture.posInAtlas);
     Uniform uTextureAtlasSize("uTextureAtlasSize", boundTexture.atlasSize);
@@ -174,7 +174,7 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     meshShader.unbind();
 };
 
-void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Entity camera, const Mesh2D &m, const std::vector<ECS::Entity> &instances)
+void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Entity camera, const Mesh2D &m, const std::vector<ECS::Entity> &instances) const
 {
     const auto instanceCount = instances.size();
 
@@ -267,7 +267,7 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
     instancedMeshShader.unbind();
 };
 
-void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables)
+void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables) const
 {
     // auto now = Rendering::timeSinceEpochMillisec();
 
@@ -597,12 +597,12 @@ void Rendering::Renderer::setProjectionMode(RendererProjectionMode mode)
     projectionMode = mode;
 }
 
-Rendering::RendererShaders &Rendering::Renderer::getShaders()
+Rendering::RendererShaders &Rendering::Renderer::getShaders() const
 {
     return *shaders.at(DEFAULT_SHADER_KEY);
 }
 
-Rendering::RendererShaders &Rendering::Renderer::getShaders(const ShaderMaterial &material)
+Rendering::RendererShaders &Rendering::Renderer::getShaders(const ShaderMaterial &material) const
 {
     auto key = material.getFragmentShaderKey();
 
@@ -614,7 +614,7 @@ Rendering::RendererShaders &Rendering::Renderer::getShaders(const ShaderMaterial
     return *shaders.at(key);
 }
 
-Rendering::RendererShaders &Rendering::Renderer::getShaders(const ECS::Registry &registry, const ECS::Entity entity)
+Rendering::RendererShaders &Rendering::Renderer::getShaders(const ECS::Registry &registry, const ECS::Entity entity) const
 {
     if (registry.has<ShaderMaterial>(entity))
     {
@@ -627,7 +627,7 @@ Rendering::RendererShaders &Rendering::Renderer::getShaders(const ECS::Registry 
     }
 }
 
-std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture> Rendering::Renderer::bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables)
+std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture> Rendering::Renderer::bindTextures(const ECS::Registry &registry, const std::vector<ECS::Entity> &renderables) const
 {
     std::unordered_set<Rendering::TextureId> texturesToBind;
     std::vector<const Rendering::Texture *> texturesToBindVec;

@@ -575,7 +575,7 @@ std::unordered_map<std::string, Rendering::Shader::VertexAttribInfo> Rendering::
 
         glGetActiveAttrib(program, i, maxLength, &length, &size, &type, name);
 
-        result.emplace(std::string(name), VertexAttribInfo{name, i, type, size});
+        result.insert_or_assign(std::string(name), VertexAttribInfo{name, i, type, size});
     }
 
     // fix locations

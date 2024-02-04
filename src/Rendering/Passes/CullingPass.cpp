@@ -5,6 +5,8 @@
 #include "../../../include/Rendering/Mesh/Mesh.h"
 #include "../../../include/Rendering/Passes/RenderablesPass.h"
 
+#include <stack>
+
 Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *input)
 {
     checkInput<RenderablesPassData>(input);
@@ -31,6 +33,9 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
     RenderPassInputTyped<CullingPassData> *output = new RenderPassInputTyped<CullingPassData>(input, renderables);
 
     delete inputTyped;
+
+    // drawAABBTree(staticRenderablesTree, const_cast<ECS::Registry &>(registry), *inputTyped->renderer, *inputTyped->renderTarget, *inputTyped->textureManager);
+    // drawAABBTree(dynamicRenderablesTree, const_cast<ECS::Registry &>(registry), *inputTyped->renderer, *inputTyped->renderTarget, *inputTyped->textureManager);
 
     return output;
 }
@@ -146,23 +151,20 @@ size_t Rendering::CullingPass::getRenderables(const ECS::Registry &registry, con
 
         if (dynamicRenderablesTree.has(e))
         {
-            bool updated = dynamicRenderablesTree.update(e, aabb);
-            if (updated)
-            {
-                dynamicRenderables.emplace(e, std::move(aabb));
-            }
+            dynamicRenderables.insert_or_assign(e, std::move(aabb));
+            bool updated = dynamicRenderablesTree.update(e, dynamicRenderables[e]);
 
             continue;
         }
 
         if (isStatic)
         {
-            staticRenderables.emplace(e, std::move(aabb));
+            staticRenderables.insert_or_assign(e, std::move(aabb));
             staticRenderablesTree.insert(e, staticRenderables[e]);
         }
         else
         {
-            dynamicRenderables.emplace(e, std::move(aabb));
+            dynamicRenderables.insert_or_assign(e, std::move(aabb));
             dynamicRenderablesTree.insert(e, dynamicRenderables[e]);
         }
     }
@@ -178,4 +180,96 @@ size_t Rendering::CullingPass::getRenderables(const ECS::Registry &registry, con
     }
 
     return otherCount;
+}
+
+void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tree, ECS::Registry &registry, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const
+{
+    auto entity = registry.create();
+    auto &transform = registry.add(entity, Core::Transform());
+    auto &material = registry.add(entity, Rendering::Material());
+    auto &mesh = registry.add(entity, Rendering::Mesh2D(1.0f, 1.0f));
+
+    transform.setZIndex(Config::MAX_Z_INDEX);
+
+    auto root = tree.getRoot();
+
+    if (root == nullptr)
+    {
+        return;
+    }
+
+    struct AABBData
+    {
+        const Core::AABB *aabb;
+        bool isLeaf;
+        bool isFat;
+    };
+
+    float opacity = 1.0f;
+
+    std::vector<AABBData> aabbs;
+
+    std::stack<Core::AABBTreeNode<ECS::Entity> *> nodes;
+    nodes.push(root);
+
+    while (!nodes.empty())
+    {
+        auto node = nodes.top();
+        nodes.pop();
+
+        if (node->left != nullptr)
+        {
+            nodes.push(node->left);
+        }
+        if (node->right != nullptr)
+        {
+            nodes.push(node->right);
+        }
+
+        if (node->isLeaf())
+        {
+            aabbs.push_back({node->aabb, true, false});
+            aabbs.push_back({&node->fatAabb, true, true});
+        }
+        else
+        {
+            aabbs.push_back({&node->fatAabb, false, true});
+        }
+    }
+
+    renderTarget.bind(textureManager);
+
+    for (auto &[aabb, isLeaf, isFat] : aabbs)
+    {
+        auto &centre = aabb->getCentre();
+
+        transform.setTranslation(centre);
+        transform.setScale(glm::vec2(aabb->getWidth(), aabb->getHeight()));
+
+        // std::cout << "min: " << aabb->getMin().x << ", " << aabb->getMin().y << std::endl;
+        // std::cout << "max: " << aabb->getMax().x << ", " << aabb->getMax().y << std::endl;
+
+        if (isLeaf)
+        {
+            if (isFat)
+            {
+                material.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, opacity));
+                continue;
+            }
+            else
+            {
+                material.setColor(Rendering::Color(0.0f, 1.0f, 0.0f, opacity));
+            }
+        }
+        else
+        {
+            material.setColor(Rendering::Color(0.0f, 0.0f, 1.0f, opacity));
+            continue;
+        }
+
+        renderer.entity(registry, renderer.getActiveCamera(registry), entity);
+    }
+
+    renderTarget.unbind(textureManager);
+    registry.destroy(entity);
 }
