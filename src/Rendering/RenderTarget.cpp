@@ -128,7 +128,7 @@ void Rendering::RenderTarget::create()
     // attach depth/stencil buffer to framebuffer
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
-    std::cout << "width: " << width << ", height: " << height << std::endl;
+    // std::cout << "width: " << width << ", height: " << height << std::endl;
 
     // check if framebuffer is complete
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
