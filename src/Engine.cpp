@@ -17,7 +17,7 @@ blz::Engine::Engine(EngineConfig config)
     Config::MAX_Z_INDEX = config.maxZIndex;
 
     window = new Core::Window(config.windowTitle, config.windowWidth, config.windowHeight, config.windowFullscreen);
-    renderer = new Rendering::Renderer(window, config.windowWidth, config.windowHeight);
+    renderer = new Rendering::Renderer(window, config.windowWidth, config.windowHeight, config.pixelsPerMeter);
 
     pipeline = new Rendering::RenderPipeline();
     pipeline->add(new Rendering::RenderablesPass(), 1000);
@@ -29,7 +29,9 @@ blz::Engine::Engine(EngineConfig config)
     std::cout << "Default render pipeline:" << std::endl;
     std::cout << pipeline->toString() << std::endl;
 
-    renderManager = new Rendering::RenderManager(renderer, pipeline);
+    spaceTransformer = new Core::SpaceTransformer(renderer, registry, config.pixelsPerMeter);
+
+    renderManager = new Rendering::RenderManager(renderer, pipeline, spaceTransformer);
 
     animationSystem = new Rendering::AnimationSystem();
     addSystem(animationSystem);
@@ -46,6 +48,7 @@ blz::Engine::~Engine()
     delete mouse;
     delete registry;
     delete renderManager;
+    delete spaceTransformer;
     delete pipeline;
     delete renderer;
     delete window;
@@ -150,6 +153,11 @@ Input::Mouse *const blz::Engine::getMouse()
 Input::Keyboard *const blz::Engine::getKeyboard()
 {
     return keyboard;
+}
+
+Core::SpaceTransformer *const blz::Engine::getSpaceTransformer()
+{
+    return spaceTransformer;
 }
 
 void blz::Engine::mainLoop(MainLoopArgs *args)

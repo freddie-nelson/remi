@@ -4,6 +4,7 @@
 #include "RenderPass.h"
 #include "../../Core/AABB/AABB.h"
 #include "../../Core/AABB/AABBTree.h"
+#include "../../Core/SpaceTransformer.h"
 
 #include <vector>
 #include <unordered_map>
@@ -60,11 +61,12 @@ namespace Rendering
          * Gets the AABB sufficient for culling entities outside the camera's view.
          *
          * @param registry The registry to get the camera's components from.
+         * @param spaceTransformer The space transformer to use.
          * @param camera The camera to get the culling AABB for.
          *
          * @returns The AABB sufficient for culling entities outside the camera's view.
          */
-        Core::AABB getCullingAABB(const ECS::Registry &registry, const ECS::Entity camera) const;
+        Core::AABB getCullingAABB(const ECS::Registry &registry, const Core::SpaceTransformer &spaceTransformer, const ECS::Entity camera) const;
 
         /**
          * The number of calls to getRenderables to wait before pruning the AABB tree.
@@ -94,8 +96,10 @@ namespace Rendering
 
         /**
          * The AABB tree for static renderables.
+         *
+         * The tree has no margin.
          */
-        Core::AABBTree<ECS::Entity> staticRenderablesTree;
+        Core::AABBTree<ECS::Entity> staticRenderablesTree = Core::AABBTree<ECS::Entity>(0.0f);
 
         /**
          * Dynamic renderables and their previously computed aabbs.
@@ -105,9 +109,9 @@ namespace Rendering
         /**
          * The AABB tree for dynamic renderables.
          *
-         * The tree gives fat aabb's a margin of 100 pixels.
+         * The tree gives fat aabb's a margin of 1 metre.
          */
-        Core::AABBTree<ECS::Entity> dynamicRenderablesTree = Core::AABBTree<ECS::Entity>(100.0f);
+        Core::AABBTree<ECS::Entity> dynamicRenderablesTree = Core::AABBTree<ECS::Entity>(1.0f);
 
         /**
          * Populates the renderables vector with all the entities that are inside the given aabb.

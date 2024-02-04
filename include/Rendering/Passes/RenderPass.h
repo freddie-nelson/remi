@@ -5,6 +5,7 @@
 #include "../../Utility/TypeHelpers.h"
 #include "../RenderTarget.h"
 #include "../Texture/TextureManager.h"
+#include "../../Core/SpaceTransformer.h"
 
 #include <string>
 
@@ -39,6 +40,11 @@ namespace Rendering
          * The texture manager to use.
          */
         TextureManager *textureManager;
+
+        /**
+         * The space transformer.
+         */
+        Core::SpaceTransformer *spaceTransformer;
 
         /**
          * Destroys the render pass input.
@@ -97,6 +103,7 @@ namespace Rendering
             camera = input->camera;
             renderTarget = input->renderTarget;
             textureManager = input->textureManager;
+            spaceTransformer = input->spaceTransformer;
 
             this->data = data;
         }

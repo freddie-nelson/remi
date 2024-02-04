@@ -2,6 +2,7 @@
 
 #include "./Renderer.h"
 #include "./RenderPipeline.h"
+#include "../Core/SpaceTransformer.h"
 
 namespace Rendering
 {
@@ -9,14 +10,20 @@ namespace Rendering
      * Represents the render manager.
      *
      * The render manager orchestrates the rendering of the scene.
+     *
+     * ! TODO: Implement multiple render pipelines, that allow selection of pipeline per entity through the renderable component.
      */
     class RenderManager
     {
     public:
         /**
          * Creates the render manager.
+         *
+         * @param renderer The renderer to use for rendering.
+         * @param pipeline The render pipeline to execute on render.
+         * @param spaceTransformer The space transformer to use for converting between coordinate spaces. This is passed to each render pass.
          */
-        RenderManager(Renderer *renderer, RenderPipeline *pipeline);
+        RenderManager(Renderer *renderer, RenderPipeline *pipeline, Core::SpaceTransformer *spaceTransformer);
 
         /**
          * Destroys the render manager.
@@ -41,5 +48,6 @@ namespace Rendering
     private:
         Renderer *renderer;
         RenderPipeline *pipeline;
+        Core::SpaceTransformer *spaceTransformer;
     };
 }

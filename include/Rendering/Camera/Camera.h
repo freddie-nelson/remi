@@ -113,16 +113,40 @@ namespace Rendering
          *
          * The transforms shear is ignored.
          *
+         * The matrix centre's x and y will be in pixel units.
+         *
          * @param t The camera's transformation.
+         * @param pixelsPerMeter The number of pixels per meter.
          *
          * @returns the view projection matrix.
          */
-        glm::mat4 getViewProjectionMatrix(const Core::Transform &t) const;
+        glm::mat4 getViewProjectionMatrix(const Core::Transform &t, float pixelsPerMeter) const;
+
+        /**
+         * Gets the projection matrix of the camera.
+         *
+         * @param t The camera's transformation.
+         *
+         * @returns the projection matrix.
+         */
+        glm::mat4 getProjectionMatrix(const Core::Transform &t) const;
+
+        /**
+         * Gets the view matrix of the camera.
+         *
+         * @param t The camera's transformation.
+         * @param pixelsPerMeter The number of pixels per meter.
+         *
+         * @returns the view matrix.
+         */
+        glm::mat4 getViewMatrix(const Core::Transform &t, float pixelsPerMeter) const;
 
         /**
          * Gets the AABB of the camera.
          *
          * This is the AABB of the camera's viewport.
+         *
+         * The AABB is in pixel units.
          *
          * @returns the AABB of the camera.
          */
@@ -133,11 +157,14 @@ namespace Rendering
          *
          * This is the AABB of the camera's viewport with no rotation.
          *
+         * If pixelsPerMeter is given then the AABB will be returned in meters.
+         *
          * @param t The transformation to scale and translate the AABB by.
+         * @param pixelsPerMeter The number of pixels per meter.
          *
          * @returns the AABB of the camera after it has been scaled and translated by the given transformation.
          */
-        Core::AABB getScaledAndTranslatedAabb(const Core::Transform &t) const;
+        Core::AABB getScaledAndTranslatedAabb(const Core::Transform &t, float pixelsPerMeter = 1.0f) const;
 
     private:
         float width;

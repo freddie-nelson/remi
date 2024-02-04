@@ -9,6 +9,7 @@ namespace Rendering
      *
      * This shader needs access to the following uniforms:
      * - uViewProjectionMatrix: The view projection matrix to use.
+     * - uPixelsPerMeter: The number of pixels per meter.
      * - uMeshTransform: The transform of the mesh.
      * - uTextureUnit: The texture unit to use. This is the texture atlas.
      * - uTextureSize: The size of the texture within the atlas.
@@ -29,6 +30,7 @@ namespace Rendering
         "precision mediump float;\n"
         "\n"
         "uniform mat4 uViewProjectionMatrix;\n"
+        "uniform uint uPixelsPerMeter;\n"
         "\n"
         "uniform mat4 uMeshTransform;\n"
         "\n"
@@ -48,7 +50,12 @@ namespace Rendering
         "\n"
         "void main()\n"
         "{\n"
-        "   gl_Position = uViewProjectionMatrix * uMeshTransform * vec4(aPos, 0.0f, 1.0f);\n"
+        "   vec4 worldPos = uMeshTransform * vec4(aPos, 0.0f, 1.0f);\n"
+        "\n"
+        "   // convert from meters to pixels\n"
+        "   worldPos.xy *= float(uPixelsPerMeter);\n"
+        "\n"
+        "   gl_Position = uViewProjectionMatrix * worldPos;\n"
         "\n"
         "   // calculate texture coordinate in atlas\n"
         "   vec2 atlasTexCoord = (aTexCoord * uTextureSize) + uTextureAtlasPos;\n"

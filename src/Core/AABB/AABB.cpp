@@ -164,6 +164,24 @@ Core::AABB Core::AABB::transform(const Core::Transform &t) const
     return AABB(glm::vec2(tMin), glm::vec2(tMax));
 }
 
+void Core::AABB::scale(const glm::vec2 &scale)
+{
+    min *= scale;
+    max *= scale;
+
+    updateCentre();
+    updateSurfaceArea();
+}
+
+void Core::AABB::scale(float scale)
+{
+    min *= scale;
+    max *= scale;
+
+    updateCentre();
+    updateSurfaceArea();
+}
+
 void Core::AABB::updateCentre()
 {
     centre = (min + max) / 2.0f;

@@ -166,6 +166,20 @@ namespace Core
          */
         AABB transform(const Core::Transform &t) const;
 
+        /**
+         * Scale the AABB by the given scale.
+         *
+         * @param scale The scale to apply.
+         */
+        void scale(const glm::vec2 &scale);
+
+        /**
+         * Scale the AABB by the given scale.
+         *
+         * @param scale The scale to apply.
+         */
+        void scale(float scale);
+
     private:
         /**
          * The minimum point of the AABB.

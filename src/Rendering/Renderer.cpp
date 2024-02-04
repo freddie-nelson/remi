@@ -26,21 +26,21 @@ Rendering::RendererShaders::RendererShaders(const std::string &fragmentShader)
 {
     if (!meshShader.loadFromSource(meshVertexShader, fragmentShader))
     {
-        throw std::runtime_error("Failed to load mesh shader. Fragment shader: \n\n" + fragmentShader);
+        throw std::runtime_error("Failed to load mesh shader. Vertex shader: \n\n" + meshVertexShader + "\n\nFragment shader: \n\n" + fragmentShader);
     }
 
     if (!instancedMeshShader.loadFromSource(instancedMeshVertexShader, fragmentShader))
     {
-        throw std::runtime_error("Failed to load instanced mesh shader. Fragment shader: \n\n" + fragmentShader);
+        throw std::runtime_error("Failed to load instanced mesh shader. Vertex shader: \n\n" + instancedMeshVertexShader + "\n\nFragment shader: \n\n" + fragmentShader);
     }
 
     if (!batchedMeshShader.loadFromSource(batchedMeshVertexShader, fragmentShader))
     {
-        throw std::runtime_error("Failed to load batched mesh shader. Fragment shader: \n\n" + fragmentShader);
+        throw std::runtime_error("Failed to load batched mesh shader. Vertex shader: \n\n" + batchedMeshVertexShader + "\n\nFragment shader: \n\n" + fragmentShader);
     }
 }
 
-Rendering::Renderer::Renderer(Core::Window *window, unsigned int width, unsigned int height, RendererProjectionMode projectionMode) : window(window), projectionMode(projectionMode)
+Rendering::Renderer::Renderer(Core::Window *window, unsigned int width, unsigned int height, unsigned int pixelsPerMeter, RendererProjectionMode projectionMode) : window(window), pixelsPerMeter(pixelsPerMeter), projectionMode(projectionMode)
 {
     setSize(width, height);
 
@@ -123,6 +123,7 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
 
     // uniforms
     Uniform uViewProjectionMatrix("uViewProjectionMatrix", viewProjectionMatrix);
+    Uniform uPixelsPerMeter("uPixelsPerMeter", pixelsPerMeter);
     Uniform uColor("uColor", color);
     Uniform uTextures("uTextures", texturesUniform, true, texturesUniform.size(), GL_SAMPLER_2D);
 
@@ -146,6 +147,7 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     meshShader.use();
 
     meshShader.uniform(&uViewProjectionMatrix);
+    meshShader.uniform(&uPixelsPerMeter);
     meshShader.uniform(&uColor);
 
     meshShader.uniform(&uTextures);
@@ -217,6 +219,7 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
 
     // uniforms
     Uniform uViewProjectionMatrix("uViewProjectionMatrix", viewProjectionMatrix);
+    Uniform uPixelsPerMeter("uPixelsPerMeter", pixelsPerMeter);
     Uniform uTextureAtlasSize("uTextureAtlasSize", atlasSize);
     Uniform uTextures("uTextures", textures, true, textures.size(), GL_SAMPLER_2D);
 
@@ -245,6 +248,7 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
     instancedMeshShader.use();
 
     instancedMeshShader.uniform(&uViewProjectionMatrix);
+    instancedMeshShader.uniform(&uPixelsPerMeter);
     instancedMeshShader.uniform(&uTextureAtlasSize);
     instancedMeshShader.uniform(&uTextures);
 
@@ -298,6 +302,8 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
 
     auto boundTextures = bindTextures(registry, renderables);
 
+    float pixelsPerMeter = this->pixelsPerMeter;
+
     // fill arrays with mesh and material data
     for (auto &e : renderables)
     {
@@ -319,6 +325,10 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
         for (size_t i = 0; i < vertices.size(); i++)
         {
             batchedVertices[verticesOffset + i] = transformMatrix * glm::vec4(vertices[i], 0.0f, 1.0f);
+
+            // convert to pixels from meters
+            batchedVertices[verticesOffset + i].x *= pixelsPerMeter;
+            batchedVertices[verticesOffset + i].y *= pixelsPerMeter;
 
             batchedAtlasPos[verticesOffset + i] = boundTexture.posInAtlas;
 
@@ -669,5 +679,5 @@ glm::mat4 Rendering::Renderer::getViewProjectionMatrix(const ECS::Registry &regi
     auto &cameraComponent = registry.get<Camera>(camera);
     auto &cameraTransform = registry.get<Core::Transform>(camera);
 
-    return cameraComponent.getViewProjectionMatrix(cameraTransform);
+    return cameraComponent.getViewProjectionMatrix(cameraTransform, pixelsPerMeter);
 }

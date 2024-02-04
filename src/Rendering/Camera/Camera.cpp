@@ -85,19 +85,26 @@ glm::vec2 Rendering::Camera::getViewportSize() const
     return glm::vec2(width, height);
 }
 
-glm::mat4 Rendering::Camera::getViewProjectionMatrix(const Core::Transform &t) const
+glm::mat4 Rendering::Camera::getViewProjectionMatrix(const Core::Transform &t, float pixelsPerMeter) const
 {
-    glm::vec3 centre = glm::vec3(t.getTranslation(), t.getZIndex());
-    glm::vec3 up = glm::rotate(glm::vec3(0.0f, 1.0f, 0.0f), t.getRotation(), glm::vec3(0.0f, 0.0f, 1.0f));
+    return getProjectionMatrix(t) * getViewMatrix(t, pixelsPerMeter);
+}
 
+glm::mat4 Rendering::Camera::getProjectionMatrix(const Core::Transform &t) const
+{
     auto min = aabb.getMin() * t.getScale();
     auto max = aabb.getMax() * t.getScale();
 
-    // camera is at +zIndex on the z axis looking towards z = -far - 1 (looks towards negative z)
-    glm::mat4 viewMatrix = glm::lookAt(centre, glm::vec3(centre.x, centre.y, -far - 1.0f), up);
-    glm::mat4 projectionMatrix = glm::ortho(min.x, max.x, min.y, max.y, near, far);
+    return glm::ortho(min.x, max.x, min.y, max.y, near, far);
+}
 
-    return projectionMatrix * viewMatrix;
+glm::mat4 Rendering::Camera::getViewMatrix(const Core::Transform &t, float pixelsPerMeter) const
+{
+    glm::vec3 centre = glm::vec3(t.getTranslation() * pixelsPerMeter, t.getZIndex());
+    glm::vec3 up = glm::rotate(glm::vec3(0.0f, 1.0f, 0.0f), t.getRotation(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    // camera is at +zIndex on the z axis looking towards z = -far - 1 (looks towards negative z)
+    return glm::lookAt(centre, glm::vec3(centre.x, centre.y, -far - 1.0f), up);
 }
 
 const Core::AABB &Rendering::Camera::getAABB() const
@@ -105,10 +112,10 @@ const Core::AABB &Rendering::Camera::getAABB() const
     return aabb;
 }
 
-Core::AABB Rendering::Camera::getScaledAndTranslatedAabb(const Core::Transform &t) const
+Core::AABB Rendering::Camera::getScaledAndTranslatedAabb(const Core::Transform &t, float pixelsPerMeter) const
 {
-    auto min = aabb.getMin() * t.getScale();
-    auto max = aabb.getMax() * t.getScale();
+    auto min = (aabb.getMin() / pixelsPerMeter) * t.getScale();
+    auto max = (aabb.getMax() / pixelsPerMeter) * t.getScale();
 
     return Core::AABB(min + t.getTranslation(), max + t.getTranslation());
 }

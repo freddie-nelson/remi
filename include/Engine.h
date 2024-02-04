@@ -9,6 +9,7 @@
 #include "ECS/Registry.h"
 #include "Input/Mouse.h"
 #include "Input/Keyboard.h"
+#include "Core/SpaceTransformer.h"
 
 namespace blz
 {
@@ -20,6 +21,7 @@ namespace blz
      */
     struct EngineConfig
     {
+
         /**
          * The title of the window.
          *
@@ -86,6 +88,17 @@ namespace blz
         unsigned int maxZIndex = 128;
 
         /**
+         * The number of pixels per meter.
+         *
+         * This is used to convert between pixels and meters.
+         *
+         * A lower number will make objects appear smaller on screen.
+         *
+         * Changing this can affect the physics system performance.
+         */
+        unsigned int pixelsPerMeter = 100;
+
+        /**
          * Whether to show debug info.
          */
         bool showDebugInfo = true;
@@ -95,6 +108,8 @@ namespace blz
      * The engine.
      *
      * The engine is responsible for managing the window, renderer and ecs.
+     *
+     * The engine cannot be copied.
      *
      * The engine is also responsible for updating the systems. There are two types of updates in systems:
      *
@@ -118,6 +133,10 @@ namespace blz
          * @param config The configuration of the engine.
          */
         Engine(EngineConfig config);
+
+        Engine(const Engine &other) = delete;
+
+        Engine &operator=(const Engine &other) = delete;
 
         /**
          * Destroys the engine.
@@ -226,6 +245,15 @@ namespace blz
          */
         Input::Keyboard *const getKeyboard();
 
+        /**
+         * Gets the space transformer of the engine.
+         *
+         * This is used to convert between different coordinate systems.
+         *
+         * @returns The space transformer of the engine.
+         */
+        Core::SpaceTransformer *const getSpaceTransformer();
+
     private:
         EngineConfig config;
 
@@ -240,6 +268,8 @@ namespace blz
 
         Input::Mouse *mouse;
         Input::Keyboard *keyboard;
+
+        Core::SpaceTransformer *spaceTransformer;
 
         /**
          * Systems that are updated every frame.

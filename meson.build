@@ -97,7 +97,7 @@ endif
 #
 
 # core
-core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/Timestep.cpp', 'src/Core/Window.cpp']
+core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/Timestep.cpp', 'src/Core/Window.cpp', 'src/Core/SpaceTransformer.cpp']
 core_src += ['src/Core/AABB/AABB.cpp']
 
 # debug

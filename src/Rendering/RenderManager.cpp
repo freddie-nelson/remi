@@ -1,9 +1,7 @@
 #include "../../include/Rendering/RenderManager.h"
 
-Rendering::RenderManager::RenderManager(Rendering::Renderer *renderer, Rendering::RenderPipeline *pipeline)
+Rendering::RenderManager::RenderManager(Rendering::Renderer *renderer, Rendering::RenderPipeline *pipeline, Core::SpaceTransformer *spaceTransformer) : renderer(renderer), pipeline(pipeline), spaceTransformer(spaceTransformer)
 {
-    this->renderer = renderer;
-    this->pipeline = pipeline;
 }
 
 void Rendering::RenderManager::render(const ECS::Registry &registry, ECS::Entity *camera, const RenderTarget *renderTarget)
@@ -30,6 +28,7 @@ void Rendering::RenderManager::render(const ECS::Registry &registry, ECS::Entity
     input->camera = cameraEntity;
     input->renderTarget = renderTarget;
     input->textureManager = &this->renderer->getTextureManager();
+    input->spaceTransformer = this->spaceTransformer;
     input->data = new int(0);
 
     pipeline->execute(input);

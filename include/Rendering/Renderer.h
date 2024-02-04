@@ -80,8 +80,10 @@ namespace Rendering
          * @param window The window to attach the renderer to.
          * @param width The width of the renderer viewport.
          * @param height The height of the renderer viewport.
+         * @param pixelsPerMeter The number of pixels per meter.
+         * @param projectionMode The projection mode of the renderer.
          */
-        Renderer(Core::Window *window, unsigned int width, unsigned int height, RendererProjectionMode projectionMode = RendererProjectionMode::STRETCH);
+        Renderer(Core::Window *window, unsigned int width, unsigned int height, unsigned int pixelsPerMeter, RendererProjectionMode projectionMode = RendererProjectionMode::STRETCH);
 
         /**
          * Destroys the renderer.
@@ -383,6 +385,7 @@ namespace Rendering
     private:
         unsigned int width = 0;
         unsigned int height = 0;
+        unsigned int pixelsPerMeter;
 
         RendererProjectionMode projectionMode = RendererProjectionMode::STRETCH;
 

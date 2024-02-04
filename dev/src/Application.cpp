@@ -98,6 +98,8 @@ void Application::init()
     registry->add(camera, Rendering::ActiveCamera());
 
     // create entities
+    float pixelsPerMeter = config.pixelsPerMeter;
+
     int entityCount = 1000;
     int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
     int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
@@ -107,14 +109,13 @@ void Application::init()
     {
         auto e = registry->create();
 
-        // auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>(rand() % 100 + 50), static_cast<float>(rand() % 100 + 50)));
-        auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>(rand() % 50 + 25), static_cast<unsigned int>(rand() % 13 + 3)));
+        auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>((rand() % 50) / 100.0f + 0.2f), static_cast<unsigned int>(rand() % 13 + 3)));
         auto &t = registry->add(e, Core::Transform());
         auto &material = registry->add(e, Rendering::Material());
         auto &renderable = registry->add(e, Rendering::Renderable{true, true});
 
         t.setZIndex(rand() % zRange);
-        t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
+        t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2} / pixelsPerMeter);
 
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
@@ -166,18 +167,18 @@ void Application::init()
     registry->add(textEntity, m);
 
     auto &t = registry->get<Core::Transform>(textEntity);
-    t.scale(100);
+    t.scale(1);
     t.setZIndex(zRange - 2);
 
     // animation
     auto character = registry->create();
 
-    auto &cm = registry->add(character, Rendering::Mesh2D(64.0f, 64.0f));
+    auto &cm = registry->add(character, Rendering::Mesh2D(1.0f, 1.0f));
     auto &ct = registry->add(character, Core::Transform());
     auto &cMat = registry->add(character, Rendering::Material());
     registry->add(character, Rendering::Renderable{true, false});
 
-    ct.scale(6);
+    ct.scale(3);
     ct.setZIndex(zRange + 1);
 
     std::vector<std::string> frames = {
@@ -229,7 +230,7 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     auto camera = renderer->getActiveCamera(registry);
     auto &t = registry.get<Core::Transform>(camera);
 
-    float camSpeed = 150.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
+    float camSpeed = 1.5f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
     glm::vec2 camMove(0.0f);
 
     if (keyboard->isPressed(Input::Key::W))

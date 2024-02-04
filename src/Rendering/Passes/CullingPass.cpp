@@ -16,7 +16,7 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
     auto &entities = *inputTyped->data;
 
     // get camera aabb
-    auto viewAabb = getCullingAABB(registry, camera);
+    auto viewAabb = getCullingAABB(registry, *inputTyped->spaceTransformer, camera);
 
     // get renderables
     std::vector<ECS::Entity> *renderables = new std::vector<ECS::Entity>;
@@ -35,28 +35,30 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
     return output;
 }
 
-Core::AABB Rendering::CullingPass::getCullingAABB(const ECS::Registry &registry, const ECS::Entity camera) const
+// ! TODO: implement proper coordinate space transformation/conversion class to handle this
+// ! and get rid of the magic number 100.0f
+
+Core::AABB Rendering::CullingPass::getCullingAABB(const ECS::Registry &registry, const Core::SpaceTransformer &spaceTransformer, const ECS::Entity camera) const
 {
     auto &cameraComponent = registry.get<Camera>(camera);
     auto &cameraTransform = registry.get<Core::Transform>(camera);
 
-    auto cameraAabb = cameraComponent.getAABB();
-
-    Core::AABB fatCameraAabb;
-
     // if camera is rotated use bounding circle aabb
     if (cameraTransform.getRotation() != 0)
     {
+        auto cameraAabb = cameraComponent.getAABB();
+
+        // convert camera aabb to meters
+        cameraAabb.scale(1.0f / spaceTransformer.getPixelsPerMeter());
+
         auto cameraBoundingCircle = Core::BoundingCircle(cameraAabb, cameraTransform);
-        fatCameraAabb = Core::AABB(cameraBoundingCircle.getCentre(), cameraBoundingCircle.getRadius());
+        return Core::AABB(cameraBoundingCircle.getCentre(), cameraBoundingCircle.getRadius());
     }
     else
     {
         // otherwise scaled and translated aabb is sufficient
-        fatCameraAabb = cameraComponent.getScaledAndTranslatedAabb(cameraTransform);
+        return cameraComponent.getScaledAndTranslatedAabb(cameraTransform, spaceTransformer.getPixelsPerMeter());
     }
-
-    return fatCameraAabb;
 }
 
 void Rendering::CullingPass::pruneTrees(const ECS::Registry &registry)
