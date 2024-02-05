@@ -78,7 +78,7 @@ link_args = []
 link_with = []
 
 if cross_target == 'native'
-    dependencies += [dependency('glfw3'), dependency('boost')]
+    dependencies += [dependency('glfw3'), dependency('boost'), dependency('box2d')]
     link_with += [glad, ttf2mesh]
 endif
 
