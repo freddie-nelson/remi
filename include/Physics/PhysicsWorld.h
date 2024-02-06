@@ -6,6 +6,10 @@
 #include <box2d/b2_world.h>
 #include <glm/vec2.hpp>
 
+// TODO: multithread the physics world
+// could do this by running the box2d world in a separate thread and then just updating the entity components on fixedUpdate based on physics world state
+// and sending any new data to the physics world thread
+
 namespace Physics
 {
     /**

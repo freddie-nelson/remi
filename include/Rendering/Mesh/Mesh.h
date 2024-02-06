@@ -2,6 +2,7 @@
 
 #include "../Material/Color.h"
 #include "../../Core/AABB/AABB.h"
+#include "../../Core/Transform.h"
 
 #include <glm/vec2.hpp>
 #include <glm/mat2x2.hpp>
@@ -201,6 +202,15 @@ namespace Rendering
          * @param centre The centre of the mesh.
          */
         void setCentre(const glm::vec2 &centre);
+
+        /**
+         * Gets the mesh transformed by the given transform.
+         *
+         * @param transform The transform to apply to the mesh.
+         *
+         * @returns The transformed mesh.
+         */
+        Mesh2D transform(const Core::Transform &transform) const;
 
     private:
         std::vector<glm::vec2> vertices;

@@ -170,3 +170,19 @@ void Rendering::Mesh2D::setCentre(const glm::vec2 &centre)
 
     aabb.setFromPoints(vertices);
 }
+
+Rendering::Mesh2D Rendering::Mesh2D::transform(const Core::Transform &transform) const
+{
+    auto newMesh = *this;
+
+    auto &mat = transform.getTransformationMatrix();
+
+    for (auto &v : newMesh.vertices)
+    {
+        v = glm::vec2(mat * glm::vec4(v, 0.0f, 1.0f));
+    }
+
+    newMesh.aabb.setFromPoints(newMesh.vertices);
+
+    return newMesh;
+}
