@@ -1,5 +1,6 @@
 #pragma once
 
+#include <box2d/b2_shape.h>
 #include <glm/vec2.hpp>
 #include <vector>
 
@@ -28,6 +29,20 @@ namespace Physics
          */
         ColliderShapeType getType() const;
 
+        /**
+         * Creates a Box2D shape from the collider shape.
+         *
+         * @returns The Box2D shape.
+         */
+        virtual b2Shape *createBox2DShape() const = 0;
+
+        /**
+         * Clones the collider shape.
+         *
+         * @returns The cloned collider shape.
+         */
+        virtual ColliderShape2D *clone() const = 0;
+
     protected:
         ColliderShapeType type;
     };
@@ -43,6 +58,20 @@ namespace Physics
          * Creates a new 2D polygon collider.
          */
         PolygonCollider2D(std::vector<glm::vec2> vertices);
+
+        /**
+         * Creates a Box2D shape from the collider shape.
+         *
+         * @returns The Box2D shape.
+         */
+        b2Shape *createBox2DShape() const override;
+
+        /**
+         * Clones the collider shape.
+         *
+         * @returns The cloned collider shape.
+         */
+        ColliderShape2D *clone() const override;
 
         /**
          * The vertices of the polygon.
@@ -66,6 +95,20 @@ namespace Physics
          * @param centre The centre of the circle.
          */
         CircleCollider2D(float radius, glm::vec2 centre = glm::vec2(0.0f, 0.0f));
+
+        /**
+         * Creates a Box2D shape from the collider shape.
+         *
+         * @returns The Box2D shape.
+         */
+        b2Shape *createBox2DShape() const override;
+
+        /**
+         * Clones the collider shape.
+         *
+         * @returns The cloned collider shape.
+         */
+        ColliderShape2D *clone() const override;
 
         /**
          * The radius of the circle.
@@ -116,6 +159,20 @@ namespace Physics
         EdgeCollider2D(glm::vec2 adjacentStart, glm::vec2 start, glm::vec2 end, glm::vec2 adjacentEnd);
 
         /**
+         * Creates a Box2D shape from the collider shape.
+         *
+         * @returns The Box2D shape.
+         */
+        b2Shape *createBox2DShape() const override;
+
+        /**
+         * Clones the collider shape.
+         *
+         * @returns The cloned collider shape.
+         */
+        ColliderShape2D *clone() const override;
+
+        /**
          * The start position of the edge.
          *
          * This is in local space.
@@ -160,30 +217,45 @@ namespace Physics
      *
      * Chains always provide one sided collision.
      *
-     * You can specify adjacent vertices to the start and end to create smooth collision across junctions.
-     * If you specify adjacent vertices you must also set the hasAdjacentVertices flag to true for them to be used.
+     * The chain can either be a loop or a chain of edges with adjacent vertices to eliminate ghost collisions.
      *
-     * You can also specify whether or not the chain is a loop. If it is a loop the chain will be closed and the last vertex will be connected to the first.
-     * If the vertices are provided in counter-clockwise order the loop normal will point outwards and if they are provided in clockwise order the loop normal will point inwards.
+     * If you don't need adjacent vertices you can specify the adjacent vertices to be the same as the start and end.
      */
     struct ChainCollider2D : public ColliderShape2D
     {
         /**
          * Creates a new 2D chain collider.
          *
+         * The chain will be a loop.
+         *
          * @param vertices The vertices of the chain.
-         * @param isLoop Whether or not the chain is a loop.
          */
-        ChainCollider2D(std::vector<glm::vec2> vertices, bool isLoop = false);
+        ChainCollider2D(std::vector<glm::vec2> vertices);
 
         /**
          * Creates a new 2D chain collider.
+         *
+         * The chain will not be a loop.
          *
          * @param adjacentStart The vertex adjacent to the start.
          * @param vertices The vertices of the chain.
          * @param adjacentEnd The vertex adjacent to the end.
          */
         ChainCollider2D(glm::vec2 adjacentStart, std::vector<glm::vec2> vertices, glm::vec2 adjacentEnd);
+
+        /**
+         * Creates a Box2D shape from the collider shape.
+         *
+         * @returns The Box2D shape.
+         */
+        b2Shape *createBox2DShape() const override;
+
+        /**
+         * Clones the collider shape.
+         *
+         * @returns The cloned collider shape.
+         */
+        ColliderShape2D *clone() const override;
 
         /**
          * The vertices of the chain.
@@ -230,8 +302,12 @@ namespace Physics
     {
         /**
          * Creates a new 2D collider.
+         *
+         * The shape will be cloned so you can delete the original.
+         *
+         * @param shape The shape of the collider.
          */
-        Collider2D();
+        Collider2D(ColliderShape2D *shape);
 
         /**
          * Destroys the 2D collider.
@@ -239,12 +315,43 @@ namespace Physics
         ~Collider2D();
 
         /**
-         * The shape of the collider.
+         * Gets the shape of the collider.
+         *
+         * @returns The shape of the collider.
          */
-        ColliderShape2D *shape;
+        const ColliderShape2D *getShape() const;
+
+        /**
+         * Sets the shape of the collider.
+         *
+         * Copies the shape so you can delete the original.
+         *
+         * @param shape The shape of the collider.
+         */
+        void setShape(ColliderShape2D *shape);
+
+        /**
+         * Whether or not the shape is dirty.
+         *
+         * This will be set to true if the shape is changed, and set to false once the physics world has informed box 2d of the shape change.
+         *
+         * @returns Whether or not the shape is dirty.
+         */
+        bool isShapeDirty() const;
+
+        /**
+         * Informs the collider that the shape has been updated by the physics world.
+         *
+         * This will set the shape dirty flag to false.
+         *
+         * This should only be called by the physics world, or if you really know what you're doing.
+         */
+        void informOfShapeUpdate();
 
         /**
          * The density of the collider.
+         *
+         * If the density is non zero then the mass of the body will be calculated from the area and the density.
          */
         float density;
 
@@ -271,5 +378,18 @@ namespace Physics
         bool isSensor;
 
         // TODO: add categories and masks
+
+    protected:
+        /**
+         * The shape of the collider.
+         */
+        ColliderShape2D *shape;
+
+        /**
+         * Wether or not the shape is dirty.
+         *
+         * This will be set to true if the shape is changed, and set to false once the physics world has informed box 2d of the shape change.
+         */
+        bool shapeDirty;
     };
 }

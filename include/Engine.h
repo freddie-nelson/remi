@@ -10,6 +10,7 @@
 #include "Input/Mouse.h"
 #include "Input/Keyboard.h"
 #include "Core/SpaceTransformer.h"
+#include "Physics/PhysicsWorld.h"
 
 namespace blz
 {
@@ -102,6 +103,11 @@ namespace blz
          * Whether to show debug info.
          */
         bool showDebugInfo = true;
+
+        /**
+         * The configuration of the physics world.
+         */
+        Physics::PhysicsWorldConfig physicsWorldConfig;
     };
 
     /**
@@ -121,6 +127,9 @@ namespace blz
      * This means that anything rendered in a fixed update will be cleared before it can ever be shown. i.e. Rendering should not be done in fixedUpdate.
      *
      * Fixed updates will be performed before updates, if they are both due to be performed in the same tick.
+     *
+     * NOTE:
+     * The physics world is updated in the fixed update, and will receive a fixed timestep. It is updated after all other systems have been updated.
      */
     class Engine
     {
@@ -219,6 +228,15 @@ namespace blz
         Rendering::AnimationSystem *const getAnimationSystem();
 
         /**
+         * Gets the physics world of the engine.
+         *
+         * This is the physics world that is used to simulate physics.
+         *
+         * @returns The physics world of the engine.
+         */
+        Physics::PhysicsWorld *const getPhysicsWorld();
+
+        /**
          * Gets the registry of the engine.
          *
          * This is the registry that is used to store all the entities and their components.
@@ -263,6 +281,8 @@ namespace blz
         Rendering::RenderManager *renderManager;
 
         Rendering::AnimationSystem *animationSystem;
+
+        Physics::PhysicsWorld *physicsWorld;
 
         ECS::Registry *registry;
 

@@ -70,7 +70,7 @@ namespace Physics
         /**
          * Whether or not the body is initially awake.
          */
-        bool isInitiallyAwake;
+        bool isAwake;
 
         /**
          * If this is true the body will never rotate unless manually rotate.
@@ -87,9 +87,9 @@ namespace Physics
         bool isBullet;
 
         /**
-         * Whether or not the body starts enabled.
+         * Whether or not the body is enabled.
          */
-        bool startsEnabled;
+        bool isEnabled;
 
         /**
          * The scale applied to gravity for this body.

@@ -69,16 +69,27 @@ if install_headers
 endif
 
 #
+# box2d
+#
+
+# produces box2d_lib
+subdir('externals/libs/box2d-2.4.1')
+
+if install_headers
+    install_subdir('externals/include/box2d', install_dir : lib_dir / 'include/box2d', strip_directory : true)
+endif
+
+#
 # configure for cross compilation
 #
 
 dependencies = []
 cpp_args = []
 link_args = []
-link_with = []
+link_with = [box2d_lib]
 
 if cross_target == 'native'
-    dependencies += [dependency('glfw3'), dependency('boost'), dependency('box2d')]
+    dependencies += [dependency('glfw3', required : true), dependency('boost', required: true)]
     link_with += [glad, ttf2mesh]
 endif
 
@@ -109,6 +120,9 @@ ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp']
 # input
 input_src = ['src/Input/Mouse.cpp', 'src/Input/Keyboard.cpp']
 
+# physics
+physics_src = ['src/Physics/PhysicsWorld.cpp', 'src/Physics/RigidBody2D.cpp', 'src/Physics/Collider2D.cpp']
+
 # rendering
 rendering_src = ['src/Rendering/Renderer.cpp', 'src/Rendering/RenderTarget.cpp', 'src/Rendering/RenderPipeline.cpp', 'src/Rendering/RenderManager.cpp', 'src/Rendering/Renderable.cpp'] 
 rendering_src += ['src/Rendering/Camera/Camera.cpp']
@@ -137,7 +151,7 @@ utility_src = ['src/Utility/FileHandling.cpp', 'src/Utility/glfwSetCallbacks.cpp
 # engine
 engine_src = ['src/Engine.cpp', 'src/emscriptenHelpers.cpp']
 
-all_src = core_src + ecs_src + input_src + rendering_src + utility_src + engine_src
+all_src = core_src + ecs_src + input_src + physics_src + rendering_src + utility_src + engine_src
 
 engine_kwargs = {
     'dependencies' : dependencies,

@@ -17,3 +17,9 @@ dev/subprojects/*
 externals/include/boost
 
 boost.zip
+
+externals/libs/box2d-2.4.1/*
+!externals/libs/box2d-2.4.1/meson.build
+!externals/libs/box2d-2.4.1/src
+externals/libs/box2d-2.4.1/src/*
+!externals/libs/box2d-2.4.1/src/meson.build

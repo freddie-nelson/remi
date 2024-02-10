@@ -29,6 +29,8 @@ blz::Engine::Engine(EngineConfig config)
     std::cout << "Default render pipeline:" << std::endl;
     std::cout << pipeline->toString() << std::endl;
 
+    physicsWorld = new Physics::PhysicsWorld(config.physicsWorldConfig);
+
     registry = new ECS::Registry();
 
     spaceTransformer = new Core::SpaceTransformer(renderer, registry, config.pixelsPerMeter);
@@ -140,6 +142,11 @@ Rendering::AnimationSystem *const blz::Engine::getAnimationSystem()
     return animationSystem;
 }
 
+Physics::PhysicsWorld *const blz::Engine::getPhysicsWorld()
+{
+    return physicsWorld;
+}
+
 ECS::Registry *const blz::Engine::getRegistry()
 {
     return registry;
@@ -177,6 +184,8 @@ void blz::Engine::mainLoop(MainLoopArgs *args)
         {
             system->fixedUpdate(*registry, fixedTimestep);
         }
+
+        physicsWorld->fixedUpdate(*registry, fixedTimestep);
 
         timeSinceLastFixedUpdate = 0;
     }

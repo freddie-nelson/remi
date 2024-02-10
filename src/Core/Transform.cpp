@@ -62,7 +62,7 @@ void Core::Transform::setTranslation(glm::vec2 translation)
     propertyChanges.translationChanges++;
 }
 
-glm::vec2 Core::Transform::getTranslation() const
+const glm::vec2 &Core::Transform::getTranslation() const
 {
     return translation;
 }
@@ -88,7 +88,7 @@ void Core::Transform::setScale(glm::vec2 scale)
     propertyChanges.scaleChanges++;
 }
 
-glm::vec2 Core::Transform::getScale() const
+const glm::vec2 &Core::Transform::getScale() const
 {
     return scaleVec;
 }
@@ -100,7 +100,7 @@ void Core::Transform::setShear(glm::vec2 shear)
     propertyChanges.shearChanges++;
 }
 
-glm::vec2 Core::Transform::getShear() const
+const glm::vec2 &Core::Transform::getShear() const
 {
     return shear;
 }

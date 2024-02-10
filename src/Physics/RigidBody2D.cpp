@@ -11,10 +11,10 @@ Physics::RigidBody2D::RigidBody2D()
 
     fixedRotation = false;
     allowSleep = true;
-    isInitiallyAwake = true;
+    isAwake = true;
 
     isBullet = false;
-    startsEnabled = true;
+    isEnabled = true;
     gravityScale = 1.0f;
 }
 

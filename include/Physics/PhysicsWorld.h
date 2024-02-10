@@ -23,6 +23,20 @@ namespace Physics
          * The gravity of the world.
          */
         glm::vec2 gravity = glm::vec2(0.0f, -10.0f);
+
+        /**
+         * The number of velocity iterations to use.
+         *
+         * Recommended to use 8.
+         */
+        int velocityIterations = 8;
+
+        /**
+         * The number of position iterations to use.
+         *
+         * Recommended to use 3.
+         */
+        int positionIterations = 3;
     };
 
     /**
@@ -79,6 +93,34 @@ namespace Physics
          */
         glm::vec2 getGravity();
 
+        /**
+         * Sets the number of velocity iterations to use.
+         *
+         * @param iterations The number of iterations to use.
+         */
+        void setVelocityIterations(int iterations);
+
+        /**
+         * Gets the number of velocity iterations to use.
+         *
+         * @returns The number of velocity iterations to use.
+         */
+        int getVelocityIterations();
+
+        /**
+         * Sets the number of position iterations to use.
+         *
+         * @param iterations The number of iterations to use.
+         */
+        void setPositionIterations(int iterations);
+
+        /**
+         * Gets the number of position iterations to use.
+         *
+         * @returns The number of position iterations to use.
+         */
+        int getPositionIterations();
+
     private:
         PhysicsWorldConfig config;
 
@@ -93,12 +135,63 @@ namespace Physics
         std::unordered_map<ECS::Entity, b2Body *> bodies;
 
         /**
+         * The entity to colliders map.
+         *
+         * This is a map of entities to their colliders (fixtures).
+         */
+        std::unordered_map<ECS::Entity, b2Fixture *> colliders;
+
+        /**
          * Updates the bodies map.
          *
          * Will add or remove bodies from the map if they are added or removed from the registry.
          *
+         * Will also update the bodies with the latest data from the registry.
+         *
          * @param registry The registry to use.
          */
         void updateBodies(const ECS::Registry &registry);
+
+        /**
+         * Creates the bodies for the entities.
+         *
+         * This will only create bodies for entities that are not already in the bodies map.
+         *
+         * @param registry The registry to use.
+         * @param entitySet The set of entities to create bodies for.
+         */
+        void createBodies(const ECS::Registry &registry, const std::unordered_set<ECS::Entity> &entitySet);
+
+        /**
+         * Injects the data from the ecs components into the box2d bodies.
+         *
+         * @param registry The registry to use.
+         * @param createdEntities The set of entities that were created this frame, these don't need updated.
+         */
+        void updateBodiesWithECSValues(const ECS::Registry &registry, const std::unordered_set<ECS::Entity> &createdEntities);
+
+        /**
+         * Creates a Box2D collider for the entity.
+         *
+         * @param registry The registry to use.
+         * @param entity The entity to create the collider for.
+         */
+        void createBox2DCollider(const ECS::Registry &registry, ECS::Entity entity);
+
+        /**
+         * Destroys a Box2D collider for the entity.
+         *
+         * Removes the collider from the world and the colliders map.
+         *
+         * @param entity The entity to destroy the collider for.
+         */
+        void destroyBox2DCollider(ECS::Entity entity);
+
+        /**
+         * Updates the Box2D world with the values from the ECS.
+         *
+         * @param registry The registry to use.
+         */
+        void updateECSWithBox2DValues(const ECS::Registry &registry);
     };
 }

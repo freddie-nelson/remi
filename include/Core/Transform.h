@@ -94,7 +94,7 @@ namespace Core
          *
          * @returns the translation of the mesh.
          */
-        glm::vec2 getTranslation() const;
+        const glm::vec2 &getTranslation() const;
 
         /**
          * Scales the mesh by the given amount.
@@ -134,7 +134,7 @@ namespace Core
          *
          * @returns the scale of the mesh.
          */
-        glm::vec2 getScale() const;
+        const glm::vec2 &getScale() const;
 
         /**
          * Sets the shear of the mesh.
@@ -150,7 +150,7 @@ namespace Core
          *
          * @returns the shear of the mesh.
          */
-        glm::vec2 getShear() const;
+        const glm::vec2 &getShear() const;
 
         /**
          * Rotates the mesh by the given amount.
