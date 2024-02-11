@@ -69,6 +69,7 @@ void Application::init()
 {
     // init engine
     blz::EngineConfig config;
+    // config.windowFullscreen = true;
     config.updatesPerSecond = 100000;
     config.drawDebugPhysics = true;
 

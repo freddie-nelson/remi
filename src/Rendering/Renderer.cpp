@@ -318,6 +318,8 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
     // fill arrays with mesh and material data
     for (auto &e : renderables)
     {
+        // TODO: investigate release mode crash in this for loop
+
         const auto &mesh = registry.get<Mesh2D>(e);
 
         const auto &transform = registry.get<Core::Transform>(e);
@@ -382,9 +384,13 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
     // indices
     VertexIndices indices(batchedIndices);
 
+    std::cout << "setup shader" << std::endl;
+
     // set up shader
     auto &shaders = getShaders(registry, renderables[0]);
     auto &batchedMeshShader = shaders.batchedMeshShader;
+
+    std::cout << "use shader" << std::endl;
 
     batchedMeshShader.use();
 

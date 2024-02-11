@@ -27,15 +27,15 @@ blz::Engine::Engine(EngineConfig config)
     pipeline->add(new Rendering::DrawPass(), 4000);
     pipeline->add(new Rendering::OutputPass(), 5000);
 
-    std::cout << "Default render pipeline:" << std::endl;
-    std::cout << pipeline->toString() << std::endl;
-
     physicsWorld = new Physics::PhysicsWorld(config.physicsWorldConfig);
 
     if (config.drawDebugPhysics)
     {
         pipeline->add(new Rendering::PhysicsDebugPass(physicsWorld), 4050);
     }
+
+    std::cout << "Default render pipeline:" << std::endl;
+    std::cout << pipeline->toString() << std::endl;
 
     registry = new ECS::Registry();
 
