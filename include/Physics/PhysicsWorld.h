@@ -121,6 +121,20 @@ namespace Physics
          */
         int getPositionIterations();
 
+        /**
+         * Gets the box2d bodies.
+         *
+         * @returns The box2d bodies.
+         */
+        const std::unordered_map<ECS::Entity, b2Body *> &getBodies() const;
+
+        /**
+         * Gets the box2d colliders.
+         *
+         * @returns The box2d colliders.
+         */
+        const std::unordered_map<ECS::Entity, b2Fixture *> &getColliders() const;
+
     private:
         PhysicsWorldConfig config;
 

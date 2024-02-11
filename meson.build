@@ -137,6 +137,7 @@ rendering_src += [
     'src/Rendering/Passes/DrawPass.cpp',
     'src/Rendering/Passes/GaussianBlurPass.cpp',
     'src/Rendering/Passes/OutputPass.cpp', 
+    'src/Rendering/Passes/PhysicsDebugPass.cpp',
     'src/Rendering/Passes/PosterizePass.cpp',
     'src/Rendering/Passes/PostProcessingPass.cpp', 
     'src/Rendering/Passes/RenderablesPass.cpp', 

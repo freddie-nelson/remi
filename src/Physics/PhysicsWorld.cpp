@@ -83,6 +83,16 @@ int Physics::PhysicsWorld::getPositionIterations()
     return config.positionIterations;
 }
 
+const std::unordered_map<ECS::Entity, b2Body *> &Physics::PhysicsWorld::getBodies() const
+{
+    return bodies;
+}
+
+const std::unordered_map<ECS::Entity, b2Fixture *> &Physics::PhysicsWorld::getColliders() const
+{
+    return colliders;
+}
+
 void Physics::PhysicsWorld::updateBodies(const ECS::Registry &registry)
 {
     auto entities = registry.view<Core::Transform, Physics::RigidBody2D>();

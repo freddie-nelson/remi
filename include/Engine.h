@@ -102,7 +102,12 @@ namespace blz
         /**
          * Whether to show debug info.
          */
-        bool showDebugInfo = true;
+        bool showDebugInfo = false;
+
+        /**
+         * Whether to draw debug physics colliders and info.
+         */
+        bool drawDebugPhysics = false;
 
         /**
          * The configuration of the physics world.
@@ -275,21 +280,21 @@ namespace blz
     private:
         EngineConfig config;
 
-        Core::Window *window;
-        Rendering::Renderer *renderer;
-        Rendering::RenderPipeline *pipeline;
-        Rendering::RenderManager *renderManager;
+        Core::Window *window = nullptr;
+        Rendering::Renderer *renderer = nullptr;
+        Rendering::RenderPipeline *pipeline = nullptr;
+        Rendering::RenderManager *renderManager = nullptr;
 
-        Rendering::AnimationSystem *animationSystem;
+        Rendering::AnimationSystem *animationSystem = nullptr;
 
-        Physics::PhysicsWorld *physicsWorld;
+        Physics::PhysicsWorld *physicsWorld = nullptr;
 
-        ECS::Registry *registry;
+        ECS::Registry *registry = nullptr;
 
-        Input::Mouse *mouse;
-        Input::Keyboard *keyboard;
+        Input::Mouse *mouse = nullptr;
+        Input::Keyboard *keyboard = nullptr;
 
-        Core::SpaceTransformer *spaceTransformer;
+        Core::SpaceTransformer *spaceTransformer = nullptr;
 
         /**
          * Systems that are updated every frame.

@@ -21,4 +21,6 @@ private:
     void destroy();
 
     void update(const ECS::Registry &registry, const Core::Timestep &timestep);
+
+    void fixedUpdate(const ECS::Registry &registry, const Core::Timestep &timestep);
 };

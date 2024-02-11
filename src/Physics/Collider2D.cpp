@@ -5,13 +5,25 @@
 #include <box2d/b2_edge_shape.h>
 #include <box2d/b2_chain_shape.h>
 
-Physics::PolygonCollider2D::PolygonCollider2D(std::vector<glm::vec2> vertices)
+Physics::PolygonColliderShape2D::PolygonColliderShape2D(std::vector<glm::vec2> vertices)
 {
     type = ColliderShapeType::POLYGON;
     this->vertices = vertices;
 }
 
-b2Shape *Physics::PolygonCollider2D::createBox2DShape() const
+Physics::PolygonColliderShape2D::PolygonColliderShape2D(const Rendering::Mesh2D &mesh)
+{
+    type = ColliderShapeType::POLYGON;
+    vertices = mesh.getVertices();
+}
+
+Physics::PolygonColliderShape2D::PolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform)
+{
+    type = ColliderShapeType::POLYGON;
+    vertices = mesh.transform(transform).getVertices();
+}
+
+b2Shape *Physics::PolygonColliderShape2D::createBox2DShape() const
 {
     b2PolygonShape *shape = new b2PolygonShape();
     b2Vec2 b2Vertices[vertices.size()];
@@ -26,19 +38,19 @@ b2Shape *Physics::PolygonCollider2D::createBox2DShape() const
     return shape;
 }
 
-Physics::ColliderShape2D *Physics::PolygonCollider2D::clone() const
+Physics::ColliderShape2D *Physics::PolygonColliderShape2D::clone() const
 {
-    return new PolygonCollider2D(*this);
+    return new PolygonColliderShape2D(*this);
 }
 
-Physics::CircleCollider2D::CircleCollider2D(float radius, glm::vec2 centre)
+Physics::CircleColliderShape2D::CircleColliderShape2D(float radius, glm::vec2 centre)
 {
     type = ColliderShapeType::CIRCLE;
     this->radius = radius;
     this->centre = centre;
 }
 
-b2Shape *Physics::CircleCollider2D::createBox2DShape() const
+b2Shape *Physics::CircleColliderShape2D::createBox2DShape() const
 {
     b2CircleShape *shape = new b2CircleShape();
     shape->m_p.Set(centre.x, centre.y);
@@ -47,12 +59,12 @@ b2Shape *Physics::CircleCollider2D::createBox2DShape() const
     return shape;
 }
 
-Physics::ColliderShape2D *Physics::CircleCollider2D::clone() const
+Physics::ColliderShape2D *Physics::CircleColliderShape2D::clone() const
 {
-    return new CircleCollider2D(*this);
+    return new CircleColliderShape2D(*this);
 }
 
-Physics::EdgeCollider2D::EdgeCollider2D(glm::vec2 start, glm::vec2 end)
+Physics::EdgeColliderShape2D::EdgeColliderShape2D(glm::vec2 start, glm::vec2 end)
 {
     type = ColliderShapeType::EDGE;
     this->start = start;
@@ -61,7 +73,7 @@ Physics::EdgeCollider2D::EdgeCollider2D(glm::vec2 start, glm::vec2 end)
     oneSided = false;
 }
 
-Physics::EdgeCollider2D::EdgeCollider2D(glm::vec2 adjacentStart, glm::vec2 start, glm::vec2 end, glm::vec2 adjacentEnd)
+Physics::EdgeColliderShape2D::EdgeColliderShape2D(glm::vec2 adjacentStart, glm::vec2 start, glm::vec2 end, glm::vec2 adjacentEnd)
 {
     type = ColliderShapeType::EDGE;
     this->adjacentStart = adjacentStart;
@@ -72,7 +84,7 @@ Physics::EdgeCollider2D::EdgeCollider2D(glm::vec2 adjacentStart, glm::vec2 start
     oneSided = false;
 }
 
-b2Shape *Physics::EdgeCollider2D::createBox2DShape() const
+b2Shape *Physics::EdgeColliderShape2D::createBox2DShape() const
 {
     b2EdgeShape *shape = new b2EdgeShape();
     if (oneSided)
@@ -87,19 +99,19 @@ b2Shape *Physics::EdgeCollider2D::createBox2DShape() const
     return shape;
 }
 
-Physics::ColliderShape2D *Physics::EdgeCollider2D::clone() const
+Physics::ColliderShape2D *Physics::EdgeColliderShape2D::clone() const
 {
-    return new EdgeCollider2D(*this);
+    return new EdgeColliderShape2D(*this);
 }
 
-Physics::ChainCollider2D::ChainCollider2D(std::vector<glm::vec2> vertices)
+Physics::ChainColliderShape2D::ChainColliderShape2D(std::vector<glm::vec2> vertices)
 {
     type = ColliderShapeType::CHAIN;
     this->vertices = vertices;
     isLoop = true;
 }
 
-Physics::ChainCollider2D::ChainCollider2D(glm::vec2 adjacentStart, std::vector<glm::vec2> vertices, glm::vec2 adjacentEnd)
+Physics::ChainColliderShape2D::ChainColliderShape2D(glm::vec2 adjacentStart, std::vector<glm::vec2> vertices, glm::vec2 adjacentEnd)
 {
     type = ColliderShapeType::CHAIN;
     this->adjacentStart = adjacentStart;
@@ -108,7 +120,7 @@ Physics::ChainCollider2D::ChainCollider2D(glm::vec2 adjacentStart, std::vector<g
     isLoop = false;
 }
 
-b2Shape *Physics::ChainCollider2D::createBox2DShape() const
+b2Shape *Physics::ChainColliderShape2D::createBox2DShape() const
 {
     b2ChainShape *shape = new b2ChainShape();
     b2Vec2 b2Vertices[vertices.size()];
@@ -130,9 +142,9 @@ b2Shape *Physics::ChainCollider2D::createBox2DShape() const
     return shape;
 }
 
-Physics::ColliderShape2D *Physics::ChainCollider2D::clone() const
+Physics::ColliderShape2D *Physics::ChainColliderShape2D::clone() const
 {
-    return new ChainCollider2D(*this);
+    return new ChainColliderShape2D(*this);
 }
 
 Physics::Collider2D::Collider2D(ColliderShape2D *shape)
@@ -145,6 +157,21 @@ Physics::Collider2D::Collider2D(ColliderShape2D *shape)
     isSensor = false;
 }
 
+Physics::Collider2D::Collider2D(const Collider2D &other)
+{
+    shape = other.shape->clone();
+    density = other.density;
+    friction = other.friction;
+    restitution = other.restitution;
+    restitutionThreshold = other.restitutionThreshold;
+    isSensor = other.isSensor;
+}
+
+Physics::Collider2D::~Collider2D()
+{
+    delete shape;
+}
+
 const Physics::ColliderShape2D *Physics::Collider2D::getShape() const
 {
     return shape;
@@ -152,6 +179,8 @@ const Physics::ColliderShape2D *Physics::Collider2D::getShape() const
 
 void Physics::Collider2D::setShape(ColliderShape2D *shape)
 {
+    delete this->shape;
+
     this->shape = shape->clone();
     shapeDirty = true;
 }

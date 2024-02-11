@@ -20,6 +20,8 @@
 #include <blaze++/Rendering/Passes/BrightnessPass.h>
 #include <blaze++/Rendering/Passes/PosterizePass.h>
 #include <blaze++/Rendering/Texture/AnimatedTexture.h>
+#include <blaze++/Physics/RigidBody2D.h>
+#include <blaze++/Physics/Collider2D.h>
 
 #include <math.h>
 #include <random>
@@ -61,11 +63,14 @@ struct FPS
 // ! Implement some kind of texture/asset loading system at engine level
 // would avoid user having to manage memory etc for textures and maybe other things
 
+ECS::Entity character;
+
 void Application::init()
 {
     // init engine
     blz::EngineConfig config;
     config.updatesPerSecond = 100000;
+    config.drawDebugPhysics = true;
 
     engine = new blz::Engine(config);
 
@@ -179,7 +184,7 @@ void Application::init()
     t.setZIndex(zRange - 2);
 
     // animation
-    auto character = registry->create();
+    character = registry->create();
 
     auto &cm = registry->add(character, Rendering::Mesh2D(1.0f, 1.0f));
     auto &ct = registry->add(character, Core::Transform());
@@ -188,6 +193,14 @@ void Application::init()
 
     ct.scale(3);
     ct.setZIndex(zRange + 1);
+
+    auto &body = registry->add(character, Physics::RigidBody2D());
+    body.fixedRotation = true;
+    body.linearDamping = 0.98f;
+
+    auto shape = new Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
+    auto &collider = registry->add(character, Physics::Collider2D(shape));
+    delete shape;
 
     std::vector<std::string> frames = {
         "assets/character/run0.png",
@@ -203,7 +216,20 @@ void Application::init()
     auto *animTexture = new Rendering::AnimatedTexture(frames, 1000.0f, Rendering::AnimatedTexture::AnimationMode::LOOP);
     cMat.setTexture(animTexture);
 
-    std::cout << "character: " << character << std::endl;
+    // floor
+    auto floor = registry->create();
+    auto &fm = registry->add(floor, Rendering::Mesh2D(100.0f, 1.0f));
+    auto &ft = registry->add(floor, Core::Transform());
+    auto &fMat = registry->add(floor, Rendering::Material());
+    auto &fRenderable = registry->add(floor, Rendering::Renderable(true, true));
+
+    ft.translate(glm::vec2(0.0f, -5.0f));
+
+    auto &fBody = registry->add(floor, Physics::RigidBody2D());
+    auto &fCollider = registry->add(floor, Physics::Collider2D(new Physics::PolygonColliderShape2D(fm)));
+
+    fBody.type = Physics::RigidBodyType::STATIC;
+    fCollider.density = 0.0f;
 
     // fps text
     auto fpsText = Rendering::MemoizedText::text("FPS: 0", font);
@@ -247,25 +273,11 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
 
     // std::cout << "fps pos: " << fpsTransform.getTranslation().x << ", " << fpsTransform.getTranslation().y << std::endl;
 
-    // move camera
+    // camera controls
     auto keyboard = engine->getKeyboard();
 
     auto camera = renderer->getActiveCamera(registry);
     auto &t = registry.get<Core::Transform>(camera);
-
-    float camSpeed = 1.5f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
-    glm::vec2 camMove(0.0f);
-
-    if (keyboard->isPressed(Input::Key::W))
-        camMove.y += camSpeed;
-    if (keyboard->isPressed(Input::Key::S))
-        camMove.y -= camSpeed;
-    if (keyboard->isPressed(Input::Key::A))
-        camMove.x -= camSpeed;
-    if (keyboard->isPressed(Input::Key::D))
-        camMove.x += camSpeed;
-
-    t.translate(camMove * static_cast<float>(timestep.getSeconds()));
 
     // rotate camera
     float camRotSpeed = 1.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
@@ -384,4 +396,50 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     //     auto &t = registry.get<Core::Transform>(e);
     //     t.rotate(-std::numbers::pi * 0.5f * timestep.getSeconds());
     // }
+}
+
+void Application::fixedUpdate(const ECS::Registry &registry, const Core::Timestep &timestep)
+{
+    // control character
+    auto keyboard = engine->getKeyboard();
+
+    auto &characterBody = registry.get<Physics::RigidBody2D>(character);
+    auto &characterTransform = registry.get<Core::Transform>(character);
+
+    float speed = 2.5f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
+    float jumpSpeed = 5.0f;
+
+    glm::vec2 charVel(0.0f);
+
+    if (keyboard->isPressed(Input::Key::SPACE))
+    {
+        charVel.y = jumpSpeed;
+    }
+
+    if (keyboard->isPressed(Input::Key::A))
+    {
+        charVel.x -= speed;
+        characterTransform.setScale(glm::vec2(-3, 3));
+    }
+    if (keyboard->isPressed(Input::Key::D))
+    {
+        charVel.x += speed;
+        characterTransform.setScale(glm::vec2(3, 3));
+    }
+
+    if (charVel.x != 0.0f)
+    {
+        characterBody.velocity.x = charVel.x;
+    }
+    if (charVel.y != 0.0f)
+    {
+        characterBody.velocity.y = charVel.y;
+    }
+
+    // track character with camera
+    auto camera = engine->getRenderer()->getActiveCamera(registry);
+
+    auto &cameraTransform = registry.get<Core::Transform>(camera);
+
+    cameraTransform.setTranslation(characterTransform.getTranslation());
 }

@@ -6,6 +6,7 @@
 #include "../include/Rendering/Passes/DrawPass.h"
 #include "../include/Rendering/Passes/OutputPass.h"
 #include "../include/Rendering/Passes/ColorBlendPass.h"
+#include "../include/Rendering/Passes/PhysicsDebugPass.h"
 
 #ifdef __EMSCRIPTEN__
 #include "../include/emscriptenHelpers.h"
@@ -30,6 +31,11 @@ blz::Engine::Engine(EngineConfig config)
     std::cout << pipeline->toString() << std::endl;
 
     physicsWorld = new Physics::PhysicsWorld(config.physicsWorldConfig);
+
+    if (config.drawDebugPhysics)
+    {
+        pipeline->add(new Rendering::PhysicsDebugPass(physicsWorld), 4050);
+    }
 
     registry = new ECS::Registry();
 

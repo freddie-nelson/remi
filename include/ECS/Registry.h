@@ -46,6 +46,13 @@ namespace ECS
         void destroy(Entity entity);
 
         /**
+         * Destroys a vector of entities and all their components.
+         *
+         * @param entities The entities to destroy.
+         */
+        void destroy(const std::vector<Entity> &entities);
+
+        /**
          * Destroys all entities and all components.
          */
         void destroyAll();

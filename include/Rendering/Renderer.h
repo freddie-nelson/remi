@@ -125,7 +125,7 @@ namespace Rendering
          * @param camera The camera to use for rendering.
          * @param entity The entity to render, this entity must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
-        void entity(const ECS::Registry &registry, const ECS::Entity camera, ECS::Entity &entity) const;
+        void entity(const ECS::Registry &registry, const ECS::Entity camera, const ECS::Entity &entity) const;
 
         /**
          * Renders the given entities using instanced rendering.

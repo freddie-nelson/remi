@@ -43,6 +43,14 @@ void ECS::Registry::destroy(Entity entity)
     }
 }
 
+void ECS::Registry::destroy(const std::vector<Entity> &entities)
+{
+    for (auto &entity : entities)
+    {
+        destroy(entity);
+    }
+}
+
 void ECS::Registry::destroyAll()
 {
     entities.clear();

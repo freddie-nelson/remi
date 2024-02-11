@@ -98,7 +98,7 @@ void Rendering::Renderer::present() const
     window->swapBuffers();
 }
 
-void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entity camera, ECS::Entity &entity) const
+void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entity camera, const ECS::Entity &entity) const
 {
     // mesh data
     auto &mesh = registry.get<Mesh2D>(entity);
@@ -111,7 +111,8 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     auto *material = getMaterial(registry, entity);
     auto color = material->getColor().getColor();
 
-    auto boundTexture = bindTextures(registry, {entity})[0];
+    auto boundTextures = bindTextures(registry, {entity});
+    auto boundTexture = boundTextures[0];
     auto &texturesUniform = textureManager.getTexturesUniform();
 
     // transform
@@ -176,6 +177,11 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
 
 void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Entity camera, const Mesh2D &m, const std::vector<ECS::Entity> &instances) const
 {
+    if (instances.size() == 0)
+    {
+        return;
+    }
+
     const auto instanceCount = instances.size();
 
     // mesh data
@@ -269,6 +275,11 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
 
 void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables) const
 {
+    if (renderables.size() == 0)
+    {
+        return;
+    }
+
     // auto now = Rendering::timeSinceEpochMillisec();
 
     // get number of vertices and indices

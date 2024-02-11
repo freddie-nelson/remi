@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../Rendering/Mesh/Mesh.h"
+#include "../Core/Transform.h"
+
 #include <box2d/b2_shape.h>
 #include <glm/vec2.hpp>
 #include <vector>
@@ -22,6 +25,8 @@ namespace Physics
     class ColliderShape2D
     {
     public:
+        virtual ~ColliderShape2D() = default;
+
         /**
          * Gets the type of the collider shape.
          *
@@ -52,12 +57,28 @@ namespace Physics
      *
      * This is a collider that is a convex polygon. [[info]](https://en.wikipedia.org/wiki/Convex_polygon)
      */
-    struct PolygonCollider2D : public ColliderShape2D
+    class PolygonColliderShape2D : public ColliderShape2D
     {
+    public:
         /**
          * Creates a new 2D polygon collider.
          */
-        PolygonCollider2D(std::vector<glm::vec2> vertices);
+        PolygonColliderShape2D(std::vector<glm::vec2> vertices);
+
+        /**
+         * Creates a new 2D polygon collider.
+         *
+         * @param mesh The mesh to create the collider from.
+         */
+        PolygonColliderShape2D(const Rendering::Mesh2D &mesh);
+
+        /**
+         * Creates a new 2D polygon collider.
+         *
+         * @param mesh The mesh to create the collider from.
+         * @param transform The transform of the mesh.
+         */
+        PolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform);
 
         /**
          * Creates a Box2D shape from the collider shape.
@@ -86,15 +107,16 @@ namespace Physics
      *
      * This is a collider that is a geometric circle.
      */
-    struct CircleCollider2D : public ColliderShape2D
+    class CircleColliderShape2D : public ColliderShape2D
     {
+    public:
         /**
          * Creates a new 2D circle collider.
          *
          * @param radius The radius of the circle.
          * @param centre The centre of the circle.
          */
-        CircleCollider2D(float radius, glm::vec2 centre = glm::vec2(0.0f, 0.0f));
+        CircleColliderShape2D(float radius, glm::vec2 centre = glm::vec2(0.0f, 0.0f));
 
         /**
          * Creates a Box2D shape from the collider shape.
@@ -134,8 +156,9 @@ namespace Physics
      * If you specify adjacent vertices the edge will be one-sided and the normal will point to the right looking from the start to the end.
      * If you do not specify that the edge is one-sided the adjacent vertices will be ignored and the edge will be two-sided.
      */
-    struct EdgeCollider2D : public ColliderShape2D
+    class EdgeColliderShape2D : public ColliderShape2D
     {
+    public:
         /**
          * Creates a new 2D edge collider.
          *
@@ -144,7 +167,7 @@ namespace Physics
          * @param start The start position of the edge.
          * @param end The end position of the edge.
          */
-        EdgeCollider2D(glm::vec2 start, glm::vec2 end);
+        EdgeColliderShape2D(glm::vec2 start, glm::vec2 end);
 
         /**
          * Creates a new 2D edge collider.
@@ -156,7 +179,7 @@ namespace Physics
          * @param end The end position of the edge.
          * @param adjacentEnd The vertex adjacent to the end.
          */
-        EdgeCollider2D(glm::vec2 adjacentStart, glm::vec2 start, glm::vec2 end, glm::vec2 adjacentEnd);
+        EdgeColliderShape2D(glm::vec2 adjacentStart, glm::vec2 start, glm::vec2 end, glm::vec2 adjacentEnd);
 
         /**
          * Creates a Box2D shape from the collider shape.
@@ -221,8 +244,9 @@ namespace Physics
      *
      * If you don't need adjacent vertices you can specify the adjacent vertices to be the same as the start and end.
      */
-    struct ChainCollider2D : public ColliderShape2D
+    class ChainColliderShape2D : public ColliderShape2D
     {
+    public:
         /**
          * Creates a new 2D chain collider.
          *
@@ -230,7 +254,7 @@ namespace Physics
          *
          * @param vertices The vertices of the chain.
          */
-        ChainCollider2D(std::vector<glm::vec2> vertices);
+        ChainColliderShape2D(std::vector<glm::vec2> vertices);
 
         /**
          * Creates a new 2D chain collider.
@@ -241,7 +265,7 @@ namespace Physics
          * @param vertices The vertices of the chain.
          * @param adjacentEnd The vertex adjacent to the end.
          */
-        ChainCollider2D(glm::vec2 adjacentStart, std::vector<glm::vec2> vertices, glm::vec2 adjacentEnd);
+        ChainColliderShape2D(glm::vec2 adjacentStart, std::vector<glm::vec2> vertices, glm::vec2 adjacentEnd);
 
         /**
          * Creates a Box2D shape from the collider shape.
@@ -308,6 +332,13 @@ namespace Physics
          * @param shape The shape of the collider.
          */
         Collider2D(ColliderShape2D *shape);
+
+        /**
+         * Creates a new 2D collider.
+         *
+         * @param other The 2D collider to copy.
+         */
+        Collider2D(const Collider2D &other);
 
         /**
          * Destroys the 2D collider.
