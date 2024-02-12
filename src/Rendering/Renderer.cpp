@@ -384,13 +384,13 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
     // indices
     VertexIndices indices(batchedIndices);
 
-    std::cout << "setup shader" << std::endl;
+    // std::cout << "setup shader" << std::endl;
 
     // set up shader
     auto &shaders = getShaders(registry, renderables[0]);
     auto &batchedMeshShader = shaders.batchedMeshShader;
 
-    std::cout << "use shader" << std::endl;
+    // std::cout << "use shader" << std::endl;
 
     batchedMeshShader.use();
 

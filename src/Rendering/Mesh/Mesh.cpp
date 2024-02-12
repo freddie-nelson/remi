@@ -4,6 +4,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdexcept>
+#include <iostream>
 
 Rendering::Mesh2D::Mesh2D()
 {
@@ -183,6 +184,7 @@ Rendering::Mesh2D Rendering::Mesh2D::transform(const Core::Transform &transform)
     }
 
     newMesh.aabb.setFromPoints(newMesh.vertices);
+    newMesh.setUvsFromAABB();
 
     return newMesh;
 }

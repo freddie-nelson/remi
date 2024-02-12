@@ -66,7 +66,8 @@ Rendering::RenderPassInput *Rendering::PostProcessingPass::execute(RenderPassInp
     renderer.enableDepthWrite(false);
 
     // create uniforms
-    Uniform uRenderTexture("uRenderTexture", textureManager.getRenderTargetTextureUnit(), false, 1, GL_SAMPLER_2D);
+    const int renderTargetTextureUnit = textureManager.getRenderTargetTextureUnit();
+    Uniform uRenderTexture("uRenderTexture", renderTargetTextureUnit, false, 1, GL_SAMPLER_2D);
 
     // resolution
     glm::vec2 resolution;

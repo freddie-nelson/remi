@@ -216,7 +216,7 @@ namespace Rendering
         std::vector<glm::vec2> vertices;
         std::vector<unsigned int> indices;
 
-        bool hasCustomUvs;
+        bool hasCustomUvs = false;
         std::vector<glm::vec2> uvs;
 
         Core::AABB aabb;
