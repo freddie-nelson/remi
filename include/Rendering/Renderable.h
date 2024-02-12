@@ -31,9 +31,11 @@ namespace Rendering
          *
          * If this is set to true, then Renderer::update will assume the entity has not been transformed since the last frame.
          *
-         * This is useful for entities that do not move, such as the background.
+         * This is useful for entities that do not move, and who's geometry does not change, such as the background or floor.
          *
          * The entity can still rotate and be culled safely, however it should not be translated, scaled or sheared.
+         *
+         * The mesh should not be changed either. The texture/material can be changed safely.
          *
          * It's okay for entities to be changed from static to non-static and vice versa.
          */
