@@ -262,6 +262,16 @@ namespace ECS
         {
             auto componentId = ComponentIdGenerator::id<T>;
 
+            invalidateCachedViews(componentId);
+        }
+
+        /**
+         * Invalidates the cached entity views for the given component.
+         *
+         * @param componentId The ID of the component.
+         */
+        void invalidateCachedViews(ComponentId componentId)
+        {
             auto it = cachedViews.begin();
 
             while (it != cachedViews.end())

@@ -14,6 +14,7 @@ ECS::Registry::~Registry()
 
 ECS::Entity ECS::Registry::create()
 {
+    // ! TODO make entity id not in use once entity is destroyed
     auto entity = createEntity();
     entities.push_back(entity);
     entitiesSet.insert(entity);
@@ -39,7 +40,11 @@ void ECS::Registry::destroy(Entity entity)
     // remove entity and its components from component pools
     for (auto &pair : componentPools)
     {
-        pair.second->remove(entity);
+        if (pair.second->has(entity))
+        {
+            pair.second->remove(entity);
+            invalidateCachedViews(pair.first);
+        }
     }
 }
 

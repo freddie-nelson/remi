@@ -33,19 +33,18 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
 
     for (auto &[_, collider] : colliders)
     {
+        auto &aabb = collider->GetAABB(0);
+
         auto e = registry.create();
         auto &transform = registry.add(e, Core::Transform());
-        auto &mesh = registry.add(e, Rendering::Mesh2D());
+        auto &mesh = registry.add(e, Rendering::Mesh2D(aabb.GetExtents().x * 2, aabb.GetExtents().y * 2));
         auto &material = registry.add(e, Rendering::Material());
         auto &renderable = registry.add(e, Rendering::Renderable(true, false));
 
         transform.setZIndex(Config::MAX_Z_INDEX);
-        material.setColor(Rendering::Color(0.0f, 1.0f, 0.0f, 0.4f));
-
-        auto &aabb = collider->GetAABB(0);
-
         transform.setTranslation(glm::vec2(aabb.GetCenter().x, aabb.GetCenter().y));
-        mesh.createRect(aabb.GetExtents().x * 2, aabb.GetExtents().y * 2);
+
+        material.setColor(Rendering::Color(0.0f, 1.0f, 0.0f, 0.4f));
 
         // std::cout << "aabb: " << aabb.GetCenter().x << ", " << aabb.GetCenter().y << ", " << aabb.GetExtents().x << ", " << aabb.GetExtents().y << std::endl;
 
