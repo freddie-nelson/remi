@@ -1,5 +1,5 @@
 project('dev', 'cpp')
-add_project_arguments('-std=c++20', language : 'cpp')
+add_project_arguments('-std=c++20', '-g', language : 'cpp')
 
 fs = import('fs')
 
@@ -21,6 +21,10 @@ name_suffix = ''
 if cross_target == 'native'
     dependencies += [dependency('blaze++', required : true)]
     name_suffix = 'exe'
+
+    if get_option('buildtype') == 'release'
+        link_args += ['-mwindows']
+    endif
 endif
 
 if cross_target == 'wasm'
