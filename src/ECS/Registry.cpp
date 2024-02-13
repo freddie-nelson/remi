@@ -2,6 +2,11 @@
 
 ECS::Registry::Registry()
 {
+    // create entity ids
+    for (Entity entity = 0; entity <= ECS_SPARSE_SET_DEFAULT_MAX_ID; entity++)
+    {
+        freeEntityIds.push(entity);
+    }
 }
 
 ECS::Registry::~Registry()
@@ -9,12 +14,6 @@ ECS::Registry::~Registry()
     for (auto &pair : componentPools)
     {
         delete pair.second;
-    }
-
-    // create entity ids
-    for (Entity entity = 0; entity <= ECS_SPARSE_SET_DEFAULT_MAX_ID; entity++)
-    {
-        freeEntityIds.push(entity);
     }
 }
 
