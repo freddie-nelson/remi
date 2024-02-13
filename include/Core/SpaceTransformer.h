@@ -12,6 +12,8 @@ namespace Core
     /**
      * The space transformer.
      *
+     * The space transformer will take into account the position of the active camera from the given renderer.
+     *
      * Can be used to convert points between coordinate systems.
      *
      * The coordinate systems available are:

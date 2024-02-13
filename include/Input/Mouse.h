@@ -60,9 +60,11 @@ namespace Input
          *
          * On supported platforms, this also contains the subpixel offset of the mouse.
          *
+         * @param flipY If true, the Y coordinate will be flipped so that the origin is at the bottom left corner of the window. This is useful as it will be in screen space.
+         *
          * @return The mouse position in pixels and (potentially) subpixels.
          */
-        glm::vec2 getPosition();
+        glm::vec2 getPosition(bool flipY = false);
 
         /**
          * Get the mouse scroll offset.

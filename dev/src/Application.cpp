@@ -22,6 +22,7 @@
 #include <blaze++/Rendering/Texture/AnimatedTexture.h>
 #include <blaze++/Physics/RigidBody2D.h>
 #include <blaze++/Physics/Collider2D.h>
+#include <blaze++/Physics/Ray.h>
 
 #include <math.h>
 #include <random>
@@ -186,6 +187,7 @@ void Application::init()
 
     // animation
     character = registry->create();
+    std::cout << "character: " << character << std::endl;
 
     auto &cm = registry->add(character, Rendering::Mesh2D(1.0f, 1.0f));
     auto &ct = registry->add(character, Core::Transform());
@@ -219,6 +221,8 @@ void Application::init()
 
     // floor
     auto floor = registry->create();
+    std::cout << "floor: " << floor << std::endl;
+
     auto &fm = registry->add(floor, Rendering::Mesh2D(100.0f, 1.0f));
     auto &ft = registry->add(floor, Core::Transform());
     auto &fMat = registry->add(floor, Rendering::Material());
@@ -443,4 +447,27 @@ void Application::fixedUpdate(const ECS::Registry &registry, const Core::Timeste
     auto &cameraTransform = registry.get<Core::Transform>(camera);
 
     cameraTransform.setTranslation(characterTransform.getTranslation());
+
+    // raycast test
+    glm::vec2 origin = characterTransform.getTranslation();
+    glm::vec2 toMouse = engine->getSpaceTransformer()->transform(engine->getMouse()->getPosition(true), Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD) - origin;
+    glm::vec2 direction = glm::normalize(toMouse);
+    float length = glm::length(toMouse);
+
+    Physics::Ray ray(characterTransform.getTranslation(), direction, length);
+    // std::cout << "start: " << ray.start.x << ", " << ray.start.y << std::endl;
+    // std::cout << "end: " << ray.end.x << ", " << ray.end.y << std::endl;
+
+    auto hits = engine->getPhysicsWorld()->raycast(ray, Physics::RaycastType::CLOSEST);
+
+    if (!hits.empty())
+    {
+        std::cout << "hit: " << hits[0].entity << std::endl;
+
+        auto hit = hits[0];
+        auto entity = hit.entity;
+
+        auto &material = registry.get<Rendering::Material>(entity);
+        material.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    }
 }

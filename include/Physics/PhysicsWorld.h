@@ -1,8 +1,10 @@
 #pragma once
 
 #include "../ECS/System.h"
+#include "Ray.h"
 
 #include <unordered_map>
+#include <vector>
 #include <box2d/b2_world.h>
 #include <glm/vec2.hpp>
 
@@ -64,6 +66,16 @@ namespace Physics
          * @param timestep The timestep since the last update.
          */
         void fixedUpdate(const ECS::Registry &registry, const Core::Timestep &timestep) override;
+
+        /**
+         * Raycasts against all bodies with colliders in the world.
+         *
+         * @param ray The ray to cast.
+         * @param type The type of raycast to perform.
+         *
+         * @returns A vector of raycast hits.
+         */
+        std::vector<RaycastHit> raycast(const Ray &ray, RaycastType type = RaycastType::ALL);
 
         /**
          * Sets the physics world's config.
@@ -147,6 +159,11 @@ namespace Physics
          * The entity to body map.
          */
         std::unordered_map<ECS::Entity, b2Body *> bodies;
+
+        /**
+         * The body to entity map.
+         */
+        std::unordered_map<b2Body *, ECS::Entity> bodyToEntity;
 
         /**
          * The entity to colliders map.

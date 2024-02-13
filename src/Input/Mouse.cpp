@@ -35,8 +35,16 @@ Input::Mouse::~Mouse()
     }
 }
 
-glm::vec2 Input::Mouse::getPosition()
+glm::vec2 Input::Mouse::getPosition(bool flipY)
 {
+    if (flipY)
+    {
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+
+        return glm::vec2(position.x, height - position.y);
+    }
+
     return position;
 }
 

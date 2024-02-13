@@ -31,6 +31,18 @@ void Physics::PhysicsWorld::fixedUpdate(const ECS::Registry &registry, const Cor
     updateECSWithBox2DValues(registry);
 }
 
+std::vector<Physics::RaycastHit> Physics::PhysicsWorld::raycast(const Ray &ray, RaycastType type)
+{
+    RaycastCallback callback(ray, type, bodyToEntity);
+
+    b2Vec2 p1(ray.start.x, ray.start.y);
+    b2Vec2 p2(ray.end.x, ray.end.y);
+
+    world.RayCast(&callback, p1, p2);
+
+    return callback.getHits();
+}
+
 void Physics::PhysicsWorld::setConfig(PhysicsWorldConfig config)
 {
     this->config = config;
@@ -106,6 +118,7 @@ void Physics::PhysicsWorld::updateBodies(const ECS::Registry &registry)
         // entity is not in the registry or no longer a valid body
         if (!entitySet.contains(entity))
         {
+            bodyToEntity.erase(it->second);
             it = bodies.erase(it);
         }
         // remove the entity from the set if it is still a valid body
@@ -166,6 +179,7 @@ void Physics::PhysicsWorld::createBodies(const ECS::Registry &registry, const st
 
         // create body
         bodies[e] = world.CreateBody(&bodyDef);
+        bodyToEntity[bodies[e]] = e;
 
         // create collider
         if (registry.has<Physics::Collider2D>(e))
