@@ -115,7 +115,7 @@ core_src += ['src/Core/AABB/AABB.cpp']
 # debug_src = ['src/Debug/DebugInfo.cpp']
 
 # ecs
-ecs_src = ['src/ECS/Entity.cpp', 'src/ECS/Registry.cpp']
+ecs_src = ['src/ECS/Registry.cpp']
 
 # input
 input_src = ['src/Input/Mouse.cpp', 'src/Input/Keyboard.cpp']

@@ -75,7 +75,7 @@ namespace ECS
 
             denseIds = std::vector<size_t>();
             dense = std::vector<T>();
-            sparse = std::vector<size_t>(maxId, NULL_INDEX);
+            sparse = std::vector<size_t>(maxId + 1, NULL_INDEX);
         }
 
         /**
@@ -97,6 +97,11 @@ namespace ECS
          */
         void add(size_t id, T item)
         {
+            if (id > maxId)
+            {
+                throw std::runtime_error("SparseSet (add): ID is greater than max ID.");
+            }
+
             if (has(id))
             {
                 // update the value at the dense vector

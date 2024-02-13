@@ -12,6 +12,7 @@
 #include <vector>
 #include <utility>
 #include <iostream>
+#include <queue>
 
 namespace ECS
 {
@@ -226,6 +227,8 @@ namespace ECS
         size_t size() const;
 
     private:
+        std::queue<Entity> freeEntityIds;
+
         /**
          * The entities in the registry.
          */

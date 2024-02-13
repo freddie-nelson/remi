@@ -5,6 +5,4 @@
 namespace ECS
 {
     using Entity = long long unsigned int;
-
-    Entity createEntity();
 }

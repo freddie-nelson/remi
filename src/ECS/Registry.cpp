@@ -10,12 +10,24 @@ ECS::Registry::~Registry()
     {
         delete pair.second;
     }
+
+    // create entity ids
+    for (Entity entity = 0; entity <= ECS_SPARSE_SET_DEFAULT_MAX_ID; entity++)
+    {
+        freeEntityIds.push(entity);
+    }
 }
 
 ECS::Entity ECS::Registry::create()
 {
-    // ! TODO make entity id not in use once entity is destroyed
-    auto entity = createEntity();
+    if (freeEntityIds.empty())
+    {
+        throw std::runtime_error("Registry (create): no more entity ids available.");
+    }
+
+    auto entity = freeEntityIds.front();
+    freeEntityIds.pop();
+
     entities.push_back(entity);
     entitiesSet.insert(entity);
 
@@ -46,6 +58,8 @@ void ECS::Registry::destroy(Entity entity)
             invalidateCachedViews(pair.first);
         }
     }
+
+    freeEntityIds.push(entity);
 }
 
 void ECS::Registry::destroy(const std::vector<Entity> &entities)
