@@ -67,6 +67,8 @@ namespace Physics
          */
         void fixedUpdate(const ECS::Registry &registry, const Core::Timestep &timestep) override;
 
+        // ! TODO: support filtering for raycasts (by entity? by collision filter? etc)
+
         /**
          * Raycasts against all bodies with colliders in the world.
          *
