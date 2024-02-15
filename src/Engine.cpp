@@ -27,24 +27,24 @@ blz::Engine::Engine(EngineConfig config)
     pipeline->add(new Rendering::DrawPass(), 4000);
     pipeline->add(new Rendering::OutputPass(), 5000);
 
-    physicsWorld = new Physics::PhysicsWorld(config.physicsWorldConfig);
+    std::cout << "Default render pipeline:" << std::endl;
+    std::cout << pipeline->toString() << std::endl;
+
+    world = new World::World();
+
+    spaceTransformer = new Core::SpaceTransformer(renderer, world, config.pixelsPerMeter);
+
+    physicsWorld = new Physics::PhysicsWorld(config.physicsWorldConfig, spaceTransformer);
 
     if (config.drawDebugPhysics)
     {
         pipeline->add(new Rendering::PhysicsDebugPass(physicsWorld), 4050);
     }
 
-    std::cout << "Default render pipeline:" << std::endl;
-    std::cout << pipeline->toString() << std::endl;
-
-    registry = new ECS::Registry();
-
-    spaceTransformer = new Core::SpaceTransformer(renderer, registry, config.pixelsPerMeter);
-
     renderManager = new Rendering::RenderManager(renderer, pipeline, spaceTransformer);
 
     animationSystem = new Rendering::AnimationSystem();
-    addSystem(animationSystem);
+    world->addSystem(animationSystem);
 
     mouse = new Input::Mouse(window->getGLFWWindow());
     keyboard = new Input::Keyboard(window->getGLFWWindow());
@@ -56,7 +56,7 @@ blz::Engine::~Engine()
     delete mouse;
     delete renderManager;
     delete spaceTransformer;
-    delete registry;
+    delete world;
     delete pipeline;
     delete renderer;
     delete window;
@@ -96,28 +96,6 @@ void blz::Engine::run()
 #endif
 }
 
-void blz::Engine::addSystem(ECS::System *system)
-{
-    systems.push_back(system);
-}
-
-bool blz::Engine::removeSystem(ECS::System *system)
-{
-    bool removed = false;
-
-    for (auto it = systems.begin(); it != systems.end(); it++)
-    {
-        if (*it == system)
-        {
-            systems.erase(it);
-            removed = true;
-            break;
-        }
-    }
-
-    return removed;
-}
-
 blz::EngineConfig &blz::Engine::getConfig()
 {
     return config;
@@ -153,9 +131,9 @@ Physics::PhysicsWorld *const blz::Engine::getPhysicsWorld()
     return physicsWorld;
 }
 
-ECS::Registry *const blz::Engine::getRegistry()
+World::World *const blz::Engine::getWorld()
 {
-    return registry;
+    return world;
 }
 
 Input::Mouse *const blz::Engine::getMouse()
@@ -186,12 +164,9 @@ void blz::Engine::mainLoop(MainLoopArgs *args)
         Core::Timestep fixedTimestep(0);
         fixedTimestep.update(timeBetweenFixedUpdates);
 
-        for (auto system : systems)
-        {
-            system->fixedUpdate(*registry, fixedTimestep);
-        }
+        world->fixedUpdate(fixedTimestep);
 
-        physicsWorld->fixedUpdate(*registry, fixedTimestep);
+        physicsWorld->fixedUpdate(*world, fixedTimestep);
 
         timeSinceLastFixedUpdate = 0;
     }
@@ -214,19 +189,16 @@ void blz::Engine::mainLoop(MainLoopArgs *args)
         // otherwise resizing render target will cause a crash
         if (!isMinimized)
         {
-            renderer->update(*registry, timestep);
+            renderer->update(*world, timestep);
         }
 
-        for (auto system : systems)
-        {
-            system->update(*registry, timestep);
-        }
+        world->update(timestep);
 
         // no need to render if window is minimized
         if (!isMinimized)
         {
             // render
-            renderManager->render(*registry);
+            renderManager->render(*world);
         }
 
         // present renderer

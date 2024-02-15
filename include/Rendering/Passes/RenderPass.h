@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Renderer.h"
-#include "../../ECS/Registry.h"
+#include "../../World/World.h"
 #include "../../Utility/TypeHelpers.h"
 #include "../RenderTarget.h"
 #include "../Texture/TextureManager.h"
@@ -24,7 +24,7 @@ namespace Rendering
         /**
          * The registry to read data from.
          */
-        const ECS::Registry *registry;
+        World::World *world;
 
         /**
          * The camera to render with.
@@ -99,7 +99,7 @@ namespace Rendering
         RenderPassInputTyped(RenderPassInput *input, T *data)
         {
             renderer = input->renderer;
-            registry = input->registry;
+            world = input->world;
             camera = input->camera;
             renderTarget = input->renderTarget;
             textureManager = input->textureManager;

@@ -48,6 +48,14 @@ namespace Core
         BoundingCircle(const AABB &aabb, const Transform &transform);
 
         /**
+         * Creates the minimum bounding circle for the given AABB transformed with the given transform.
+         *
+         * @param aabb The aabb to contain.
+         * @param transform The AABB's transformation matrix.
+         */
+        BoundingCircle(const AABB &aabb, const glm::mat4 &transform);
+
+        /**
          * Checks whether this bounding circle intersects with the given bounding circle.
          *
          * @param b The other bounding circle.
@@ -78,6 +86,14 @@ namespace Core
          * @param transform The AABB's transformation matrix
          */
         void set(const AABB &aabb, const Transform &transform);
+
+        /**
+         * Sets the bounding circle to the minimum bounding circle for the given transformed AABB.
+         *
+         * @param aabb The aabb to contain.
+         * @param transform The AABB's transformation matrix.
+         */
+        void set(const AABB &aabb, const glm::mat4 &transform);
 
         /**
          * Sets the centre of the bounding circle.

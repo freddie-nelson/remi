@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Rendering/Renderer.h"
-#include "../ECS/Registry.h"
+#include "../World/World.h"
 #include "Transform.h"
 
 #include <glm/glm.hpp>
@@ -33,10 +33,10 @@ namespace Core
          * Creates a space transformer instance.
          *
          * @param renderer The renderer to take the view and projection matrices from and the viewport transform.
-         * @param registry The registry to read components/entities from.
+         * @param world The world the entities are in.
          * @param pixelsPerMeter The number of pixels (screen space) per meter (world space).
          */
-        SpaceTransformer(const Rendering::Renderer *renderer, const ECS::Registry *registry, unsigned int pixelsPerMeter);
+        SpaceTransformer(const Rendering::Renderer *renderer, World::World *const world, unsigned int pixelsPerMeter);
 
         /**
          * The coordinate systems available for conversion.
@@ -65,21 +65,41 @@ namespace Core
          * Converts the given point between coordinate systems.
          *
          * @param v The point to convert.
-         * @param localTransform The transform to convert to and from local space. Would usually be the entities transform component.
+         * @param entity The entity space that the point is either in or being converted to.
          * @param from The space to convert from, this is the current coordinate system the point lies in.
          * @param to The space to convert to.
          */
-        glm::vec2 transform(const glm::vec2 &v, const Core::Transform &localTransform, Space from, Space to) const;
+        glm::vec2 transform(const glm::vec2 &v, ECS::Entity entity, Space from, Space to) const;
 
         /**
          * Converts the given point between coordinate systems.
          *
          * @param v The point to convert.
-         * @param localTransform The transform to convert to and from local space. Would usually be the entities transform component.
+         * @param entity The entity space that the point is either in or being converted to.
          * @param from The space to convert from, this is the current coordinate system the point lies in.
          * @param to The space to convert to.
          */
-        glm::vec2 transform(const glm::vec2 &v, const Core::Transform *localTransform, Space from, Space to) const;
+        glm::vec2 transform(const glm::vec2 &v, const ECS::Entity *entity, Space from, Space to) const;
+
+        /**
+         * Transforms the local rotation in the entity's local space to world space.
+         *
+         * @param rotation The rotation to convert.
+         * @param entity The entity space that the rotation is in.
+         *
+         * @returns The rotation in world space.
+         */
+        float transformLocalRotationToWorld(float rotation, const ECS::Entity entity) const;
+
+        /**
+         * Transforms the world rotation to the entity's local space.
+         *
+         * @param rotation The rotation to convert.
+         * @param entity The entity space that the rotation is in.
+         *
+         * @returns The rotation in local space.
+         */
+        float transformWorldRotationToLocal(float rotation, const ECS::Entity entity) const;
 
         /**
          * Converts the given distance from pixels to meters.
@@ -126,7 +146,7 @@ namespace Core
 
     private:
         const Rendering::Renderer *renderer;
-        const ECS::Registry *registry;
+        World::World *const world;
         const unsigned int pixelsPerMeter;
         const float pixelsPerMeterFloat;
 
@@ -136,11 +156,11 @@ namespace Core
          * @param s The current space.
          * @param goal The space we want to get to eventually.
          * @param v The point to convert.
-         * @param localTransform The local transform.
+         * @param entity The entity space that the point is either in or being converted to.
          *
          * @returns The space `v` was converted to.
          */
-        Space getNextSpace(Space s, Space goal, glm::vec2 &v, const Core::Transform *localTransform = nullptr) const;
+        Space getNextSpace(Space s, Space goal, glm::vec2 &v, const ECS::Entity *entity = nullptr) const;
 
         /**
          * Converts the given point from screen space to clip space.
@@ -203,7 +223,7 @@ namespace Core
          *
          * @returns Spaces::LOCAL
          */
-        Space worldToLocal(glm::vec2 &v, const Core::Transform &localTransform) const;
+        Space worldToLocal(glm::vec2 &v, const glm::mat4 &worldTransform) const;
 
         /**
          * Converts the given point from local space to world space.
@@ -212,6 +232,6 @@ namespace Core
          *
          * @returns Spaces::WORLD
          */
-        Space localToWorld(glm::vec2 &v, const Core::Transform &localTransform) const;
+        Space localToWorld(glm::vec2 &v, const glm::mat4 &worldTransform) const;
     };
 }

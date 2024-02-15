@@ -2,25 +2,27 @@
 #include "../../include/Rendering/Camera/Camera.h"
 
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <stdexcept>
 
-Core::SpaceTransformer::SpaceTransformer(const Rendering::Renderer *renderer, const ECS::Registry *registry, unsigned int pixelsPerMeter) : renderer(renderer), registry(registry), pixelsPerMeter(pixelsPerMeter), pixelsPerMeterFloat(pixelsPerMeter) {}
+Core::SpaceTransformer::SpaceTransformer(const Rendering::Renderer *renderer, World::World *const world, unsigned int pixelsPerMeter) : renderer(renderer), world(world), pixelsPerMeter(pixelsPerMeter), pixelsPerMeterFloat(pixelsPerMeter) {}
 
 glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, Space from, Space to) const
 {
     return transform(v, nullptr, from, to);
 }
 
-glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, const Core::Transform &localTransform, Space from, Space to) const
+glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, ECS::Entity entity, Space from, Space to) const
 {
-    return transform(v, &localTransform, from, to);
+    return transform(v, &entity, from, to);
 }
 
-glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, const Core::Transform *localTransform, Space from, Space to) const
+glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, const ECS::Entity *entity, Space from, Space to) const
 {
-    if ((from == Space::LOCAL || to == Space::LOCAL) && localTransform == nullptr)
+    if ((from == Space::LOCAL || to == Space::LOCAL) && entity == nullptr)
     {
-        throw std::invalid_argument("SpaceTransformer (transform): Cannot convert to/from local space without local transform.");
+        throw std::invalid_argument("SpaceTransformer (transform): Cannot convert to/from local space without entity.");
     }
 
     // no need to convert
@@ -34,10 +36,39 @@ glm::vec2 Core::SpaceTransformer::transform(const glm::vec2 &v, const Core::Tran
 
     while (curr != to)
     {
-        curr = getNextSpace(curr, to, transformed, localTransform);
+        curr = getNextSpace(curr, to, transformed, entity);
     }
 
     return transformed;
+}
+
+float Core::SpaceTransformer::transformLocalRotationToWorld(float rotation, const ECS::Entity entity) const
+{
+    auto &sceneGraph = world->getSceneGraph();
+    auto &registry = world->getRegistry();
+
+    auto &worldTransform = sceneGraph.getWorldTransform(entity);
+    auto rotationMat = glm::eulerAngleZ(rotation);
+
+    auto worldRotation = worldTransform * rotationMat;
+    auto quat = glm::toQuat(worldRotation);
+
+    return glm::eulerAngles(quat).z;
+}
+
+float Core::SpaceTransformer::transformWorldRotationToLocal(float rotation, const ECS::Entity entity) const
+{
+    auto &sceneGraph = world->getSceneGraph();
+    auto &registry = world->getRegistry();
+
+    auto &worldTransform = sceneGraph.getWorldTransform(entity);
+    auto rotationMat = glm::eulerAngleZ(rotation);
+
+    auto inverseWorldTransform = glm::inverse(worldTransform);
+    auto localRotation = inverseWorldTransform * rotationMat;
+    auto quat = glm::toQuat(localRotation);
+
+    return glm::eulerAngles(quat).z;
 }
 
 float Core::SpaceTransformer::pixelsToMeters(float pixels) const
@@ -65,7 +96,7 @@ float Core::SpaceTransformer::getPixelsPerMeter() const
     return pixelsPerMeterFloat;
 }
 
-Core::SpaceTransformer::Space Core::SpaceTransformer::getNextSpace(Space s, Space goal, glm::vec2 &v, const Core::Transform *localTransform) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::getNextSpace(Space s, Space goal, glm::vec2 &v, const ECS::Entity *entity) const
 {
     if (s == goal)
     {
@@ -86,12 +117,12 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::getNextSpace(Space s, Spac
             viewToWorld(v);
             return Space::WORLD;
         case Space::WORLD:
-            if (localTransform == nullptr)
+            if (entity == nullptr)
             {
-                throw std::invalid_argument("SpaceTransform (getNextSpace): can't convert from world to local without local transform.");
+                throw std::invalid_argument("SpaceTransform (getNextSpace): can't convert from world to local without entity.");
             }
 
-            worldToLocal(v, *localTransform);
+            worldToLocal(v, world->getSceneGraph().getWorldTransform(*entity));
             return Space::LOCAL;
         default:
             throw std::invalid_argument("SpaceTransformer (getNextSpace): can't convert space any further.");
@@ -103,12 +134,12 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::getNextSpace(Space s, Spac
         switch (s)
         {
         case Space::LOCAL:
-            if (localTransform == nullptr)
+            if (entity == nullptr)
             {
-                throw std::invalid_argument("SpaceTransform (getNextSpace): can't convert from local to world without local transform.");
+                throw std::invalid_argument("SpaceTransform (getNextSpace): can't convert from local to world without entity.");
             }
 
-            localToWorld(v, *localTransform);
+            localToWorld(v, world->getSceneGraph().getWorldTransform(*entity));
             return Space::WORLD;
         case Space::WORLD:
             worldToView(v);
@@ -155,9 +186,11 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::clipToScreen(glm::vec2 &v)
 Core::SpaceTransformer::Space Core::SpaceTransformer::clipToView(glm::vec2 &v) const
 {
 
-    auto camera = renderer->getActiveCamera(*registry);
-    auto &cameraComponent = registry->get<Rendering::Camera>(camera);
-    auto &t = registry->get<Core::Transform>(camera);
+    auto &registry = world->getRegistry();
+
+    auto camera = renderer->getActiveCamera(registry);
+    auto &cameraComponent = registry.get<Rendering::Camera>(camera);
+    auto &t = registry.get<Core::Transform>(camera);
 
     auto projection = cameraComponent.getProjectionMatrix(t);
     auto inverseProjection = glm::inverse(projection);
@@ -174,9 +207,11 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::clipToView(glm::vec2 &v) c
 
 Core::SpaceTransformer::Space Core::SpaceTransformer::viewToClip(glm::vec2 &v) const
 {
-    auto camera = renderer->getActiveCamera(*registry);
-    auto &cameraComponent = registry->get<Rendering::Camera>(camera);
-    auto &t = registry->get<Core::Transform>(camera);
+    auto &registry = world->getRegistry();
+
+    auto camera = renderer->getActiveCamera(registry);
+    auto &cameraComponent = registry.get<Rendering::Camera>(camera);
+    auto &t = registry.get<Core::Transform>(camera);
 
     auto projection = cameraComponent.getProjectionMatrix(t);
 
@@ -190,9 +225,11 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::viewToClip(glm::vec2 &v) c
 
 Core::SpaceTransformer::Space Core::SpaceTransformer::viewToWorld(glm::vec2 &v) const
 {
-    auto camera = renderer->getActiveCamera(*registry);
-    auto &cameraComponent = registry->get<Rendering::Camera>(camera);
-    auto &t = registry->get<Core::Transform>(camera);
+    auto &registry = world->getRegistry();
+
+    auto camera = renderer->getActiveCamera(registry);
+    auto &cameraComponent = registry.get<Rendering::Camera>(camera);
+    auto &t = registry.get<Core::Transform>(camera);
 
     auto view = cameraComponent.getViewMatrix(t, pixelsPerMeterFloat);
     auto inverseView = glm::inverse(view);
@@ -209,9 +246,11 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::viewToWorld(glm::vec2 &v) 
 
 Core::SpaceTransformer::Space Core::SpaceTransformer::worldToView(glm::vec2 &v) const
 {
-    auto camera = renderer->getActiveCamera(*registry);
-    auto &cameraComponent = registry->get<Rendering::Camera>(camera);
-    auto &t = registry->get<Core::Transform>(camera);
+    auto &registry = world->getRegistry();
+
+    auto camera = renderer->getActiveCamera(registry);
+    auto &cameraComponent = registry.get<Rendering::Camera>(camera);
+    auto &t = registry.get<Core::Transform>(camera);
 
     auto view = cameraComponent.getViewMatrix(t, pixelsPerMeterFloat);
 
@@ -223,10 +262,9 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::worldToView(glm::vec2 &v) 
     return Space::VIEW;
 }
 
-Core::SpaceTransformer::Space Core::SpaceTransformer::worldToLocal(glm::vec2 &v, const Core::Transform &localTransform) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::worldToLocal(glm::vec2 &v, const glm::mat4 &worldTransform) const
 {
-    auto &transform = localTransform.getTransformationMatrix();
-    auto inverse = glm::inverse(transform);
+    auto inverse = glm::inverse(worldTransform);
 
     glm::vec4 transformed = inverse * glm::vec4(v, 0, 1);
 
@@ -236,10 +274,9 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::worldToLocal(glm::vec2 &v,
     return Space::LOCAL;
 }
 
-Core::SpaceTransformer::Space Core::SpaceTransformer::localToWorld(glm::vec2 &v, const Core::Transform &localTransform) const
+Core::SpaceTransformer::Space Core::SpaceTransformer::localToWorld(glm::vec2 &v, const glm::mat4 &worldTransform) const
 {
-    auto &transform = localTransform.getTransformationMatrix();
-    glm::vec4 transformed = transform * glm::vec4(v, 0, 1);
+    glm::vec4 transformed = worldTransform * glm::vec4(v, 0, 1);
 
     v.x = transformed.x;
     v.y = transformed.y;

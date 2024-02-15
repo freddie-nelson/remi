@@ -60,13 +60,13 @@ namespace Rendering
         /**
          * Gets the AABB sufficient for culling entities outside the camera's view.
          *
-         * @param registry The registry to get the camera's components from.
+         * @param world The world to use.
          * @param spaceTransformer The space transformer to use.
          * @param camera The camera to get the culling AABB for.
          *
          * @returns The AABB sufficient for culling entities outside the camera's view.
          */
-        Core::AABB getCullingAABB(const ECS::Registry &registry, const Core::SpaceTransformer &spaceTransformer, const ECS::Entity camera) const;
+        Core::AABB getCullingAABB(World::World &world, const Core::SpaceTransformer &spaceTransformer, const ECS::Entity camera) const;
 
         /**
          * The number of calls to getRenderables to wait before pruning the AABB tree.
@@ -118,7 +118,7 @@ namespace Rendering
          *
          * Also prunes the AABB trees, every `treePruneFrequency` calls.
          *
-         * @param registry The registry to read components from.
+         * @param world The world to use.
          * @param entities The entities to check.
          * @param viewAabb The aabb to check against.
          * @param isStatic When true only static entities will be checked, when false only non static entities are check.
@@ -126,17 +126,17 @@ namespace Rendering
          *
          * @returns The number of entities of the other renderable type, i.e. returns number of static entities when isStatic is false, and vice versa.
          */
-        size_t getRenderables(const ECS::Registry &registry, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
+        size_t getRenderables(World::World &world, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
 
         /**
          * Draws the AABB tree.
          *
          * @param tree The tree to draw.
-         * @param registry The registry to use.
+         * @param world The world to use.
          * @param renderer The renderer to use.
          * @param renderTarget The render target to use.
          * @param textureManager The texture manager to use.
          */
-        void drawAABBTree(const Core::AABBTree<ECS::Entity> &tree, ECS::Registry &registry, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const;
+        void drawAABBTree(const Core::AABBTree<ECS::Entity> &tree, World::World &world, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const;
     };
 }

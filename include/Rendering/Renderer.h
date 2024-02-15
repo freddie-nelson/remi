@@ -6,7 +6,7 @@
 #include "./Shader/Shader.h"
 #include "../Core/Transform.h"
 #include "./Texture/TextureManager.h"
-#include "../ECS/System.h"
+#include "../World/World.h"
 #include "../ECS/Entity.h"
 #include "../Core/BoundingCircle.h"
 #include "../Core/AABB/AABBTree.h"
@@ -71,7 +71,7 @@ namespace Rendering
      *
      * By default the renderer will not unbind unused textures. This can be toggled with `setUnbindUnusedTextures`. It most likely is not needed, unless you have a lot of textures.
      */
-    class Renderer : public ECS::System
+    class Renderer : public World::System
     {
     public:
         /**
@@ -101,10 +101,10 @@ namespace Rendering
          *
          * This will also update the renderer's render target to match the renderer's size if the render target is not null.
          *
-         * @param registry The registry to update from.
+         * @param world The world to update from.
          * @param timestep The timestep since the last update.
          */
-        void update(const ECS::Registry &registry, const Core::Timestep &timestep) override;
+        void update(World::World &world, const Core::Timestep &timestep) override;
 
         /**
          * Clears the screen framebuffer and render target framebuffer.
@@ -121,11 +121,11 @@ namespace Rendering
          *
          * This does not cull entities outside the camera's view.
          *
-         * @param registry The registry to read components from.
+         * @param world The world the entity belongs to.
          * @param camera The camera to use for rendering.
          * @param entity The entity to render, this entity must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
-        void entity(const ECS::Registry &registry, const ECS::Entity camera, const ECS::Entity &entity) const;
+        void entity(const World::World &world, const ECS::Entity camera, const ECS::Entity &entity) const;
 
         /**
          * Renders the given entities using instanced rendering.
@@ -136,12 +136,12 @@ namespace Rendering
          *
          * Uses the shaders from the first entity (`instances[0]`).
          *
-         * @param registry The registry to read components from.
+         * @param world The world the entities belong to.
          * @param camera The camera to use for rendering.
          * @param mesh The mesh to use for each entity.
          * @param instances The entities to render, these entities must have atleast a Core::Transform and a Rendering::Material component.
          */
-        void instance(const ECS::Registry &registry, const ECS::Entity camera, const Rendering::Mesh2D &mesh, const std::vector<ECS::Entity> &instances) const;
+        void instance(const World::World &world, const ECS::Entity camera, const Rendering::Mesh2D &mesh, const std::vector<ECS::Entity> &instances) const;
 
         /**
          * Batches the given entities and draws them to the screen.
@@ -150,11 +150,11 @@ namespace Rendering
          *
          * Uses the shaders from the first entity (`renderables[0]`).
          *
-         * @param registry The registry to read components from.
+         * @param world The world the entities belong to.
          * @param camera The camera to use for rendering.
          * @param renderables The entities to render, these entities must have atleast a Rendering::Mesh2D, Core::Transform and a Rendering::Material component.
          */
-        void batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables) const;
+        void batch(const World::World &world, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables) const;
 
         /**
          * Sets the clear color.
@@ -468,11 +468,11 @@ namespace Rendering
          *
          * Assumes the camera has a Camera and Transform component.
          *
-         * @param registry The registry to read components from.
+         * @param world The world the camera belongs to.
          * @param camera The camera to get the view projection matrix for.
          *
          * @returns The view projection matrix for the given camera.
          */
-        glm::mat4 getViewProjectionMatrix(const ECS::Registry &registry, const ECS::Entity camera) const;
+        glm::mat4 getViewProjectionMatrix(const World::World &world, const ECS::Entity camera) const;
     };
 }

@@ -18,7 +18,8 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
 {
     checkInput<int>(input);
 
-    auto &registry = *const_cast<ECS::Registry *>(input->registry);
+    auto &world = *input->world;
+    auto &registry = world.getRegistry();
     auto &renderer = *input->renderer;
 
     auto &bodies = physicsWorld->getBodies();
@@ -51,7 +52,7 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
         entities.push_back(e);
     }
 
-    renderer.batch(registry, renderer.getActiveCamera(registry), entities);
+    renderer.batch(world, renderer.getActiveCamera(registry), entities);
 
     registry.destroy(entities);
     renderTarget.unbind(textureManager);

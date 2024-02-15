@@ -167,6 +167,15 @@ namespace Core
         AABB transform(const Core::Transform &t) const;
 
         /**
+         * Creates a transformed AABB from this AABB.
+         *
+         * @param mat The transformation matrix to apply.
+         *
+         * @returns The transformed AABB.
+         */
+        AABB transform(const glm::mat4 &mat) const;
+
+        /**
          * Scale the AABB by the given scale.
          *
          * @param scale The scale to apply.

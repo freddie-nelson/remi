@@ -14,7 +14,11 @@ Rendering::RenderPassInput *Rendering::BatchPass::execute(RenderPassInput *input
     auto inputTyped = static_cast<RenderPassInputTyped<CullingPassData> *>(input);
 
     auto &renderer = *inputTyped->renderer;
-    auto &registry = *inputTyped->registry;
+
+    auto &world = *inputTyped->world;
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
+
     auto &renderables = *inputTyped->data;
 
     std::vector<ShaderMaterial::FragShaderKey> keys;

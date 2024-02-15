@@ -10,7 +10,9 @@ Rendering::RenderPassInput *Rendering::RenderablesPass::execute(RenderPassInput 
     checkInput<int>(input);
 
     auto *inputTyped = static_cast<RenderPassInputTyped<int> *>(input);
-    auto &registry = *input->registry;
+
+    auto &world = *input->world;
+    auto &registry = world.getRegistry();
 
     // get entities
     auto &entities = registry.view<Mesh2D, Core::Transform, Renderable>();

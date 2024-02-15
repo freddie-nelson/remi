@@ -1,6 +1,7 @@
 #include "../../include/Core/Transform.h"
 #include "../../include/Config.h"
 
+#include <glm/gtx/matrix_decompose.hpp>
 #include <string>
 #include <stdexcept>
 
@@ -11,6 +12,11 @@ Core::Transform::Transform(glm::vec2 translation, glm::vec2 scale, glm::vec2 she
     setShear(shear);
     setRotation(rotation);
     setZIndex(zIndex);
+}
+
+Core::Transform::Transform(const glm::mat4 &mat)
+{
+    setTransformationMatrix(mat);
 }
 
 void Core::Transform::moveForward(unsigned int amount)
@@ -142,6 +148,8 @@ const glm::mat4 &Core::Transform::getTransformationMatrix() const
     // only need to update these rows and columns as the rest of the matrix is the identity matrix
     // and shouldn't have changed
 
+    // column major ordering
+
     // rotation, scale and shear
     transformationMatrix[0][0] = scaleVec.x * r1 + shear.y * r3;
     transformationMatrix[0][1] = shear.x * r1 + scaleVec.y * r3;
@@ -157,4 +165,26 @@ const glm::mat4 &Core::Transform::getTransformationMatrix() const
     isTransformDirty = false;
 
     return transformationMatrix;
+}
+
+void Core::Transform::setTransformationMatrix(const glm::mat4 &mat)
+{
+    transformationMatrix = mat;
+    isTransformDirty = false;
+
+    // @see https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati
+    // for explanation of the following code
+
+    glm::vec3 scale{};
+    glm::quat rotation{};
+    glm::vec3 translation{};
+    glm::vec3 shear{};
+    glm::vec4 perspective{};
+    glm::decompose(mat, scale, rotation, translation, shear, perspective);
+
+    setTranslation(glm::vec2(translation));
+    setZIndex(translation.z);
+    setScale(glm::vec2(scale));
+    setShear(glm::vec2(shear));
+    setRotation(glm::eulerAngles(rotation).z);
 }

@@ -6,11 +6,11 @@
 #include "Rendering/RenderPipeline.h"
 #include "Rendering/RenderManager.h"
 #include "Rendering/Texture/AnimationSystem.h"
-#include "ECS/Registry.h"
 #include "Input/Mouse.h"
 #include "Input/Keyboard.h"
 #include "Core/SpaceTransformer.h"
 #include "Physics/PhysicsWorld.h"
+#include "World/World.h"
 
 namespace blz
 {
@@ -128,13 +128,13 @@ namespace blz
      * - update: These are updated as close to the update rate as possible, and will receive a variable timestep.
      *
      * NOTE:
-     * The renderer is cleared before each system update, and presented after all systems have been updated.
+     * The renderer is cleared before the world is updated, and presented after the world has been updated.
      * This means that anything rendered in a fixed update will be cleared before it can ever be shown. i.e. Rendering should not be done in fixedUpdate.
      *
      * Fixed updates will be performed before updates, if they are both due to be performed in the same tick.
      *
      * NOTE:
-     * The physics world is updated in the fixed update, and will receive a fixed timestep. It is updated after all other systems have been updated.
+     * The physics world is updated in the fixed update, and will receive a fixed timestep. It is updated after the world has been updated.
      */
     class Engine
     {
@@ -163,22 +163,6 @@ namespace blz
          * This will update each system and fixed system in the ecs, until the program exits.
          */
         void run();
-
-        /**
-         * Adds a system to the engine.
-         *
-         * @param system The system to add.
-         */
-        void addSystem(ECS::System *system);
-
-        /**
-         * Removes a system from the engine.
-         *
-         * @param system The system to remove.
-         *
-         * @returns Whether the system was removed.
-         */
-        bool removeSystem(ECS::System *system);
 
         /**
          * Gets the configuration of the engine.
@@ -242,13 +226,13 @@ namespace blz
         Physics::PhysicsWorld *const getPhysicsWorld();
 
         /**
-         * Gets the registry of the engine.
+         * Gets the world of the engine.
          *
-         * This is the registry that is used to store all the entities and their components.
+         * This is the world that contains the registry and scene graph.
          *
-         * @returns The registry of the engine.
+         * @returns The world of the engine.
          */
-        ECS::Registry *const getRegistry();
+        World::World *const getWorld();
 
         /**
          * Gets the mouse of the engine.
@@ -288,18 +272,12 @@ namespace blz
         Rendering::AnimationSystem *animationSystem = nullptr;
 
         Physics::PhysicsWorld *physicsWorld = nullptr;
-
-        ECS::Registry *registry = nullptr;
+        World::World *world = nullptr;
 
         Input::Mouse *mouse = nullptr;
         Input::Keyboard *keyboard = nullptr;
 
         Core::SpaceTransformer *spaceTransformer = nullptr;
-
-        /**
-         * Systems that are updated every frame.
-         */
-        std::vector<ECS::System *> systems;
 
         /**
          * The data that is passed to the main loop.

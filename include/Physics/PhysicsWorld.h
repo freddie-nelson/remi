@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../ECS/System.h"
+#include "../World/World.h"
+#include "../Core/SpaceTransformer.h"
 #include "Ray.h"
 
 #include <unordered_map>
@@ -46,13 +47,13 @@ namespace Physics
      *
      * Stores and updates the physics world.
      */
-    class PhysicsWorld : public ECS::System
+    class PhysicsWorld : public World::System
     {
     public:
         /**
          * Creates a new physics world.
          */
-        PhysicsWorld(PhysicsWorldConfig config);
+        PhysicsWorld(PhysicsWorldConfig config, const Core::SpaceTransformer *spaceTransformer);
 
         /**
          * Destroys the physics world.
@@ -62,10 +63,10 @@ namespace Physics
         /**
          * Updates the physics world.
          *
-         * @param registry The registry to use.
+         * @param world The world to use.
          * @param timestep The timestep since the last update.
          */
-        void fixedUpdate(const ECS::Registry &registry, const Core::Timestep &timestep) override;
+        void fixedUpdate(World::World &world, const Core::Timestep &timestep) override;
 
         // ! TODO: support filtering for raycasts (by entity? by collision filter? etc)
 
@@ -152,6 +153,8 @@ namespace Physics
     private:
         PhysicsWorldConfig config;
 
+        const Core::SpaceTransformer *spaceTransformer;
+
         /**
          * The box2d world.
          */
@@ -181,35 +184,35 @@ namespace Physics
          *
          * Will also update the bodies with the latest data from the registry.
          *
-         * @param registry The registry to use.
+         * @param world The world to use.
          */
-        void updateBodies(const ECS::Registry &registry);
+        void updateBodies(const World::World &world);
 
         /**
          * Creates the bodies for the entities.
          *
          * This will only create bodies for entities that are not already in the bodies map.
          *
-         * @param registry The registry to use.
+         * @param world The world to use.
          * @param entitySet The set of entities to create bodies for.
          */
-        void createBodies(const ECS::Registry &registry, const std::unordered_set<ECS::Entity> &entitySet);
+        void createBodies(const World::World &world, const std::unordered_set<ECS::Entity> &entitySet);
 
         /**
          * Injects the data from the ecs components into the box2d bodies.
          *
-         * @param registry The registry to use.
+         * @param world The world to use.
          * @param createdEntities The set of entities that were created this frame, these don't need updated.
          */
-        void updateBodiesWithECSValues(const ECS::Registry &registry, const std::unordered_set<ECS::Entity> &createdEntities);
+        void updateBodiesWithECSValues(const World::World &world, const std::unordered_set<ECS::Entity> &createdEntities);
 
         /**
          * Creates a Box2D collider for the entity.
          *
-         * @param registry The registry to use.
+         * @param world The world to use.
          * @param entity The entity to create the collider for.
          */
-        void createBox2DCollider(const ECS::Registry &registry, ECS::Entity entity);
+        void createBox2DCollider(const World::World &world, ECS::Entity entity);
 
         /**
          * Destroys a Box2D collider for the entity.
@@ -223,8 +226,8 @@ namespace Physics
         /**
          * Updates the Box2D world with the values from the ECS.
          *
-         * @param registry The registry to use.
+         * @param world The world to use.
          */
-        void updateECSWithBox2DValues(const ECS::Registry &registry);
+        void updateECSWithBox2DValues(const World::World &world);
     };
 }

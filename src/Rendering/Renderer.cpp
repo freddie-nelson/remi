@@ -57,11 +57,12 @@ Rendering::Renderer::Renderer(Core::Window *window, unsigned int width, unsigned
 
 Rendering::Renderer::~Renderer()
 {
-    delete this;
 }
 
-void Rendering::Renderer::update(const ECS::Registry &registry, const Core::Timestep &timestep)
+void Rendering::Renderer::update(World::World &world, const Core::Timestep &timestep)
 {
+    auto &registry = world.getRegistry();
+
     // resize renderer to match window size
     auto size = getWindowSize();
     if (size != getSize())
@@ -98,8 +99,11 @@ void Rendering::Renderer::present() const
     window->swapBuffers();
 }
 
-void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entity camera, const ECS::Entity &entity) const
+void Rendering::Renderer::entity(const World::World &world, const ECS::Entity camera, const ECS::Entity &entity) const
 {
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
+
     // mesh data
     auto &mesh = registry.get<Mesh2D>(entity);
 
@@ -116,11 +120,10 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     auto &texturesUniform = textureManager.getTexturesUniform();
 
     // transform
-    auto &transform = registry.get<Core::Transform>(entity);
-    auto &transformMatrix = transform.getTransformationMatrix();
+    auto &transformMatrix = sceneGraph.getWorldTransform(entity);
 
     // view projection matrix
-    auto viewProjectionMatrix = getViewProjectionMatrix(registry, camera);
+    auto viewProjectionMatrix = getViewProjectionMatrix(world, camera);
 
     // uniforms
     Uniform uViewProjectionMatrix("uViewProjectionMatrix", viewProjectionMatrix);
@@ -175,12 +178,15 @@ void Rendering::Renderer::entity(const ECS::Registry &registry, const ECS::Entit
     meshShader.unbind();
 };
 
-void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Entity camera, const Mesh2D &m, const std::vector<ECS::Entity> &instances) const
+void Rendering::Renderer::instance(const World::World &world, const ECS::Entity camera, const Mesh2D &m, const std::vector<ECS::Entity> &instances) const
 {
     if (instances.size() == 0)
     {
         return;
     }
+
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
 
     const auto instanceCount = instances.size();
 
@@ -202,10 +208,9 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
 
     for (size_t i = 0; i < instanceCount; i++)
     {
-        auto &t = registry.get<Core::Transform>(instances[i]);
-        auto material = getMaterial(registry, instances[i]);
+        transform[i] = sceneGraph.getWorldTransform(instances[i]);
 
-        transform[i] = t.getTransformationMatrix();
+        auto material = getMaterial(registry, instances[i]);
 
         auto texture = material->getTexture();
         const auto &boundTexture = boundTextures[texture->getId()];
@@ -221,7 +226,7 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
     auto &textures = textureManager.getTexturesUniform();
 
     // view projection matrix
-    auto viewProjectionMatrix = getViewProjectionMatrix(registry, camera);
+    auto viewProjectionMatrix = getViewProjectionMatrix(world, camera);
 
     // uniforms
     Uniform uViewProjectionMatrix("uViewProjectionMatrix", viewProjectionMatrix);
@@ -273,12 +278,15 @@ void Rendering::Renderer::instance(const ECS::Registry &registry, const ECS::Ent
     instancedMeshShader.unbind();
 };
 
-void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables) const
+void Rendering::Renderer::batch(const World::World &world, const ECS::Entity camera, const std::vector<ECS::Entity> &renderables) const
 {
     if (renderables.size() == 0)
     {
         return;
     }
+
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
 
     // auto now = Rendering::timeSinceEpochMillisec();
 
@@ -322,8 +330,7 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
 
         const auto &mesh = registry.get<Mesh2D>(e);
 
-        const auto &transform = registry.get<Core::Transform>(e);
-        auto &transformMatrix = transform.getTransformationMatrix();
+        auto &transformMatrix = sceneGraph.getWorldTransform(e);
 
         const auto material = getMaterial(registry, e);
         const auto color = material->getColor().getColor();
@@ -366,7 +373,7 @@ void Rendering::Renderer::batch(const ECS::Registry &registry, const ECS::Entity
     auto &textures = textureManager.getTexturesUniform();
 
     // view projection matrix
-    auto viewProjectionMatrix = getViewProjectionMatrix(registry, camera);
+    auto viewProjectionMatrix = getViewProjectionMatrix(world, camera);
 
     // uniforms
     Uniform uViewProjectionMatrix("uViewProjectionMatrix", viewProjectionMatrix);
@@ -691,10 +698,13 @@ std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture
     return boundTextures;
 }
 
-glm::mat4 Rendering::Renderer::getViewProjectionMatrix(const ECS::Registry &registry, const ECS::Entity camera) const
+glm::mat4 Rendering::Renderer::getViewProjectionMatrix(const World::World &world, const ECS::Entity camera) const
 {
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
+
     auto &cameraComponent = registry.get<Camera>(camera);
-    auto &cameraTransform = registry.get<Core::Transform>(camera);
+    auto cameraTransform = Core::Transform(sceneGraph.getWorldTransform(camera));
 
     return cameraComponent.getViewProjectionMatrix(cameraTransform, pixelsPerMeter);
 }

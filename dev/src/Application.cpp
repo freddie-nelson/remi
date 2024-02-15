@@ -76,13 +76,16 @@ void Application::init()
 
     engine = new blz::Engine(config);
 
-    // add this system to the engine
-    engine->addSystem(this);
-
     auto window = engine->getWindow();
     auto renderer = engine->getRenderer();
-    auto registry = engine->getRegistry();
     auto pipeline = engine->getPipeline();
+
+    auto world = engine->getWorld();
+    auto &registry = world->getRegistry();
+    auto &sceneGraph = world->getSceneGraph();
+
+    // add this system to the world
+    world->addSystem(this);
 
     colorBlendPass = new Rendering::ColorBlendPass(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f));
     blurPass = new Rendering::GaussianBlurPass();
@@ -95,7 +98,7 @@ void Application::init()
     // Rendering::Color clearColor(0.0f);
     // clearColor.fromHSLA(0.82f, 0.6f, 0.45f, 1.0f);
 
-    registry->view<Rendering::ActiveCamera>();
+    registry.view<Rendering::ActiveCamera>();
 
     renderer->enableAlphaBlending(true);
 
@@ -107,10 +110,10 @@ void Application::init()
     font = new Rendering::Font("assets/Roboto-Regular.ttf");
 
     // create camera
-    auto camera = registry->create();
-    registry->add(camera, Rendering::Camera(window->getWidth(), window->getHeight()));
-    registry->add(camera, Core::Transform());
-    registry->add(camera, Rendering::ActiveCamera());
+    auto camera = registry.create();
+    registry.add(camera, Rendering::Camera(window->getWidth(), window->getHeight()));
+    registry.add(camera, Core::Transform());
+    registry.add(camera, Rendering::ActiveCamera());
 
     // create entities
     float pixelsPerMeter = config.pixelsPerMeter;
@@ -122,12 +125,12 @@ void Application::init()
 
     for (int i = 0; i < entityCount; i++)
     {
-        auto e = registry->create();
+        auto e = registry.create();
 
-        auto &m = registry->add(e, Rendering::Mesh2D(static_cast<float>((rand() % 50) / 100.0f + 0.2f), static_cast<unsigned int>(rand() % 13 + 3)));
-        auto &t = registry->add(e, Core::Transform());
-        auto &material = registry->add(e, Rendering::Material());
-        auto &renderable = registry->add(e, Rendering::Renderable(true, true));
+        auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>((rand() % 50) / 100.0f + 0.2f), static_cast<unsigned int>(rand() % 13 + 3)));
+        auto &t = registry.add(e, Core::Transform());
+        auto &material = registry.add(e, Rendering::Material());
+        auto &renderable = registry.add(e, Rendering::Renderable(true, true));
 
         t.setZIndex(rand() % zRange);
         t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2} / pixelsPerMeter);
@@ -145,11 +148,11 @@ void Application::init()
     // create text
     auto text = Rendering::Text("LIV SMELLS", *font);
 
-    ECS::Entity textEntity = registry->create();
-    registry->add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
-    registry->add(textEntity, Core::Transform());
-    // registry->add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), gradient));
-    registry->add(textEntity, Rendering::Renderable(true, true));
+    ECS::Entity textEntity = registry.create();
+    registry.add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
+    registry.add(textEntity, Core::Transform());
+    // registry.add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), gradient));
+    registry.add(textEntity, Rendering::Renderable(true, true));
 
     const std::string textShader =
         "#version 300 es\n"
@@ -179,30 +182,30 @@ void Application::init()
     Rendering::ShaderMaterial m(textShader);
     m.setTexture(gradient);
     m.setTransparency(true);
-    registry->add(textEntity, m);
+    registry.add(textEntity, m);
 
-    auto &t = registry->get<Core::Transform>(textEntity);
+    auto &t = registry.get<Core::Transform>(textEntity);
     t.scale(1);
     t.setZIndex(zRange - 2);
 
     // animation
-    character = registry->create();
+    character = registry.create();
     std::cout << "character: " << character << std::endl;
 
-    auto &cm = registry->add(character, Rendering::Mesh2D(1.0f, 1.0f));
-    auto &ct = registry->add(character, Core::Transform());
-    auto &cMat = registry->add(character, Rendering::Material());
-    registry->add(character, Rendering::Renderable(true, false));
+    auto &cm = registry.add(character, Rendering::Mesh2D(1.0f, 1.0f));
+    auto &ct = registry.add(character, Core::Transform());
+    auto &cMat = registry.add(character, Rendering::Material());
+    registry.add(character, Rendering::Renderable(true, false));
 
     ct.scale(3);
     ct.setZIndex(zRange + 1);
 
-    auto &body = registry->add(character, Physics::RigidBody2D());
+    auto &body = registry.add(character, Physics::RigidBody2D());
     body.fixedRotation = true;
     body.linearDamping = 0.98f;
 
     auto shape = new Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
-    auto &collider = registry->add(character, Physics::Collider2D(shape));
+    auto &collider = registry.add(character, Physics::Collider2D(shape));
     delete shape;
 
     std::vector<std::string> frames = {
@@ -220,30 +223,30 @@ void Application::init()
     cMat.setTexture(animTexture);
 
     // floor
-    auto floor = registry->create();
+    auto floor = registry.create();
     std::cout << "floor: " << floor << std::endl;
 
-    auto &fm = registry->add(floor, Rendering::Mesh2D(100.0f, 1.0f));
-    auto &ft = registry->add(floor, Core::Transform());
-    auto &fMat = registry->add(floor, Rendering::Material());
-    auto &fRenderable = registry->add(floor, Rendering::Renderable(true, true));
+    auto &fm = registry.add(floor, Rendering::Mesh2D(100.0f, 1.0f));
+    auto &ft = registry.add(floor, Core::Transform());
+    auto &fMat = registry.add(floor, Rendering::Material());
+    auto &fRenderable = registry.add(floor, Rendering::Renderable(true, true));
 
     ft.translate(glm::vec2(0.0f, -5.0f));
 
-    auto &fBody = registry->add(floor, Physics::RigidBody2D());
-    auto &fCollider = registry->add(floor, Physics::Collider2D(new Physics::PolygonColliderShape2D(fm)));
+    auto &fBody = registry.add(floor, Physics::RigidBody2D());
+    auto &fCollider = registry.add(floor, Physics::Collider2D(new Physics::PolygonColliderShape2D(fm)));
 
     fBody.type = Physics::RigidBodyType::STATIC;
     fCollider.density = 0.0f;
 
     // fps text
     auto fpsText = Rendering::MemoizedText::text("FPS: 0", font);
-    auto fps = registry->create();
-    registry->add(fps, FPS{});
-    auto &fpsMesh = registry->add(fps, fpsText.mesh(Rendering::Text::TextAlignment::LEFT));
-    auto &fpsTransform = registry->add(fps, Core::Transform());
-    auto &fpsMaterial = registry->add(fps, Rendering::Material());
-    auto &fpsRenderable = registry->add(fps, Rendering::Renderable(true, false));
+    auto fps = registry.create();
+    registry.add(fps, FPS{});
+    auto &fpsMesh = registry.add(fps, fpsText.mesh(Rendering::Text::TextAlignment::LEFT));
+    auto &fpsTransform = registry.add(fps, Core::Transform());
+    auto &fpsMaterial = registry.add(fps, Rendering::Material());
+    auto &fpsRenderable = registry.add(fps, Rendering::Renderable(true, false));
 
     fpsTransform.scale(0.25f);
     fpsTransform.setZIndex(Config::MAX_Z_INDEX);
@@ -260,8 +263,10 @@ unsigned long long averageFps = 0;
 float timeSinceStart = 0;
 float textAlpha = 1.0f;
 
-void Application::update(const ECS::Registry &registry, const Core::Timestep &timestep)
+void Application::update(World::World &world, const Core::Timestep &timestep)
 {
+    auto registry = world.getRegistry();
+
     auto spaceTransformer = engine->getSpaceTransformer();
     auto renderer = engine->getRenderer();
     auto pipeline = engine->getPipeline();
@@ -403,8 +408,10 @@ void Application::update(const ECS::Registry &registry, const Core::Timestep &ti
     // }
 }
 
-void Application::fixedUpdate(const ECS::Registry &registry, const Core::Timestep &timestep)
+void Application::fixedUpdate(World::World &world, const Core::Timestep &timestep)
 {
+    auto registry = world.getRegistry();
+
     // control character
     auto keyboard = engine->getKeyboard();
 

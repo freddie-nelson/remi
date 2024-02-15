@@ -11,8 +11,10 @@ Rendering::AnimationSystem::~AnimationSystem()
 {
 }
 
-void Rendering::AnimationSystem::update(const ECS::Registry &registry, const Core::Timestep &timestep)
+void Rendering::AnimationSystem::update(World::World &world, const Core::Timestep &timestep)
 {
+    auto &registry = world.getRegistry();
+
     auto &materialEntities = registry.view<Material>();
     auto &shaderMaterialEntities = registry.view<ShaderMaterial>();
 

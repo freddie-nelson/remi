@@ -6,6 +6,7 @@
 #include "../TypeList.h"
 
 #include <boost/unordered_map.hpp>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <set>
@@ -122,6 +123,11 @@ namespace ECS
         template <typename T>
         T &add(Entity entity, T component)
         {
+            if (!has(entity))
+            {
+                throw std::runtime_error("Registry (add): Entity '" + std::to_string(entity) + "' does not exist.");
+            }
+
             // std::cout << "adding to " << entity << std::endl;
             // std::cout << "type name: " << typeid(T).name() << ", type id: " << ComponentIdGenerator::id<T> << std::endl;
 
@@ -155,6 +161,11 @@ namespace ECS
         template <typename T>
         void remove(Entity entity)
         {
+            if (!has(entity))
+            {
+                return;
+            }
+
             if (!hasComponentPool<T>())
             {
                 return;
@@ -182,9 +193,9 @@ namespace ECS
         template <typename T>
         T &get(Entity entity) const
         {
-            if (!hasComponentPool<T>())
+            if (!has<T>(entity))
             {
-                throw std::runtime_error("Registry (get): Component pool does not exist.");
+                throw std::runtime_error("Registry (get): Entity '" + std::to_string(entity) + "' does not have component '" + typeid(T).name() + "'.");
             }
 
             return getComponentPool<T>().get(entity);
@@ -202,6 +213,11 @@ namespace ECS
         template <typename T>
         bool has(Entity entity) const
         {
+            if (!has(entity))
+            {
+                return false;
+            }
+
             if (!hasComponentPool<T>())
             {
                 return false;

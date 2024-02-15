@@ -8,7 +8,7 @@ Rendering::RenderPassInput *Rendering::DrawPass::execute(Rendering::RenderPassIn
     auto inputTyped = static_cast<RenderPassInputTyped<BatchPassData> *>(input);
 
     auto &renderer = *inputTyped->renderer;
-    auto &registry = *inputTyped->registry;
+    auto &world = *inputTyped->world;
     auto camera = inputTyped->camera;
     auto &renderTarget = *inputTyped->renderTarget;
     auto &textureManager = *inputTyped->textureManager;
@@ -23,7 +23,7 @@ Rendering::RenderPassInput *Rendering::DrawPass::execute(Rendering::RenderPassIn
     for (auto &batch : *inputTyped->data)
     {
         renderer.enableDepthWrite(!batch.transparent);
-        renderer.batch(registry, camera, batch.renderables);
+        renderer.batch(world, camera, batch.renderables);
     }
 
     // restore depth write

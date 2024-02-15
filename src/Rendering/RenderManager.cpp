@@ -4,12 +4,12 @@ Rendering::RenderManager::RenderManager(Rendering::Renderer *renderer, Rendering
 {
 }
 
-void Rendering::RenderManager::render(const ECS::Registry &registry, ECS::Entity *camera, const RenderTarget *renderTarget)
+void Rendering::RenderManager::render(World::World &world, ECS::Entity *camera, const RenderTarget *renderTarget)
 {
     ECS::Entity cameraEntity = 0;
     if (camera == nullptr)
     {
-        cameraEntity = this->renderer->getActiveCamera(registry);
+        cameraEntity = this->renderer->getActiveCamera(world.getRegistry());
     }
     else
     {
@@ -24,7 +24,7 @@ void Rendering::RenderManager::render(const ECS::Registry &registry, ECS::Entity
     // this will be deleted by the pipeline
     auto input = new RenderPassInputTyped<int>();
     input->renderer = renderer;
-    input->registry = &registry;
+    input->world = &world;
     input->camera = cameraEntity;
     input->renderTarget = renderTarget;
     input->textureManager = &this->renderer->getTextureManager();

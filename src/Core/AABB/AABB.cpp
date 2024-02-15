@@ -157,9 +157,14 @@ bool Core::AABB::overlaps(const AABB &other) const
 
 Core::AABB Core::AABB::transform(const Core::Transform &t) const
 {
-    auto m = t.getTransformationMatrix();
-    auto tMin = m * glm::vec4(min, 0, 1);
-    auto tMax = m * glm::vec4(max, 0, 1);
+    auto &m = t.getTransformationMatrix();
+    return transform(m);
+}
+
+Core::AABB Core::AABB::transform(const glm::mat4 &mat) const
+{
+    auto tMin = mat * glm::vec4(min, 0, 1);
+    auto tMax = mat * glm::vec4(max, 0, 1);
 
     auto minX = std::min(tMin.x, tMax.x);
     auto minY = std::min(tMin.y, tMax.y);

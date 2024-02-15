@@ -39,11 +39,11 @@ namespace Rendering
          *
          * If no render target is provided, the default render target will be used.
          *
-         * @param registry The registry to read data from.
+         * @param world The world to render.
          * @param camera The camera to render with.
          * @param renderTarget The render target to render to.
          */
-        void render(const ECS::Registry &registry, ECS::Entity *camera = nullptr, const RenderTarget *renderTarget = nullptr);
+        void render(World::World &world, ECS::Entity *camera = nullptr, const RenderTarget *renderTarget = nullptr);
 
     private:
         Renderer *renderer;

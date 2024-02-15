@@ -13,21 +13,22 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
 
     auto inputTyped = static_cast<RenderPassInputTyped<RenderablesPassData> *>(input);
 
-    auto &registry = *inputTyped->registry;
+    auto &world = *inputTyped->world;
+
     auto camera = inputTyped->camera;
     auto &entities = *inputTyped->data;
 
     // get camera aabb
-    auto viewAabb = getCullingAABB(registry, *inputTyped->spaceTransformer, camera);
+    auto viewAabb = getCullingAABB(world, *inputTyped->spaceTransformer, camera);
 
     // get renderables
     std::vector<ECS::Entity> *renderables = new std::vector<ECS::Entity>;
 
     // get static renderables
-    getRenderables(registry, entities, viewAabb, true, *renderables);
+    getRenderables(world, entities, viewAabb, true, *renderables);
 
     // get dynamic renderables
-    getRenderables(registry, entities, viewAabb, false, *renderables);
+    getRenderables(world, entities, viewAabb, false, *renderables);
 
     // create output
     RenderPassInputTyped<CullingPassData> *output = new RenderPassInputTyped<CullingPassData>(input, renderables);
@@ -43,10 +44,13 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
 // ! TODO: implement proper coordinate space transformation/conversion class to handle this
 // ! and get rid of the magic number 100.0f
 
-Core::AABB Rendering::CullingPass::getCullingAABB(const ECS::Registry &registry, const Core::SpaceTransformer &spaceTransformer, const ECS::Entity camera) const
+Core::AABB Rendering::CullingPass::getCullingAABB(World::World &world, const Core::SpaceTransformer &spaceTransformer, const ECS::Entity camera) const
 {
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
+
     auto &cameraComponent = registry.get<Camera>(camera);
-    auto &cameraTransform = registry.get<Core::Transform>(camera);
+    auto cameraTransform = Core::Transform(sceneGraph.getWorldTransform(camera));
 
     // if camera is rotated use bounding circle aabb
     if (cameraTransform.getRotation() != 0)
@@ -89,8 +93,11 @@ void Rendering::CullingPass::pruneTrees(const ECS::Registry &registry)
     }
 }
 
-size_t Rendering::CullingPass::getRenderables(const ECS::Registry &registry, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables)
+size_t Rendering::CullingPass::getRenderables(World::World &world, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables)
 {
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
+
     // prune trees
     callsSinceLastTreePrune++;
     if (callsSinceLastTreePrune == treePruneFrequency)
@@ -143,7 +150,7 @@ size_t Rendering::CullingPass::getRenderables(const ECS::Registry &registry, con
             continue;
         }
 
-        auto &transform = registry.get<Core::Transform>(e);
+        auto &transform = sceneGraph.getWorldTransform(e);
         auto &mesh = registry.get<Mesh2D>(e);
 
         auto boundingCircle = Core::BoundingCircle(mesh.getAABB(), transform);
@@ -182,8 +189,10 @@ size_t Rendering::CullingPass::getRenderables(const ECS::Registry &registry, con
     return otherCount;
 }
 
-void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tree, ECS::Registry &registry, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const
+void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tree, World::World &world, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const
 {
+    auto &registry = world.getRegistry();
+
     auto entity = registry.create();
     auto &transform = registry.add(entity, Core::Transform());
     auto &material = registry.add(entity, Rendering::Material());
@@ -267,7 +276,7 @@ void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tre
             continue;
         }
 
-        renderer.entity(registry, renderer.getActiveCamera(registry), entity);
+        renderer.entity(world, renderer.getActiveCamera(registry), entity);
     }
 
     renderTarget.unbind(textureManager);

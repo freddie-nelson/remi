@@ -24,6 +24,11 @@ Core::BoundingCircle::BoundingCircle(const AABB &aabb, const Transform &transfor
     set(aabb, transform);
 }
 
+Core::BoundingCircle::BoundingCircle(const AABB &aabb, const glm::mat4 &transform)
+{
+    set(aabb, transform);
+}
+
 bool Core::BoundingCircle::intersects(const BoundingCircle &b) const
 {
     auto toB = b.centre - centre;
@@ -45,8 +50,13 @@ void Core::BoundingCircle::set(const AABB &aabb)
 void Core::BoundingCircle::set(const AABB &aabb, const Transform &transform)
 {
     auto &t = transform.getTransformationMatrix();
-    auto transformedMin = t * glm::vec4(aabb.getMin().x, aabb.getMin().y, 0, 1);
-    auto transformedMax = t * glm::vec4(aabb.getMax().x, aabb.getMax().y, 0, 1);
+    set(aabb, t);
+}
+
+void Core::BoundingCircle::set(const AABB &aabb, const glm::mat4 &transform)
+{
+    auto transformedMin = transform * glm::vec4(aabb.getMin().x, aabb.getMin().y, 0, 1);
+    auto transformedMax = transform * glm::vec4(aabb.getMax().x, aabb.getMax().y, 0, 1);
 
     setCentre((transformedMin + transformedMax) / 2.0f);
     setRadius(glm::distance(transformedMin, transformedMax) / 2.0f);

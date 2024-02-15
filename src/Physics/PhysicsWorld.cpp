@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <string>
 
-Physics::PhysicsWorld::PhysicsWorld(PhysicsWorldConfig config) : world(b2Vec2(config.gravity.x, config.gravity.y))
+Physics::PhysicsWorld::PhysicsWorld(PhysicsWorldConfig config, const Core::SpaceTransformer *spaceTransformer) : spaceTransformer(spaceTransformer), world(b2Vec2(config.gravity.x, config.gravity.y))
 {
     setConfig(config);
 }
@@ -19,16 +19,16 @@ Physics::PhysicsWorld::~PhysicsWorld()
     // TODO: implement
 }
 
-void Physics::PhysicsWorld::fixedUpdate(const ECS::Registry &registry, const Core::Timestep &timestep)
+void Physics::PhysicsWorld::fixedUpdate(World::World &world, const Core::Timestep &timestep)
 {
     // create, destroy and update bodies with ECS values
-    updateBodies(registry);
+    updateBodies(world);
 
     // step box2d world
-    world.Step(timestep.getSeconds(), config.velocityIterations, config.positionIterations);
+    this->world.Step(timestep.getSeconds(), config.velocityIterations, config.positionIterations);
 
     // update ECS values with box2d values
-    updateECSWithBox2DValues(registry);
+    updateECSWithBox2DValues(world);
 }
 
 std::vector<Physics::RaycastHit> Physics::PhysicsWorld::raycast(const Ray &ray, RaycastType type)
@@ -105,8 +105,10 @@ const std::unordered_map<ECS::Entity, b2Fixture *> &Physics::PhysicsWorld::getCo
     return colliders;
 }
 
-void Physics::PhysicsWorld::updateBodies(const ECS::Registry &registry)
+void Physics::PhysicsWorld::updateBodies(const World::World &world)
 {
+    auto &registry = world.getRegistry();
+
     auto entities = registry.view<Core::Transform, Physics::RigidBody2D>();
     std::unordered_set<ECS::Entity> entitySet(entities.begin(), entities.end());
 
@@ -131,14 +133,17 @@ void Physics::PhysicsWorld::updateBodies(const ECS::Registry &registry)
 
     // now all bodies in the set are new bodies
     // so add them to world
-    createBodies(registry, entitySet);
+    createBodies(world, entitySet);
 
     // inject user values into box2d bodies
-    updateBodiesWithECSValues(registry, entitySet);
+    updateBodiesWithECSValues(world, entitySet);
 }
 
-void Physics::PhysicsWorld::createBodies(const ECS::Registry &registry, const std::unordered_set<ECS::Entity> &entitySet)
+void Physics::PhysicsWorld::createBodies(const World::World &world, const std::unordered_set<ECS::Entity> &entitySet)
 {
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
+
     b2BodyDef bodyDef;
 
     for (auto &e : entitySet)
@@ -149,7 +154,7 @@ void Physics::PhysicsWorld::createBodies(const ECS::Registry &registry, const st
         }
 
         // add body
-        auto &transform = registry.get<Core::Transform>(e);
+        auto transform = Core::Transform(sceneGraph.getWorldTransform(e));
         auto &body = registry.get<Physics::RigidBody2D>(e);
 
         // set body def
@@ -178,19 +183,22 @@ void Physics::PhysicsWorld::createBodies(const ECS::Registry &registry, const st
         bodyDef.gravityScale = body.gravityScale;
 
         // create body
-        bodies[e] = world.CreateBody(&bodyDef);
+        bodies[e] = this->world.CreateBody(&bodyDef);
         bodyToEntity[bodies[e]] = e;
 
         // create collider
         if (registry.has<Physics::Collider2D>(e))
         {
-            createBox2DCollider(registry, e);
+            createBox2DCollider(world, e);
         }
     }
 }
 
-void Physics::PhysicsWorld::updateBodiesWithECSValues(const ECS::Registry &registry, const std::unordered_set<ECS::Entity> &createdEntities)
+void Physics::PhysicsWorld::updateBodiesWithECSValues(const World::World &world, const std::unordered_set<ECS::Entity> &createdEntities)
 {
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
+
     for (auto &[e, box2dBody] : bodies)
     {
         // skip created entities as they don't need updated
@@ -199,7 +207,7 @@ void Physics::PhysicsWorld::updateBodiesWithECSValues(const ECS::Registry &regis
             continue;
         }
 
-        auto &transform = registry.get<Core::Transform>(e);
+        auto transform = Core::Transform(sceneGraph.getWorldTransform(e));
         auto &body = registry.get<Physics::RigidBody2D>(e);
 
         // update transform
@@ -252,7 +260,7 @@ void Physics::PhysicsWorld::updateBodiesWithECSValues(const ECS::Registry &regis
 
             if (!colliders.contains(e))
             {
-                createBox2DCollider(registry, e);
+                createBox2DCollider(world, e);
             }
 
             // update shape
@@ -260,7 +268,7 @@ void Physics::PhysicsWorld::updateBodiesWithECSValues(const ECS::Registry &regis
             {
                 // collider needs completely re-constructed
                 destroyBox2DCollider(e);
-                createBox2DCollider(registry, e);
+                createBox2DCollider(world, e);
 
                 collider.informOfShapeUpdate();
             }
@@ -282,7 +290,7 @@ void Physics::PhysicsWorld::updateBodiesWithECSValues(const ECS::Registry &regis
     }
 }
 
-void Physics::PhysicsWorld::createBox2DCollider(const ECS::Registry &registry, ECS::Entity e)
+void Physics::PhysicsWorld::createBox2DCollider(const World::World &world, ECS::Entity e)
 {
     if (!bodies.contains(e))
     {
@@ -294,6 +302,7 @@ void Physics::PhysicsWorld::createBox2DCollider(const ECS::Registry &registry, E
         throw std::runtime_error("PhysicsWorld (createBox2DCollider): Entity '" + std::to_string(e) + "' already has a collider.");
     }
 
+    auto &registry = world.getRegistry();
     auto &collider = registry.get<Physics::Collider2D>(e);
 
     b2Shape *shape = collider.getShape()->createBox2DShape();
@@ -322,22 +331,32 @@ void Physics::PhysicsWorld::destroyBox2DCollider(ECS::Entity e)
     colliders.erase(e);
 }
 
-void Physics::PhysicsWorld::updateECSWithBox2DValues(const ECS::Registry &registry)
+void Physics::PhysicsWorld::updateECSWithBox2DValues(const World::World &world)
 {
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
+
     for (auto &[e, box2dBody] : bodies)
     {
-        auto &transform = registry.get<Core::Transform>(e);
+        auto &localTransform = registry.get<Core::Transform>(e);
+        auto worldTransform = Core::Transform(sceneGraph.getWorldTransform(e));
+
         auto &body = registry.get<Physics::RigidBody2D>(e);
 
-        // update transform
+        // create box2d transform
         auto &box2dPos = box2dBody->GetPosition();
-        auto &translation = transform.getTranslation();
-        auto rotation = transform.getRotation();
+        auto box2dRotation = box2dBody->GetAngle();
 
-        if (box2dPos.x != translation.x || box2dPos.y != translation.y || box2dBody->GetAngle() != rotation)
+        auto &translation = worldTransform.getTranslation();
+        auto rotation = worldTransform.getRotation();
+
+        if (box2dPos.x != translation.x || box2dPos.y != translation.y || box2dRotation != rotation)
         {
-            transform.setTranslation(glm::vec2(box2dPos.x, box2dPos.y));
-            transform.setRotation(box2dBody->GetAngle());
+            auto localTranslation = spaceTransformer->transform(glm::vec2(box2dPos.x, box2dPos.y), e, Core::SpaceTransformer::Space::WORLD, Core::SpaceTransformer::Space::LOCAL);
+            localTransform.setTranslation(localTranslation);
+
+            auto localRotation = spaceTransformer->transformWorldRotationToLocal(box2dRotation, e);
+            localTransform.setRotation(localRotation);
         }
 
         // update velocity

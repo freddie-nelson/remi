@@ -1,12 +1,12 @@
 #pragma once
 
 #include <blaze++/Rendering/Renderer.h>
-#include <blaze++/ECS/Registry.h>
+#include <blaze++/World/World.h>
 #include <blaze++/Engine.h>
 
 #include <string>
 
-class Application : public ECS::System
+class Application : public World::System
 {
 public:
     Application();
@@ -20,7 +20,7 @@ private:
     void init();
     void destroy();
 
-    void update(const ECS::Registry &registry, const Core::Timestep &timestep);
+    void update(World::World &world, const Core::Timestep &timestep);
 
-    void fixedUpdate(const ECS::Registry &registry, const Core::Timestep &timestep);
+    void fixedUpdate(World::World &world, const Core::Timestep &timestep);
 };

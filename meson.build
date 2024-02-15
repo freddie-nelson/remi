@@ -146,13 +146,19 @@ rendering_src += ['src/Rendering/Shader/Shader.cpp', 'src/Rendering/Shader/Verte
 rendering_src += ['src/Rendering/Texture/AnimatedTexture.cpp', 'src/Rendering/Texture/AnimationSystem.cpp', 'src/Rendering/Texture/Texture.cpp', 'src/Rendering/Texture/TextureAtlas.cpp', 'src/Rendering/Texture/TextureManager.cpp']
 rendering_src += ['src/Rendering/Utility/OpenGLHelpers.cpp']
 
+# scene
+scene_src = ['src/Scene/SceneGraph.cpp']
+
 # utility
 utility_src = ['src/Utility/FileHandling.cpp', 'src/Utility/glfwSetCallbacks.cpp', 'src/Utility/TypeHelpers.cpp']
+
+# world
+world_src = ['src/World/World.cpp']
 
 # engine
 engine_src = ['src/Engine.cpp', 'src/emscriptenHelpers.cpp']
 
-all_src = core_src + ecs_src + input_src + physics_src + rendering_src + utility_src + engine_src
+all_src = core_src + ecs_src + input_src + physics_src + rendering_src + scene_src + utility_src + world_src + engine_src
 
 engine_kwargs = {
     'dependencies' : dependencies,

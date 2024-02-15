@@ -33,6 +33,13 @@ namespace Core
         Transform(glm::vec2 translation = glm::vec2(0.0f), glm::vec2 scale = glm::vec2(1.0f), glm::vec2 shear = glm::vec2(0.0f), float rotation = 0.0f, unsigned int zIndex = 0);
 
         /**
+         * Creates a transform instance.
+         *
+         * @param mat The transform matrix of the mesh.
+         */
+        Transform(const glm::mat4 &mat);
+
+        /**
          * Moves the mesh forward by the given amount.
          *
          * This will increment the zIndex of the mesh by the given amount.
@@ -216,6 +223,13 @@ namespace Core
          * @returns the transformation matrix of the mesh.
          */
         const glm::mat4 &getTransformationMatrix() const;
+
+        /**
+         * Sets the transformation matrix of the mesh.
+         *
+         * @param mat The transformation matrix of the mesh.
+         */
+        void setTransformationMatrix(const glm::mat4 &mat);
 
     private:
         unsigned int zIndex = 0;
