@@ -154,7 +154,7 @@ void Physics::PhysicsWorld::createBodies(const World::World &world, const std::u
         }
 
         // add body
-        auto transform = Core::Transform(sceneGraph.getWorldTransform(e));
+        auto transform = Core::Transform(sceneGraph.getModelMatrix(e));
         auto &body = registry.get<Physics::RigidBody2D>(e);
 
         // set body def
@@ -207,7 +207,7 @@ void Physics::PhysicsWorld::updateBodiesWithECSValues(const World::World &world,
             continue;
         }
 
-        auto transform = Core::Transform(sceneGraph.getWorldTransform(e));
+        auto transform = Core::Transform(sceneGraph.getModelMatrix(e));
         auto &body = registry.get<Physics::RigidBody2D>(e);
 
         // update transform
@@ -339,7 +339,7 @@ void Physics::PhysicsWorld::updateECSWithBox2DValues(const World::World &world)
     for (auto &[e, box2dBody] : bodies)
     {
         auto &localTransform = registry.get<Core::Transform>(e);
-        auto worldTransform = Core::Transform(sceneGraph.getWorldTransform(e));
+        auto worldTransform = Core::Transform(sceneGraph.getModelMatrix(e));
 
         auto &body = registry.get<Physics::RigidBody2D>(e);
 
@@ -357,6 +357,19 @@ void Physics::PhysicsWorld::updateECSWithBox2DValues(const World::World &world)
 
             auto localRotation = spaceTransformer->transformWorldRotationToLocal(box2dRotation, e);
             localTransform.setRotation(localRotation);
+            // if (sceneGraph.hasParent(e))
+            // {
+            //     auto localTranslation = spaceTransformer->transform(glm::vec2(box2dPos.x, box2dPos.y), e, Core::SpaceTransformer::Space::WORLD, Core::SpaceTransformer::Space::LOCAL);
+            //     localTransform.setTranslation(localTranslation);
+
+            //     auto localRotation = spaceTransformer->transformWorldRotationToLocal(box2dRotation, e);
+            //     localTransform.setRotation(localRotation);
+            // }
+            // else
+            // {
+            //     localTransform.setTranslation(glm::vec2(box2dPos.x, box2dPos.y));
+            //     localTransform.setRotation(box2dRotation);
+            // }
         }
 
         // update velocity

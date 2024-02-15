@@ -1,5 +1,5 @@
 project('blaze++', 'cpp', 'c', default_options : ['libdir=' + meson.current_source_dir() / 'lib' / 'lib', 'includedir=' + meson.current_source_dir() / 'lib' / 'include'])
-add_project_arguments('-std=c++20', '-g', language : 'cpp')
+add_project_arguments('-std=c++20', language : 'cpp')
 
 cross_target = meson.get_external_property('cross_target', 'native')
 
@@ -19,6 +19,10 @@ if get_option('buildtype') == 'debug'
     # crashing on wasm when trying to load a font
     # wasm_link_args += ['-sSAFE_HEAP=1'] 
 endif
+
+# if get_option('buildtype') == 'release'
+#     add_project_arguments('-g', language : 'cpp')
+# endif
 
 #
 # glad

@@ -24,6 +24,7 @@
 #include <blaze++/Physics/Collider2D.h>
 #include <blaze++/Physics/Ray.h>
 
+#include <glm/gtx/string_cast.hpp>
 #include <math.h>
 #include <random>
 #include <time.h>
@@ -222,6 +223,9 @@ void Application::init()
     auto *animTexture = new Rendering::AnimatedTexture(frames, 1000.0f, Rendering::AnimatedTexture::AnimationMode::LOOP);
     cMat.setTexture(animTexture);
 
+    // make camera follow character
+    sceneGraph.relate(character, camera);
+
     // floor
     auto floor = registry.create();
     std::cout << "floor: " << floor << std::endl;
@@ -265,7 +269,7 @@ float textAlpha = 1.0f;
 
 void Application::update(World::World &world, const Core::Timestep &timestep)
 {
-    auto registry = world.getRegistry();
+    auto &registry = world.getRegistry();
 
     auto spaceTransformer = engine->getSpaceTransformer();
     auto renderer = engine->getRenderer();
@@ -410,7 +414,7 @@ void Application::update(World::World &world, const Core::Timestep &timestep)
 
 void Application::fixedUpdate(World::World &world, const Core::Timestep &timestep)
 {
-    auto registry = world.getRegistry();
+    auto &registry = world.getRegistry();
 
     // control character
     auto keyboard = engine->getKeyboard();
@@ -453,7 +457,7 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
 
     auto &cameraTransform = registry.get<Core::Transform>(camera);
 
-    cameraTransform.setTranslation(characterTransform.getTranslation());
+    // cameraTransform.setTranslation(characterTransform.getTranslation());
 
     // raycast test
     glm::vec2 origin = characterTransform.getTranslation();

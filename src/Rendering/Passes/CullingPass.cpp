@@ -50,7 +50,7 @@ Core::AABB Rendering::CullingPass::getCullingAABB(World::World &world, const Cor
     auto &sceneGraph = world.getSceneGraph();
 
     auto &cameraComponent = registry.get<Camera>(camera);
-    auto cameraTransform = Core::Transform(sceneGraph.getWorldTransform(camera));
+    auto cameraTransform = Core::Transform(sceneGraph.getModelMatrix(camera));
 
     // if camera is rotated use bounding circle aabb
     if (cameraTransform.getRotation() != 0)
@@ -150,7 +150,7 @@ size_t Rendering::CullingPass::getRenderables(World::World &world, const std::ve
             continue;
         }
 
-        auto &transform = sceneGraph.getWorldTransform(e);
+        auto &transform = sceneGraph.getModelMatrix(e);
         auto &mesh = registry.get<Mesh2D>(e);
 
         auto boundingCircle = Core::BoundingCircle(mesh.getAABB(), transform);

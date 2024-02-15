@@ -39,6 +39,10 @@ namespace ECS
          * @returns The number of items in the set.
          */
         virtual size_t size() = 0;
+
+    protected:
+        size_t maxId = 0;
+        size_t NULL_INDEX = 0;
     };
 
     /**
@@ -221,9 +225,6 @@ namespace ECS
         }
 
     private:
-        size_t NULL_INDEX = 0;
-        size_t maxId = 0;
-
         /**
          * A parrallel vector to the dense vector that stores the ID of the item at the matching index in the dense vector.
          */

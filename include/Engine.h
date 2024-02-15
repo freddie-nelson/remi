@@ -135,6 +135,9 @@ namespace blz
      *
      * NOTE:
      * The physics world is updated in the fixed update, and will receive a fixed timestep. It is updated after the world has been updated.
+     *
+     * NOTE:
+     * Model matrices are only recalculated after all world systems have been update. Unless force updated.
      */
     class Engine
     {

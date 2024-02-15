@@ -19,6 +19,8 @@ namespace ECS
 {
     /**
      * The registry is responsible for creating and managing entities.
+     *
+     * A registry cannot be copied or moved.
      */
     class Registry
     {
@@ -32,6 +34,10 @@ namespace ECS
          * Destroys the registry.
          */
         ~Registry();
+
+        Registry(const Registry &other) = delete;
+
+        Registry &operator=(const Registry &other) = delete;
 
         /**
          * Creates a new entity.
@@ -223,7 +229,8 @@ namespace ECS
                 return false;
             }
 
-            return getComponentPool<T>().has(entity);
+            SparseSet<T> &componentPool = getComponentPool<T>();
+            return componentPool.has(entity);
         }
 
         /**
@@ -452,7 +459,7 @@ namespace ECS
         {
             ComponentId componentId = ComponentIdGenerator::id<T>;
 
-            if (componentPools.count(componentId) == 0)
+            if (!componentPools.contains(componentId))
             {
                 throw std::runtime_error("Registry (getComponentPool): Component pool does not exist.");
             }
@@ -472,7 +479,7 @@ namespace ECS
         {
             ComponentId componentId = ComponentIdGenerator::id<T>;
 
-            return componentPools.count(componentId) != 0;
+            return componentPools.contains(componentId);
         }
     };
 }

@@ -120,7 +120,7 @@ void Rendering::Renderer::entity(const World::World &world, const ECS::Entity ca
     auto &texturesUniform = textureManager.getTexturesUniform();
 
     // transform
-    auto &transformMatrix = sceneGraph.getWorldTransform(entity);
+    auto &transformMatrix = sceneGraph.getModelMatrix(entity);
 
     // view projection matrix
     auto viewProjectionMatrix = getViewProjectionMatrix(world, camera);
@@ -208,7 +208,7 @@ void Rendering::Renderer::instance(const World::World &world, const ECS::Entity 
 
     for (size_t i = 0; i < instanceCount; i++)
     {
-        transform[i] = sceneGraph.getWorldTransform(instances[i]);
+        transform[i] = sceneGraph.getModelMatrix(instances[i]);
 
         auto material = getMaterial(registry, instances[i]);
 
@@ -330,7 +330,7 @@ void Rendering::Renderer::batch(const World::World &world, const ECS::Entity cam
 
         const auto &mesh = registry.get<Mesh2D>(e);
 
-        auto &transformMatrix = sceneGraph.getWorldTransform(e);
+        auto &transformMatrix = sceneGraph.getModelMatrix(e);
 
         const auto material = getMaterial(registry, e);
         const auto color = material->getColor().getColor();
@@ -704,7 +704,7 @@ glm::mat4 Rendering::Renderer::getViewProjectionMatrix(const World::World &world
     auto &sceneGraph = world.getSceneGraph();
 
     auto &cameraComponent = registry.get<Camera>(camera);
-    auto cameraTransform = Core::Transform(sceneGraph.getWorldTransform(camera));
+    auto cameraTransform = Core::Transform(sceneGraph.getModelMatrix(camera));
 
     return cameraComponent.getViewProjectionMatrix(cameraTransform, pixelsPerMeter);
 }

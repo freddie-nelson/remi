@@ -182,8 +182,12 @@ void Core::Transform::setTransformationMatrix(const glm::mat4 &mat)
     glm::vec4 perspective{};
     glm::decompose(mat, scale, rotation, translation, shear, perspective);
 
+    unsigned int zIndex = static_cast<unsigned int>(translation.z + Config::MAX_Z_INDEX);
+    if (zIndex > Config::MAX_Z_INDEX)
+        throw std::invalid_argument("zIndex must be less than or equal to " + std::to_string(Config::MAX_Z_INDEX) + ".");
+
     setTranslation(glm::vec2(translation));
-    setZIndex(translation.z);
+    setZIndex(zIndex);
     setScale(glm::vec2(scale));
     setShear(glm::vec2(shear));
     setRotation(glm::eulerAngles(rotation).z);

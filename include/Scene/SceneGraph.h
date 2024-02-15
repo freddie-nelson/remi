@@ -18,6 +18,8 @@ namespace Scene
      * An entity will only be added to the scene graph if given a parent or children.
      *
      * Every entity in the scene graph must have a transform component. This is because the main purpose of the scene graph is to calculate the world transform of each entity.
+     *
+     * The scene graph cannot be copied or moved.
      */
     class SceneGraph
     {
@@ -33,6 +35,10 @@ namespace Scene
          * Destroys the scene graph.
          */
         ~SceneGraph();
+
+        SceneGraph(const SceneGraph &) = delete;
+
+        SceneGraph &operator=(const SceneGraph &) = delete;
 
         /**
          * Creates a parent-child relationship between the given entities.
@@ -108,37 +114,50 @@ namespace Scene
         bool hasChildren(ECS::Entity entity) const;
 
         /**
-         * Gets the world transform of the given entity.
+         * Gets the model matrix of the given entity.
          *
-         * The world transform is the transform of the entity in world space. It is calculated by multiplying the local transform of the entity with the world transform of its parent.
+         * The model matrix is the transformation of the entity in world space. It is calculated by multiplying the local transform of the entity with the model matrix of its parent.
          *
-         * If the entity does not have a parent, the world transform is the same as the local transform.
+         * If the entity does not have a parent, the model matrix is the same as the local transform.
          *
-         * @param entity The entity to get the world transform of.
-         * @param forceUpdate If true, the world transform will be recalculated even if it has already been calculated.
+         * @param entity The entity to get the model matrix of.
+         * @param forceUpdate If true, the model matrix will be recalculated even if it has already been calculated.
          */
-        const glm::mat4 &getWorldTransform(ECS::Entity entity, bool forceUpdate = false) const;
+        const glm::mat4 &getModelMatrix(ECS::Entity entity, bool forceUpdate = false) const;
 
         /**
-         * Updates the world transform of the given entity.
+         * Gets the model matrix of the entity's parent.
          *
-         * This will recalculate the world transform of the entity.
+         * If the entity does not have a parent, the model matrix is the identity matrix.
          *
-         * @param entity The entity to update the world transform of.
-         * @param updateParent If true, the world transform of the parent will also be updated.
-         * @param updateChildren If true, the world transform of the children (recursively) will also be updated.
+         * @param entity The entity to get the parent model matrix of.
+         *
+         * @returns The model matrix of the entity's parent.
          */
-        void updateWorldTransform(ECS::Entity entity, bool updateParent = true, bool updateChildren = false) const;
+        const glm::mat4 &getParentModelMatrix(ECS::Entity entity, bool forceUpdate = false) const;
 
         /**
-         * Updates the world transforms of all entities in the scene graph.
+         * Updates the model matrix of the given entity.
          *
-         * This will recalculate the world transform of each entity in the scene graph.
+         * This will recalculate the model matrix of the entity.
+         *
+         * @param entity The entity to update the model matrix of.
+         * @param updateParent If true, the model matrix of the parent will also be updated.
+         * @param updateChildren If true, the model matrices of the children (recursively) will also be updated.
          */
-        void updateWorldTransforms();
+        void updateModelMatrix(ECS::Entity entity, bool updateParent = true, bool updateChildren = false) const;
+
+        /**
+         * Updates the model matrices of all entities in the scene graph.
+         *
+         * This will recalculate the model matrices of each entity in the scene graph.
+         */
+        void updateModelMatrices();
 
     private:
         const ECS::Registry *registry;
+
+        glm::mat4 rootModelMatrix = glm::mat4(1.0f);
 
         /**
          * The parent-child relationships.
@@ -153,6 +172,6 @@ namespace Scene
         /**
          * The world transforms of each entity.
          */
-        mutable std::unordered_map<ECS::Entity, glm::mat4> worldTransforms;
+        mutable std::unordered_map<ECS::Entity, glm::mat4> modelMatrices;
     };
 }

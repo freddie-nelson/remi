@@ -1,5 +1,5 @@
 project('dev', 'cpp')
-add_project_arguments('-std=c++20', '-g', language : 'cpp')
+add_project_arguments('-std=c++20', language : 'cpp')
 
 fs = import('fs')
 

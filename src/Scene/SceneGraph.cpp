@@ -83,38 +83,55 @@ bool Scene::SceneGraph::hasChildren(ECS::Entity entity) const
     return childrenMap.contains(entity);
 }
 
-const glm::mat4 &Scene::SceneGraph::getWorldTransform(ECS::Entity entity, bool forceUpdate) const
+const glm::mat4 &Scene::SceneGraph::getModelMatrix(ECS::Entity entity, bool forceUpdate) const
 {
     if (forceUpdate)
     {
-        updateWorldTransform(entity, true, false);
+        updateModelMatrix(entity, true, false);
     }
 
-    if (!worldTransforms.contains(entity))
+    if (!modelMatrices.contains(entity))
     {
-        updateWorldTransform(entity, true, true);
+        updateModelMatrix(entity, true, false);
     }
 
-    return worldTransforms.at(entity);
+    return modelMatrices.at(entity);
 }
 
-void Scene::SceneGraph::updateWorldTransform(ECS::Entity entity, bool updateParent, bool updateChildren) const
+const glm::mat4 &Scene::SceneGraph::getParentModelMatrix(ECS::Entity entity, bool forceUpdate) const
+{
+    if (!hasParent(entity))
+    {
+        return rootModelMatrix;
+    }
+
+    return getModelMatrix(parent(entity), forceUpdate);
+}
+
+void Scene::SceneGraph::updateModelMatrix(ECS::Entity entity, bool updateParent, bool updateChildren) const
 {
     if (!registry->has<Core::Transform>(entity))
     {
-        throw std::invalid_argument("SceneGraph (updateWorldTransform): Entity '" + std::to_string(entity) + "' does not have a transform component.");
+        throw std::invalid_argument("SceneGraph (updateModelMatrices): Entity '" + std::to_string(entity) + "' does not have a transform component.");
     }
 
     if (!hasParent(entity))
     {
-        worldTransforms[entity] = registry->get<Core::Transform>(entity).getTransformationMatrix();
+        modelMatrices[entity] = registry->get<Core::Transform>(entity).getTransformationMatrix();
     }
     else
     {
         auto parent = this->parent(entity);
-        auto &parentWorldTransform = getWorldTransform(parent, updateParent);
+        auto &parentModelMatrix = getModelMatrix(parent, updateParent);
 
-        worldTransforms[entity] = parentWorldTransform * registry->get<Core::Transform>(entity).getTransformationMatrix();
+        auto &transform = registry->get<Core::Transform>(entity);
+        auto &localTransform = transform.getTransformationMatrix();
+
+        modelMatrices[entity] = parentModelMatrix * localTransform;
+
+        // always use z index of entity
+        // 4th/last column, 3rd row of model matrix is the z index
+        modelMatrices[entity][3][2] = localTransform[3][2];
     }
 
     if (updateChildren && hasChildren(entity))
@@ -122,26 +139,28 @@ void Scene::SceneGraph::updateWorldTransform(ECS::Entity entity, bool updatePare
         auto &children = this->children(entity);
         for (auto &child : children)
         {
-            updateWorldTransform(child, false, true);
+            updateModelMatrix(child, false, true);
         }
     }
 }
 
-void Scene::SceneGraph::updateWorldTransforms()
+void Scene::SceneGraph::updateModelMatrices()
 {
-    std::vector<ECS::Entity> rootEntities;
-    rootEntities.reserve(childrenMap.size());
+    auto entities = registry->view<Core::Transform>();
 
-    for (auto &[parent, children] : childrenMap)
+    std::vector<ECS::Entity> rootEntities;
+    rootEntities.reserve(entities.size());
+
+    for (auto entity : entities)
     {
-        if (!hasParent(parent))
+        if (!hasParent(entity))
         {
-            rootEntities.push_back(parent);
+            rootEntities.push_back(entity);
         }
     }
 
     for (auto &rootEntity : rootEntities)
     {
-        updateWorldTransform(rootEntity, false, true);
+        updateModelMatrix(rootEntity, false, true);
     }
 }

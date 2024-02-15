@@ -17,7 +17,7 @@ void World::World::update(const Core::Timestep &timestep)
         system->update(*this, timestep);
     }
 
-    sceneGraph.updateWorldTransforms();
+    sceneGraph.updateModelMatrices();
 }
 
 void World::World::fixedUpdate(const Core::Timestep &timestep)
@@ -27,7 +27,7 @@ void World::World::fixedUpdate(const Core::Timestep &timestep)
         system->fixedUpdate(*this, timestep);
     }
 
-    sceneGraph.updateWorldTransforms();
+    sceneGraph.updateModelMatrices();
 }
 
 const std::vector<World::System *> &World::World::getSystems()

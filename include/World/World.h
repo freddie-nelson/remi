@@ -16,6 +16,8 @@ namespace World
      * The registry is used to store entities and their components.
      *
      * The scene graph is used to organize entities into a parent-child hierarchy.
+     *
+     * The world cannot be copied or moved.
      */
     class World
     {
@@ -33,6 +35,10 @@ namespace World
          * The world will destroy the registry and scene graph.
          */
         ~World();
+
+        World(const World &) = delete;
+
+        World &operator=(const World &) = delete;
 
         /**
          * Runs all updates.

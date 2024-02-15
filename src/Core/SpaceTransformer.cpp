@@ -47,7 +47,12 @@ float Core::SpaceTransformer::transformLocalRotationToWorld(float rotation, cons
     auto &sceneGraph = world->getSceneGraph();
     auto &registry = world->getRegistry();
 
-    auto &worldTransform = sceneGraph.getWorldTransform(entity);
+    if (!sceneGraph.hasParent(entity))
+    {
+        return rotation;
+    }
+
+    auto &worldTransform = sceneGraph.getModelMatrix(entity);
     auto rotationMat = glm::eulerAngleZ(rotation);
 
     auto worldRotation = worldTransform * rotationMat;
@@ -61,7 +66,12 @@ float Core::SpaceTransformer::transformWorldRotationToLocal(float rotation, cons
     auto &sceneGraph = world->getSceneGraph();
     auto &registry = world->getRegistry();
 
-    auto &worldTransform = sceneGraph.getWorldTransform(entity);
+    if (!sceneGraph.hasParent(entity))
+    {
+        return rotation;
+    }
+
+    auto &worldTransform = sceneGraph.getModelMatrix(entity);
     auto rotationMat = glm::eulerAngleZ(rotation);
 
     auto inverseWorldTransform = glm::inverse(worldTransform);
@@ -122,7 +132,7 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::getNextSpace(Space s, Spac
                 throw std::invalid_argument("SpaceTransform (getNextSpace): can't convert from world to local without entity.");
             }
 
-            worldToLocal(v, world->getSceneGraph().getWorldTransform(*entity));
+            worldToLocal(v, world->getSceneGraph().getParentModelMatrix(*entity));
             return Space::LOCAL;
         default:
             throw std::invalid_argument("SpaceTransformer (getNextSpace): can't convert space any further.");
@@ -139,7 +149,7 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::getNextSpace(Space s, Spac
                 throw std::invalid_argument("SpaceTransform (getNextSpace): can't convert from local to world without entity.");
             }
 
-            localToWorld(v, world->getSceneGraph().getWorldTransform(*entity));
+            localToWorld(v, world->getSceneGraph().getParentModelMatrix(*entity));
             return Space::WORLD;
         case Space::WORLD:
             worldToView(v);
