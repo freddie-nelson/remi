@@ -1,6 +1,7 @@
 #include "./include/Application.h"
 #include "./include/Globals.h"
 
+#include <blaze++/Core/SpaceTransformer.h>
 #include <blaze++/Rendering/Mesh/Polygons.h>
 #include <blaze++/Rendering/Material/Material.h>
 #include <blaze++/Core/Timestep.h>
@@ -61,7 +62,9 @@ struct FPS
 // ! Implement some kind of texture/asset loading system at engine level
 // would avoid user having to manage memory etc for textures and maybe other things
 
+ECS::Entity player;
 ECS::Entity character;
+ECS::Entity camera;
 
 void Application::init()
 {
@@ -107,7 +110,7 @@ void Application::init()
     font = new Rendering::Font("assets/Roboto-Regular.ttf");
 
     // create camera
-    auto camera = registry.create();
+    camera = registry.create();
     registry.add(camera, Rendering::Camera(window->getWidth(), window->getHeight()));
     registry.add(camera, Core::Transform());
     registry.add(camera, Rendering::ActiveCamera());
@@ -197,13 +200,6 @@ void Application::init()
     ct.scale(3);
     ct.setZIndex(zRange + 1);
 
-    auto &body = registry.add(character, Physics::RigidBody2D());
-    body.fixedRotation = true;
-    body.linearDamping = 0.98f;
-
-    auto shape = new Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
-    auto &collider = registry.add(character, Physics::Collider2D(shape));
-    delete shape;
 
     std::vector<std::string> frames = {
         "assets/character/run0.png",
@@ -219,8 +215,20 @@ void Application::init()
     auto *animTexture = new Rendering::AnimatedTexture(frames, 1000.0f, Rendering::AnimatedTexture::AnimationMode::LOOP);
     cMat.setTexture(animTexture);
 
-    // make camera follow character
-    sceneGraph.relate(character, camera);
+    // create player 
+    player = registry.create();
+    registry.add(player, Core::Transform());
+
+    auto &body = registry.add(player, Physics::RigidBody2D());
+    body.fixedRotation = true;
+    body.linearDamping = 0.98f;
+
+    auto shape = new Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
+    auto &collider = registry.add(player, Physics::Collider2D(shape));
+    delete shape;
+
+    sceneGraph.relate(player, camera);
+    sceneGraph.relate(player, character);
 
     // floor
     auto floor = registry.create();
@@ -250,6 +258,17 @@ void Application::init()
 
     fpsTransform.scale(0.25f);
     fpsTransform.setZIndex(Config::MAX_Z_INDEX);
+
+    sceneGraph.relate(camera, fps);
+    sceneGraph.updateModelMatrix(fps);
+
+    float paddingX = 55.0f;
+    float paddingY = 15.0f;
+    auto spaceTransformer = engine->getSpaceTransformer();
+    auto screenPos = glm::vec2(paddingX, window->getHeight() - paddingY);
+    auto localPos = spaceTransformer->transform(screenPos, fps, Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::LOCAL);
+
+    fpsTransform.setTranslation(localPos);
 }
 
 void Application::destroy()
@@ -317,15 +336,6 @@ void Application::update(World::World &world, const Core::Timestep &timestep)
         auto fpsText = Rendering::MemoizedText::text("FPS: " + std::to_string(fpsComponent.fps), font);
         fpsMesh = fpsText.mesh(Rendering::Text::TextAlignment::LEFT);
     }
-
-    auto &fpsTransform = registry.get<Core::Transform>(fpsEntity);
-    auto transformedAABB = fpsMesh.getAABB().transform(fpsTransform);
-    float fpsPadding = 10.0f;
-    float fpsScale = 0.25f;
-
-    fpsTransform.setTranslation(spaceTransformer->transform(glm::vec2(spaceTransformer->metersToPixels(transformedAABB.getWidth()) / 2.0f + fpsPadding, renderer->getHeight() - spaceTransformer->metersToPixels(transformedAABB.getHeight()) / 2.0f - fpsPadding), Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD));
-    fpsTransform.setScale(fpsScale * t.getScale());
-    fpsTransform.setRotation(t.getRotation());
 
     // set text entity uniform
     auto textEntity = registry.view<Rendering::ShaderMaterial>()[0];
@@ -415,7 +425,8 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     // control character
     auto keyboard = engine->getKeyboard();
 
-    auto &characterBody = registry.get<Physics::RigidBody2D>(character);
+    auto &playerBody = registry.get<Physics::RigidBody2D>(player);
+    auto &playerTransform = registry.get<Core::Transform>(player);
     auto &characterTransform = registry.get<Core::Transform>(character);
 
     float speed = 2.5f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
@@ -441,27 +452,20 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
 
     if (charVel.x != 0.0f)
     {
-        characterBody.velocity.x = charVel.x;
+        playerBody.velocity.x = charVel.x;
     }
     if (charVel.y != 0.0f)
     {
-        characterBody.velocity.y = charVel.y;
+        playerBody.velocity.y = charVel.y;
     }
 
-    // track character with camera
-    auto camera = engine->getRenderer()->getActiveCamera(registry);
-
-    auto &cameraTransform = registry.get<Core::Transform>(camera);
-
-    // cameraTransform.setTranslation(characterTransform.getTranslation());
-
     // raycast test
-    glm::vec2 origin = characterTransform.getTranslation();
+    glm::vec2 origin = playerTransform.getTranslation();
     glm::vec2 toMouse = engine->getSpaceTransformer()->transform(engine->getMouse()->getPosition(true), Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD) - origin;
     glm::vec2 direction = glm::normalize(toMouse);
     float length = glm::length(toMouse);
 
-    Physics::Ray ray(characterTransform.getTranslation(), direction, length);
+    Physics::Ray ray(playerTransform.getTranslation(), direction, length);
     // std::cout << "start: " << ray.start.x << ", " << ray.start.y << std::endl;
     // std::cout << "end: " << ray.end.x << ", " << ray.end.y << std::endl;
 
