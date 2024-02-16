@@ -197,10 +197,11 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::clipToView(glm::vec2 &v) c
 {
 
     auto &registry = world->getRegistry();
+    auto &sceneGraph = world->getSceneGraph();
 
     auto camera = renderer->getActiveCamera(registry);
     auto &cameraComponent = registry.get<Rendering::Camera>(camera);
-    auto &t = registry.get<Core::Transform>(camera);
+    auto t = Core::Transform(sceneGraph.getModelMatrix(camera));
 
     auto projection = cameraComponent.getProjectionMatrix(t);
     auto inverseProjection = glm::inverse(projection);
@@ -218,10 +219,11 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::clipToView(glm::vec2 &v) c
 Core::SpaceTransformer::Space Core::SpaceTransformer::viewToClip(glm::vec2 &v) const
 {
     auto &registry = world->getRegistry();
+    auto &sceneGraph = world->getSceneGraph();
 
     auto camera = renderer->getActiveCamera(registry);
     auto &cameraComponent = registry.get<Rendering::Camera>(camera);
-    auto &t = registry.get<Core::Transform>(camera);
+    auto t = Core::Transform(sceneGraph.getModelMatrix(camera));
 
     auto projection = cameraComponent.getProjectionMatrix(t);
 
@@ -236,10 +238,11 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::viewToClip(glm::vec2 &v) c
 Core::SpaceTransformer::Space Core::SpaceTransformer::viewToWorld(glm::vec2 &v) const
 {
     auto &registry = world->getRegistry();
+    auto &sceneGraph = world->getSceneGraph();
 
     auto camera = renderer->getActiveCamera(registry);
     auto &cameraComponent = registry.get<Rendering::Camera>(camera);
-    auto &t = registry.get<Core::Transform>(camera);
+    auto t = Core::Transform(sceneGraph.getModelMatrix(camera));
 
     auto view = cameraComponent.getViewMatrix(t, pixelsPerMeterFloat);
     auto inverseView = glm::inverse(view);
@@ -257,10 +260,11 @@ Core::SpaceTransformer::Space Core::SpaceTransformer::viewToWorld(glm::vec2 &v) 
 Core::SpaceTransformer::Space Core::SpaceTransformer::worldToView(glm::vec2 &v) const
 {
     auto &registry = world->getRegistry();
+    auto &sceneGraph = world->getSceneGraph();
 
     auto camera = renderer->getActiveCamera(registry);
     auto &cameraComponent = registry.get<Rendering::Camera>(camera);
-    auto &t = registry.get<Core::Transform>(camera);
+    auto t = Core::Transform(sceneGraph.getModelMatrix(camera));
 
     auto view = cameraComponent.getViewMatrix(t, pixelsPerMeterFloat);
 

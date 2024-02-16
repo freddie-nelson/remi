@@ -15,6 +15,8 @@ namespace Core
      * A higher zIndex is 'closer' to the camera. 0 is the lowest zIndex and will be rendered below everything, whereas `Config::MAX_Z_INDEX` is the largest z index and will be rendered above everything.
      *
      * This can be used as an entity component.
+     *
+     * Positive rotation is counter-clockwise. Negative rotation is clockwise.
      */
     class Transform
     {
