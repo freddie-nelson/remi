@@ -1,6 +1,7 @@
 #include "../../../include/Rendering/Mesh/Mesh.h"
 #include "../../../include/Rendering/Mesh/Polygons.h"
 #include "../../../include/Config.h"
+#include "include/Core/Transform.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdexcept>
@@ -50,6 +51,11 @@ Rendering::Mesh2D::Mesh2D(float width, float height)
     createRect(width, height);
 }
 
+Rendering::Mesh2D::Mesh2D(const glm::vec2 &start, const glm::vec2 &end, float thickness, bool centre)
+{
+    createLine(start, end, thickness, centre);
+}
+
 void Rendering::Mesh2D::createPolygon(const std::vector<glm::vec2> &vertices)
 {
     auto iv = Rendering::createPolygon(vertices, true);
@@ -78,6 +84,46 @@ void Rendering::Mesh2D::createRect(float width, float height)
 
     aabb.setFromPoints(vertices);
     setUvsFromAABB();
+}
+
+void Rendering::Mesh2D::createLine(const glm::vec2 &start, const glm::vec2 &end, float thickness, bool centre)
+{
+    if (thickness <= 0)
+    {
+        throw std::invalid_argument("Mesh (createLine): thickness must be greater than 0.");
+    }
+
+    if (start == end)
+    {
+        throw std::invalid_argument("Mesh (createLine): start and end cannot be the same.");
+    }
+
+    auto width = glm::length(end - start);
+    auto iv = Rendering::createRect(width, thickness);
+
+    // rotate the line to the correct angle
+    auto angle = atan2(end.y - start.y, end.x - start.x);
+    Core::Transform rotTransform;
+    rotTransform.setRotation(angle);
+
+    for (auto &v : iv.vertices)
+    {
+        v = glm::vec2(rotTransform.getTransformationMatrix() * glm::vec4(v, 0.0f, 1.0f));
+    }
+
+    vertices = std::move(iv.vertices);
+    indices = std::move(iv.indices);
+
+    aabb.setFromPoints(vertices);
+    setUvsFromAABB();
+
+    if (centre)
+    {
+        setCentre(glm::vec2(0));
+    } else {
+        setCentre(glm::vec2(0));
+        setCentre(glm::vec2((start + end) / 2.0f));
+    }
 }
 
 void Rendering::Mesh2D::setVertices(std::vector<glm::vec2> vertices)

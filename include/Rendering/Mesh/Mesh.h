@@ -97,6 +97,18 @@ namespace Rendering
         Mesh2D(float width, float height);
 
         /**
+         * Creates a mesh instance.
+         *
+         * The mesh created will be a line with the given start and end points and thickness.
+         *
+         * @param start The start of the line.
+         * @param end The end of the line.
+         * @param thickness The thickness of the line.
+         * @param centre Whether to centre the line at (0, 0) or not.
+         */
+         Mesh2D(const glm::vec2 &start, const glm::vec2 &end, float thickness, bool centre = false);
+
+        /**
          * Creates the vertices and indices of the mesh to form a polygon.
          *
          * This will triangulate the polygon represented by the given vertices, to create the mesh.
@@ -130,6 +142,18 @@ namespace Rendering
          * @param height The height of the rectangle.
          */
         void createRect(float width, float height);
+
+        /**
+         * Creates the vertices and indices of the mesh to form a line.
+         *
+         * The line can be centred at (0, 0) or not.
+         * 
+         * @param start The start of the line.
+         * @param end The end of the line.
+         * @param thickness The thickness of the line.
+         * @param centre Whether to centre the line at (0, 0) or not.
+        */
+        void createLine(const glm::vec2 &start, const glm::vec2 &end, float thickness, bool centre = false);
 
         /**
          * Sets the vertices of the mesh.
