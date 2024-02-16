@@ -30,6 +30,8 @@ void Scene::SceneGraph::relate(ECS::Entity parent, ECS::Entity child)
 
     childrenMap[parent].emplace(child);
     parents[child] = parent;
+
+    updateModelMatrix(child, false, true);
 }
 
 void Scene::SceneGraph::relate(ECS::Entity parent, const std::vector<ECS::Entity> &children)
@@ -51,6 +53,8 @@ void Scene::SceneGraph::unrelate(ECS::Entity entity)
     parents.erase(entity);
 
     childrenMap[parent].erase(entity);
+
+    updateModelMatrix(entity, false, true);
 }
 
 ECS::Entity Scene::SceneGraph::parent(ECS::Entity entity) const
@@ -159,8 +163,21 @@ void Scene::SceneGraph::updateModelMatrices()
         }
     }
 
+    // remove entities no longer in registry
+    removeEntitiesNotInRegistry();
+
+    // recurse down tree updating model matrices
     for (auto &rootEntity : rootEntities)
     {
         updateModelMatrix(rootEntity, false, true);
+    }
+}
+
+void Scene::SceneGraph::removeEntitiesNotInRegistry() {
+    for (auto &[e, _] : modelMatrices) {
+        if (!registry->has(e)) {
+            modelMatrices.erase(e);
+            unrelate(e);
+        }
     }
 }

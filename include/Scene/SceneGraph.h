@@ -56,6 +56,8 @@ namespace Scene
          * Creates a parent-child relationship between the given entities.
          *
          * If the child entity already has a parent, it will be removed from its current parent and added to the new parent.
+
+         * Will also update the entity and its children's model matrices. 
          *
          * @param parent The parent entity.
          * @param children The child entities.
@@ -70,6 +72,8 @@ namespace Scene
          * This will remove the parent of the given entity. Effectively makes the entity a child of the root node.
          *
          * Does nothing if the entity does not have a parent.
+         *
+         * Will also update the entity and its children's model matrices. 
          *
          * @param entity The entity to unrelate.
          */
@@ -151,8 +155,15 @@ namespace Scene
          * Updates the model matrices of all entities in the scene graph.
          *
          * This will recalculate the model matrices of each entity in the scene graph.
+         * 
+         * Also removes entities from the scene graph that are not in the registry.
          */
         void updateModelMatrices();
+
+        /**
+         * Removes entities from the scene graph that are not in the registry. 
+        */
+        void removeEntitiesNotInRegistry();
 
     private:
         const ECS::Registry *registry;

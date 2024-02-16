@@ -3,7 +3,6 @@
 #include <vector>
 #include <stdexcept>
 #include <string>
-#include <iostream>
 
 #define ECS_SPARSE_SET_MAX_ID 16777215
 #define ECS_SPARSE_SET_DEFAULT_MAX_ID 65535

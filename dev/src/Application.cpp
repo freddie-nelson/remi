@@ -260,7 +260,6 @@ void Application::init()
     fpsTransform.setZIndex(Config::MAX_Z_INDEX);
 
     sceneGraph.relate(camera, fps);
-    sceneGraph.updateModelMatrix(fps);
 
     float paddingX = 55.0f;
     float paddingY = 15.0f;
