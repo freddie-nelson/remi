@@ -5,6 +5,8 @@
 #include "../../../include/Config.h"
 
 #include <box2d/b2_fixture.h>
+#include <box2d/b2_polygon_shape.h>
+#include <box2d/b2_circle_shape.h>
 
 Rendering::PhysicsDebugPass::PhysicsDebugPass(const Physics::PhysicsWorld *physicsWorld) : physicsWorld(physicsWorld)
 {
@@ -37,10 +39,29 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
         auto &aabb = collider->GetAABB(0);
 
         auto e = registry.create();
-        auto &transform = registry.add(e, Core::Transform());
         auto &mesh = registry.add(e, Rendering::Mesh2D(aabb.GetExtents().x * 2, aabb.GetExtents().y * 2));
+        auto &transform = registry.add(e, Core::Transform());
         auto &material = registry.add(e, Rendering::Material());
         auto &renderable = registry.add(e, Rendering::Renderable(true, false));
+        
+        auto shape = collider->GetShape();
+
+        if (shape->GetType() == b2Shape::e_polygon) {
+            auto polygon = reinterpret_cast<b2PolygonShape*>(shape);
+            auto vertices = polygon->m_vertices;
+
+            std::vector<glm::vec2> points;
+            for (int i = 0; i < polygon->m_count; i++) {
+                points.push_back(glm::vec2(vertices[i].x, vertices[i].y));
+            }
+
+            mesh.createPolygon(points);
+        } else if (shape->GetType() == b2Shape::e_circle) {
+            auto circle = reinterpret_cast<b2CircleShape*>(shape);
+            auto radius = circle->m_radius;
+
+            mesh.createRegularPolygon(radius, 32);
+        } 
 
         transform.setZIndex(Config::MAX_Z_INDEX);
         transform.setTranslation(glm::vec2(aabb.GetCenter().x, aabb.GetCenter().y));
