@@ -5,8 +5,9 @@
 #include "../include/Rendering/Passes/BatchPass.h"
 #include "../include/Rendering/Passes/DrawPass.h"
 #include "../include/Rendering/Passes/OutputPass.h"
-#include "../include/Rendering/Passes/ColorBlendPass.h"
 #include "../include/Rendering/Passes/PhysicsDebugPass.h"
+
+#include <iostream>
 
 #ifdef __EMSCRIPTEN__
 #include "../include/emscriptenHelpers.h"
