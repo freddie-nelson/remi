@@ -2,6 +2,8 @@
 #include "./include/Globals.h"
 
 #include <blaze++/Core/SpaceTransformer.h>
+#include <blaze++/ECS/SparseSet.h>
+#include <blaze++/Rendering/Mesh/Mesh.h>
 #include <blaze++/Rendering/Mesh/Polygons.h>
 #include <blaze++/Rendering/Material/Material.h>
 #include <blaze++/Core/Timestep.h>
@@ -70,6 +72,8 @@ void Application::init()
 {
     // init engine
     blz::EngineConfig config;
+    config.windowWidth = 1000;
+    config.windowHeight = 800;
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
     config.drawDebugPhysics = true;
@@ -417,9 +421,13 @@ void Application::update(World::World &world, const Core::Timestep &timestep)
     // }
 }
 
+bool createdRaycastEntity = false;
+ECS::Entity raycastEntity;
+
 void Application::fixedUpdate(World::World &world, const Core::Timestep &timestep)
 {
     auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
 
     // control character
     auto keyboard = engine->getKeyboard();
@@ -459,25 +467,33 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     }
 
     // raycast test
-    glm::vec2 origin = playerTransform.getTranslation();
-    glm::vec2 toMouse = engine->getSpaceTransformer()->transform(engine->getMouse()->getPosition(true), Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD) - origin;
-    glm::vec2 direction = glm::normalize(toMouse);
-    float length = glm::length(toMouse);
+    auto playerWorldTransform = Core::Transform(sceneGraph.getModelMatrix(player));
 
-    Physics::Ray ray(playerTransform.getTranslation(), direction, length);
+    glm::vec2 origin = playerWorldTransform.getTranslation();
+    glm::vec2 mouse = engine->getSpaceTransformer()->transform(engine->getMouse()->getPosition(true), Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD);
+    Physics::Ray ray(origin, mouse);
+
     // std::cout << "start: " << ray.start.x << ", " << ray.start.y << std::endl;
     // std::cout << "end: " << ray.end.x << ", " << ray.end.y << std::endl;
 
     auto hits = engine->getPhysicsWorld()->raycast(ray, Physics::RaycastType::CLOSEST);
 
-    if (!hits.empty())
-    {
-        std::cout << "hit: " << hits[0].entity << std::endl;
+    if (!createdRaycastEntity) {
+        raycastEntity = registry.create();
+        registry.add(raycastEntity, Rendering::Mesh2D());
+        registry.add(raycastEntity, Core::Transform());
+        registry.add(raycastEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
+        registry.add(raycastEntity, Rendering::Renderable(true, false));
+        createdRaycastEntity = true;
+    }
 
-        auto hit = hits[0];
-        auto entity = hit.entity;
+    auto &raycastMesh = registry.get<Rendering::Mesh2D>(raycastEntity);
+    raycastMesh.createLine(ray.start, ray.end, 0.025f);
 
-        auto &material = registry.get<Rendering::Material>(entity);
-        material.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    auto &raycastMaterial = registry.get<Rendering::Material>(raycastEntity);
+    if (hits.empty()) {
+        raycastMaterial.setColor(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f));
+    } else {
+        raycastMaterial.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
     }
 }
