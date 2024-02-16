@@ -114,10 +114,10 @@ const Core::AABB &Rendering::Camera::getAABB() const
 
 Core::AABB Rendering::Camera::getScaledAndTranslatedAabb(const Core::Transform &t, float pixelsPerMeter) const
 {
-    auto min = (aabb.getMin() / pixelsPerMeter) * t.getScale();
-    auto max = (aabb.getMax() / pixelsPerMeter) * t.getScale();
+    auto min = (aabb.getMin() / pixelsPerMeter) * t.getScale() + t.getTranslation();
+    auto max = (aabb.getMax() / pixelsPerMeter) * t.getScale()  + t.getTranslation();
 
-    return Core::AABB(min + t.getTranslation(), max + t.getTranslation());
+    return Core::AABB(glm::min(min, max), glm::max(min, max));
 }
 
 void Rendering::Camera::updateAABB()
