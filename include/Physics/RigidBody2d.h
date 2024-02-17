@@ -226,6 +226,17 @@ namespace Physics
         void setGravityScale(float scale);
 
         /**
+         * Gets the mass of the body.
+         *
+         * This is calculated from the bodies fixtures/colliders.
+         *
+         * If the box2d body has not been created yet this will return 0.
+         *
+         * @returns The mass of the body.
+         */
+        float getMass() const;
+
+        /**
          * Gets the underlying Box2D body.
          *
          * @warning Do not use this unless you know what you are doing.

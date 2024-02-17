@@ -464,6 +464,8 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     auto &playerTransform = registry.get<Core::Transform>(player);
     auto &characterTransform = registry.get<Core::Transform>(character);
 
+    // std::cout << "player mass: " << playerBody.getMass() << std::endl;
+
     float speed = 2.5f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
     float jumpSpeed = 5.0f;
 

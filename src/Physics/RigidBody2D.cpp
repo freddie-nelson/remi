@@ -214,3 +214,13 @@ void Physics::RigidBody2D::setBody(b2Body *body)
 {
     this->body = body;
 }
+
+float Physics::RigidBody2D::getMass() const
+{
+    if (body != nullptr)
+    {
+        return body->GetMass();
+    }
+
+    return 0.0f;
+}
