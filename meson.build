@@ -16,7 +16,7 @@ lib_dir = meson.current_source_dir() / 'lib'
 wasm_link_args = ['-sEXPORT_ALL=1', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=4096MB', '-sINVOKE_RUN=0', '-sFORCE_FILESYTEM', '-sSTANDALONE_WASM']
 
 if get_option('buildtype') == 'debug'
-    wasm_link_args += ['-sASSERTIONS=2', '-sNO_DISABLE_EXCEPTION_CATCHING', '-g', '-O0', '-sDEMANGLE_SUPPORT=1']
+    wasm_link_args += ['-sASSERTIONS=2', '-sNO_DISABLE_EXCEPTION_CATCHING', '-gsource-map', '-g3', '-O0', '-sDEMANGLE_SUPPORT=1']
 
     # crashing on wasm when trying to load a font
     # wasm_link_args += ['-sSAFE_HEAP=1'] 
@@ -96,7 +96,7 @@ if cross_target == 'native'
 endif
 
 if cross_target == 'wasm'
-    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2'] + wasm_link_args
+    link_args += ['-sUSE_GLFW=3', '--use-port=contrib.glfw3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2'] + wasm_link_args
 
     if get_option('buildtype') == 'debug'
         link_args += ['-sASSERTIONS=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
