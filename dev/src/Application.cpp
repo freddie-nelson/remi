@@ -1,5 +1,4 @@
 #include "./include/Application.h"
-#include "./include/Globals.h"
 
 #include <blaze++/Core/SpaceTransformer.h>
 #include <blaze++/ECS/SparseSet.h>

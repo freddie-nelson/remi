@@ -4,8 +4,6 @@
 #include <blaze++/World/World.h>
 #include <blaze++/Engine.h>
 
-#include <string>
-
 class Application : public World::System
 {
 public:
