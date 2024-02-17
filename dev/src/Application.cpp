@@ -72,11 +72,9 @@ void Application::init()
 {
     // init engine
     blz::EngineConfig config;
-    config.windowWidth = 1000;
-    config.windowHeight = 800;
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
-    config.drawDebugPhysics = true;
+    // config.drawDebugPhysics = true;
 
     engine = new blz::Engine(config);
 
@@ -204,7 +202,6 @@ void Application::init()
     ct.scale(3);
     ct.setZIndex(zRange + 1);
 
-
     std::vector<std::string> frames = {
         "assets/character/run0.png",
         "assets/character/run1.png",
@@ -219,17 +216,18 @@ void Application::init()
     auto *animTexture = new Rendering::AnimatedTexture(frames, 1000.0f, Rendering::AnimatedTexture::AnimationMode::LOOP);
     cMat.setTexture(animTexture);
 
-    // create player 
+    // create player
     player = registry.create();
     registry.add(player, Core::Transform());
 
     auto &body = registry.add(player, Physics::RigidBody2D());
     body.fixedRotation = true;
-    body.linearDamping = 0.98f;
 
     auto shape = new Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
     auto &collider = registry.add(player, Physics::Collider2D(shape));
     delete shape;
+
+    collider.friction = 0.5f;
 
     sceneGraph.relate(player, camera);
     sceneGraph.relate(player, character);
@@ -250,6 +248,7 @@ void Application::init()
 
     fBody.type = Physics::RigidBodyType::STATIC;
     fCollider.density = 0.0f;
+    fCollider.friction = 1.0f;
 
     // fps text
     auto fpsText = Rendering::MemoizedText::text("FPS: 0", font);
@@ -272,6 +271,30 @@ void Application::init()
     auto localPos = spaceTransformer->transform(screenPos, fps, Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::LOCAL);
 
     fpsTransform.setTranslation(localPos);
+
+    // create physics bodies
+    size_t count = 100;
+    float width = 0.5f;
+    float height = 0.5f;
+    int areaX = std::sqrt(count);
+    int areaY = std::sqrt(count);
+
+    for (size_t i = 0; i < count; i++)
+    {
+        auto e = registry.create();
+        registry.add(e, Core::Transform());
+        registry.add(e, Rendering::Mesh2D(width, height));
+        registry.add(e, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
+        registry.add(e, Rendering::Renderable(true, false));
+        registry.add(e, Physics::RigidBody2D());
+        registry.add(e, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(e))));
+
+        auto &t = registry.get<Core::Transform>(e);
+        t.translate(glm::vec2(rand() % areaX - areaX / 2, rand() % areaY - areaY / 2));
+
+        auto &collider = registry.get<Physics::Collider2D>(e);
+        collider.friction = 1.0f;
+    }
 }
 
 void Application::destroy()
@@ -424,10 +447,15 @@ void Application::update(World::World &world, const Core::Timestep &timestep)
 bool createdRaycastEntity = false;
 ECS::Entity raycastEntity;
 
+bool createdQueryEntity = false;
+ECS::Entity queryEntity;
+
 void Application::fixedUpdate(World::World &world, const Core::Timestep &timestep)
 {
     auto &registry = world.getRegistry();
     auto &sceneGraph = world.getSceneGraph();
+    auto &physicsWorld = *engine->getPhysicsWorld();
+    auto &spaceTransformer = *engine->getSpaceTransformer();
 
     // control character
     auto keyboard = engine->getKeyboard();
@@ -470,30 +498,76 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     auto playerWorldTransform = Core::Transform(sceneGraph.getModelMatrix(player));
 
     glm::vec2 origin = playerWorldTransform.getTranslation();
-    glm::vec2 mouse = engine->getSpaceTransformer()->transform(engine->getMouse()->getPosition(true), Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD);
+    glm::vec2 mouse = spaceTransformer.transform(engine->getMouse()->getPosition(true), Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD);
     Physics::Ray ray(origin, mouse);
 
     // std::cout << "start: " << ray.start.x << ", " << ray.start.y << std::endl;
     // std::cout << "end: " << ray.end.x << ", " << ray.end.y << std::endl;
 
-    auto hits = engine->getPhysicsWorld()->raycast(ray, Physics::RaycastType::CLOSEST);
+    auto hits = physicsWorld.raycast(ray, Physics::RaycastType::CLOSEST);
 
-    if (!createdRaycastEntity) {
+    if (!createdRaycastEntity)
+    {
         raycastEntity = registry.create();
         registry.add(raycastEntity, Rendering::Mesh2D());
         registry.add(raycastEntity, Core::Transform());
         registry.add(raycastEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
         registry.add(raycastEntity, Rendering::Renderable(true, false));
         createdRaycastEntity = true;
+
+        auto &rayTransform = registry.get<Core::Transform>(raycastEntity);
+        rayTransform.setZIndex(Config::MAX_Z_INDEX);
     }
 
     auto &raycastMesh = registry.get<Rendering::Mesh2D>(raycastEntity);
     raycastMesh.createLine(ray.start, ray.end, 0.025f);
 
     auto &raycastMaterial = registry.get<Rendering::Material>(raycastEntity);
-    if (hits.empty()) {
+    if (hits.empty())
+    {
         raycastMaterial.setColor(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f));
-    } else {
+    }
+    else
+    {
         raycastMaterial.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    }
+
+    // query test
+    if (!createdQueryEntity)
+    {
+        queryEntity = registry.create();
+        registry.add(queryEntity, Rendering::Mesh2D(0.5f, 32u));
+        registry.add(queryEntity, Core::Transform());
+        registry.add(queryEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 0.1f)));
+        registry.add(queryEntity, Rendering::Renderable(true, false));
+        createdQueryEntity = true;
+
+        auto &queryTransform = registry.get<Core::Transform>(queryEntity);
+        queryTransform.setZIndex(Config::MAX_Z_INDEX);
+    }
+
+    auto &queryTransform = registry.get<Core::Transform>(queryEntity);
+    queryTransform.setTranslation(mouse);
+
+    Core::BoundingCircle circle(mouse, 0.5f);
+    auto queryResults = physicsWorld.query(circle);
+
+    auto colliderEntities = registry.view<Physics::Collider2D>();
+    for (auto &e : colliderEntities)
+    {
+        if (!registry.has<Rendering::Material>(e))
+            continue;
+
+        auto &m = registry.get<Rendering::Material>(e);
+        m.setColor(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f));
+    }
+
+    for (auto &e : queryResults)
+    {
+        if (!registry.has<Rendering::Material>(e))
+            continue;
+
+        auto &m = registry.get<Rendering::Material>(e);
+        m.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
     }
 }

@@ -35,14 +35,14 @@ namespace blz
          *
          * Changing this after engine creation will not change the size of the window.
          */
-        unsigned int windowWidth = 800;
+        unsigned int windowWidth = 1280;
 
         /**
          * The height of the window.
          *
          * Changing this after engine creation will not change the size of the window.
          */
-        unsigned int windowHeight = 600;
+        unsigned int windowHeight = 720;
 
         /**
          * Whether to create the window in fullscreen mode.

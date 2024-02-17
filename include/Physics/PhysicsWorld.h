@@ -81,6 +81,24 @@ namespace Physics
         std::vector<RaycastHit> raycast(const Ray &ray, RaycastType type = RaycastType::ALL);
 
         /**
+         * Queries the world for all entities with colliders that are within the given AABB.
+         *
+         * @param aabb The AABB to query.
+         *
+         * @returns A vector of query results.
+         */
+        std::vector<ECS::Entity> query(const Core::AABB &aabb);
+
+        /**
+         * Queries the world for all entities with colliders that are within the given AABB.
+         *
+         * @param circle The bounding circle to query.
+         *
+         * @returns A vector of query results.
+         */
+        std::vector<ECS::Entity> query(const Core::BoundingCircle &circle);
+
+        /**
          * Sets the physics world's config.
          *
          * @param config The config object.

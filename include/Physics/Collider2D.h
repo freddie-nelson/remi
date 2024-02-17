@@ -388,11 +388,15 @@ namespace Physics
 
         /**
          * The friction of the collider.
+         *
+         * Usually in the range [0, 1].
          */
         float friction;
 
         /**
          * The restitution (elasticity) of the collider.
+         *
+         * Usually in the range [0, 1].
          */
         float restitution;
 

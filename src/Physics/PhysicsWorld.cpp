@@ -2,10 +2,13 @@
 #include "../../include/Physics/RigidBody2D.h"
 #include "../../include/Physics/Collider2D.h"
 #include "../../include/Core/Transform.h"
+#include "../../include/Physics/QueryCallback.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
+#include <box2d/b2_circle_shape.h>
 #include <box2d/b2_fixture.h>
+#include <box2d/b2_contact.h>
 #include <unordered_set>
 #include <string>
 
@@ -41,6 +44,76 @@ std::vector<Physics::RaycastHit> Physics::PhysicsWorld::raycast(const Ray &ray, 
     world.RayCast(&callback, p1, p2);
 
     return callback.getHits();
+}
+
+std::vector<ECS::Entity> Physics::PhysicsWorld::query(const Core::AABB &aabb)
+{
+    QueryCallback callback(aabb, bodyToEntity);
+
+    b2AABB box;
+    box.lowerBound = b2Vec2(aabb.getMin().x, aabb.getMin().y);
+    box.upperBound = b2Vec2(aabb.getMax().x, aabb.getMax().y);
+
+    world.QueryAABB(&callback, box);
+
+    return callback.getResults();
+}
+
+std::vector<ECS::Entity> Physics::PhysicsWorld::query(const Core::BoundingCircle &circle)
+{
+    const Core::AABB aabb(circle.getCentre(), circle.getRadius());
+
+    QueryCallback callback(aabb, bodyToEntity);
+
+    b2AABB box;
+    box.lowerBound = b2Vec2(aabb.getMin().x, aabb.getMin().y);
+    box.upperBound = b2Vec2(aabb.getMax().x, aabb.getMax().y);
+
+    world.QueryAABB(&callback, box);
+    auto &results = callback.getResults();
+
+    b2CircleShape shape;
+    shape.m_radius = circle.getRadius();
+    shape.m_p = b2Vec2(circle.getCentre().x, circle.getCentre().y);
+
+    b2BodyDef bodyDef;
+    b2Body *circleBody = world.CreateBody(&bodyDef);
+
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &shape;
+    fixtureDef.isSensor = true;
+    fixtureDef.density = 0.0f;
+
+    circleBody->CreateFixture(&fixtureDef);
+
+    // step world by 0 to get the results
+    world.Step(0, 0, 0);
+
+    std::vector<ECS::Entity> circleResults;
+
+    for (auto &e : results)
+    {
+        if (!bodies.contains(e))
+        {
+            throw std::runtime_error("PhysicsWorld (query): Entity '" + std::to_string(e) + "' has no body.");
+        }
+
+        auto body = bodies[e];
+        auto contacts = body->GetContactList();
+
+        for (auto contact = contacts; contact != nullptr; contact = contact->next)
+        {
+            if (contact->other == circleBody && contact->contact->IsTouching())
+            {
+                circleResults.push_back(e);
+                break;
+            }
+        }
+    }
+
+    world.DestroyBody(circleBody);
+
+    return circleResults;
 }
 
 void Physics::PhysicsWorld::setConfig(PhysicsWorldConfig config)

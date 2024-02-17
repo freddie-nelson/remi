@@ -71,7 +71,14 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
         transform.setTranslation(glm::vec2(aabb.GetCenter().x, aabb.GetCenter().y));
         transform.setRotation(collider->GetBody()->GetAngle());
 
-        material.setColor(Rendering::Color(0.0f, 1.0f, 0.0f, 0.4f));
+        if (collider->IsSensor())
+        {
+            material.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 0.3f));
+        }
+        else
+        {
+            material.setColor(Rendering::Color(0.0f, 1.0f, 0.0f, 0.3f));
+        }
 
         // std::cout << "aabb: " << aabb.GetCenter().x << ", " << aabb.GetCenter().y << ", " << aabb.GetExtents().x << ", " << aabb.GetExtents().y << std::endl;
 
