@@ -46,24 +46,10 @@ box2d_sources = files(
   'rope/b2_rope.cpp',
 )
 
-if cross_target == 'native'
-  box2d_lib = library(
-    'box2d',
-    box2d_sources,
-    include_directories: box2d_incdir,
-    cpp_args: box2d_compile_args,
-    install: true,
-    install_dir: lib_dir / 'lib'
-  )
-endif
-
-if cross_target == 'wasm'
-  box2d_lib = static_library(
-    'box2d',
-    box2d_sources,
-    include_directories: box2d_incdir,
-    cpp_args: box2d_compile_args,
-    install: true,
-    install_dir: lib_dir / 'lib'
-  )
-endif
+box2d_lib = static_library(
+  'box2d',
+  box2d_sources,
+  include_directories: box2d_incdir,
+  install: true,
+  install_dir: lib_dir / 'lib'
+)

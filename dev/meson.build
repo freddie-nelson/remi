@@ -4,8 +4,17 @@ add_project_arguments('-std=c++20', language : 'cpp')
 fs = import('fs')
 
 cross_target = meson.get_external_property('cross_target', 'native')
+lib_dir = join_paths(meson.current_source_dir(), '../lib')
 
 cpp_compiler = meson.get_compiler('cpp')
+
+if cross_target == 'native'
+    blaze = cpp_compiler.find_library('blaze++', dirs : join_paths(lib_dir, 'lib'), required : true) 
+endif
+
+if cross_target == 'wasm'
+    blaze = cpp_compiler.find_library('blaze++', dirs : join_paths(lib_dir, 'lib'), required : true, static : true)
+endif
 
 #
 # configure for cross compilation
@@ -13,13 +22,20 @@ cpp_compiler = meson.get_compiler('cpp')
 
 inc_dirs = []
 dependencies = []
-cpp_args = ['-I' + join_paths(meson.current_source_dir(), '../externals/include')]
-link_args = ['-I' + join_paths(meson.current_source_dir(), '../externals/include')]
+cpp_args = []
+link_args = []
 link_with = []
 name_suffix = ''
 
+# add blaze to the dependencies
+dependencies += [blaze]
+
+includes = ['-I' + join_paths(lib_dir, 'include'), '-I' + join_paths(meson.current_source_dir(), '../externals/include')]
+link_args += includes
+cpp_args += includes 
+
+# native build
 if cross_target == 'native'
-    dependencies += [dependency('blaze++', required : true)]
     name_suffix = 'exe'
 
     if get_option('buildtype') == 'release'
@@ -27,13 +43,8 @@ if cross_target == 'native'
     endif
 endif
 
+# wasm build
 if cross_target == 'wasm'
-    lib_dir = join_paths(meson.current_source_dir(), '../lib')
-
-    includes = ['-I' + join_paths(lib_dir, 'include')]
-    link_args += includes
-    cpp_args += includes 
-
     link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1']
     if get_option('buildtype') == 'debug'
         link_args += ['-sASSERTIONS=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
@@ -51,12 +62,6 @@ if cross_target == 'wasm'
     foreach p : preload
         link_args += ['--preload-file', join_paths(meson.current_source_dir(), p) + '@/' + p]
     endforeach
-
-    # must have built blaze for wasm previously
-    blaze = cpp_compiler.find_library('blaze++', dirs : join_paths(lib_dir, 'lib'), required : true) 
-    ttf2mesh = cpp_compiler.find_library('ttf2mesh', dirs : join_paths(lib_dir, 'lib'), required : true)
-
-    dependencies += [blaze, ttf2mesh]
 
     name_suffix = 'html'
 endif

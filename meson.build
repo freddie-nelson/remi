@@ -36,17 +36,14 @@ glad_kwargs = {
 }
 
 if cross_target == 'native'
-    glad = library('glad', glad_src, link_args : [], kwargs : glad_kwargs)
+    glad = static_library('glad', glad_src, link_args : [], kwargs : glad_kwargs)
+    
+    if install_headers
+        install_subdir('externals/include/glad', install_dir : lib_dir / 'include/glad', strip_directory : true)
+        install_subdir('externals/src/glad', install_dir : lib_dir / 'src/glad', strip_directory : true)
+    endif
 endif
 
-if cross_target == 'wasm'
-    glad = static_library('glad', glad_src, link_args : wasm_link_args, kwargs : glad_kwargs)
-endif
-
-if install_headers
-    install_subdir('externals/include/glad', install_dir : lib_dir / 'include/glad', strip_directory : true)
-    install_subdir('externals/src/glad', install_dir : lib_dir / 'src/glad', strip_directory : true)
-endif
 
 #
 # ttf2mesh
@@ -60,7 +57,7 @@ ttf2mesh_kwargs = {
 }
 
 if cross_target == 'native'
-    ttf2mesh = library('ttf2mesh', ttf2mesh_src, link_args : [], kwargs : ttf2mesh_kwargs)
+    ttf2mesh = static_library('ttf2mesh', ttf2mesh_src, link_args : [], kwargs : ttf2mesh_kwargs)
 endif
 
 if cross_target == 'wasm'
@@ -93,7 +90,7 @@ link_args = []
 link_with = [box2d_lib]
 
 if cross_target == 'native'
-    dependencies += [dependency('glfw3', required : true), dependency('boost', required: true)]
+    dependencies += [dependency('glfw3', required : true, static : true), dependency('boost', required: true, static : true)]
     link_with += [glad, ttf2mesh]
 endif
 
@@ -184,8 +181,8 @@ endif
 
 if install_libs
     # install pkgconfig
-    pkg = import('pkgconfig')
-    pkg.generate(engine, version : '1.0', name : 'blaze++', filebase : 'blaze++', description : 'The blaze game engine.', install_dir : lib_dir / 'lib/pkgconfig', libraries : [glad])
+    # pkg = import('pkgconfig')
+    # pkg.generate(engine, version : '1.0', name : 'blaze++', filebase : 'blaze++', description : 'The blaze game engine.', install_dir : lib_dir / 'lib/pkgconfig', libraries : [glad])
 endif
 
 if install_headers
