@@ -273,7 +273,7 @@ void Application::init()
     fpsTransform.setTranslation(localPos);
 
     // create physics bodies
-    size_t count = 100;
+    size_t count = 0;
     float width = 0.5f;
     float height = 0.5f;
     int areaX = std::sqrt(count);
@@ -465,6 +465,8 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     auto &characterTransform = registry.get<Core::Transform>(character);
 
     // std::cout << "player mass: " << playerBody.getMass() << std::endl;
+
+    // playerBody.applyLinearImpulse(glm::vec2(1.0f, 0.0f));
 
     float speed = 2.5f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
     float jumpSpeed = 5.0f;

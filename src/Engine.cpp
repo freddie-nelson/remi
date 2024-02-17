@@ -86,6 +86,10 @@ void blz::Engine::run()
     // poll for events before first update
     glfwPollEvents();
 
+    // pre update physics world
+    // this will make sure that the physics world is in sync with the world before the first update
+    physicsWorld->fixedUpdate(*world, Core::Timestep(0));
+
 #ifdef __EMSCRIPTEN__
     std::function<void()> mainLoopWrapper = std::bind(&Engine::mainLoop, this, args);
     emscriptenSetMainLoop(mainLoopWrapper, 0, true);

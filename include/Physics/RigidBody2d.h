@@ -38,6 +38,88 @@ namespace Physics
         ~RigidBody2D();
 
         /**
+         * Applies a force to the body at its center.
+         *
+         * If wake is true the body will be woken up if it is sleeping.
+         *
+         * The velocities of the body may not be updated until the next physics updated.
+         *
+         * @param force The force to apply.
+         * @param wake Whether or not to wake the body up.
+         *
+         * @throws std::runtime_error If the box2d body has not been created yet.
+         */
+        void applyForce(const glm::vec2 &force, bool wake = true);
+
+        /**
+         * Applies a force to the body at the given point.
+         *
+         * If wake is true the body will be woken up if it is sleeping.
+         *
+         * The point should be in world space.
+         *
+         * The velocities of the body may not be updated until the next physics update.
+         *
+         * @param force The force to apply.
+         * @param point The point to apply the force at.
+         * @param wake Whether or not to wake the body up.
+         *
+         * @throws std::runtime_error If the box2d body has not been created yet.
+         */
+        void applyForce(const glm::vec2 &force, const glm::vec2 &point, bool wake = true);
+
+        /**
+         * Applies a linear impulse to the body at its center.
+         * 
+         * If wake is true the body will be woken up if it is sleeping.
+         * 
+         * The velocities of the body may not be updated until the next physics update.
+         *
+         * @param impulse The impulse to apply.
+         * @param wake Whether or not to wake the body up.
+        */
+        void applyLinearImpulse(const glm::vec2 &impulse, bool wake = true);
+
+        /**
+         * Applies a linear impulse to the body at the given point.
+         *
+         * If wake is true the body will be woken up if it is sleeping.
+         *
+         * The point should be in world space.
+         *
+         * The velocities of the body may not be updated until the next physics update.
+         *
+         * @param impulse The impulse to apply.
+         * @param point The point to apply the impulse at.
+         * @param wake Whether or not to wake the body up.
+         */
+        void applyLinearImpulse(const glm::vec2 &impulse, const glm::vec2 &point, bool wake = true);
+
+        /**
+         * Applies a torque to the body.
+         *
+         * If wake is true the body will be woken up if it is sleeping.
+         *
+         * The angular velocity of the body may not be updated until the next physics update.
+         *
+         * @param torque The torque to apply.
+         * @param wake Whether or not to wake the body up.
+         */
+        void applyTorque(float torque, bool wake = true);  
+
+        /**
+         * Applies an angular impulse to the body.
+         *
+         * If wake is true the body will be woken up if it is sleeping.
+         *
+         * The angular velocity of the body may not be updated until the next physics update.
+         *
+         * @param impulse The impulse to apply.
+         * @param wake Whether or not to wake the body up.
+         */
+        void applyAngularImpulse(float impulse, bool wake = true);
+
+        /**
          * Gets the type of the body.
          *
          * @returns The type of the body.

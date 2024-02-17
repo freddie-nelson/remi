@@ -1,11 +1,73 @@
 #include "../../include/Physics/RigidBody2D.h"
 
+#include <stdexcept>
+
 Physics::RigidBody2D::RigidBody2D()
 {
 }
 
 Physics::RigidBody2D::~RigidBody2D()
 {
+}
+
+void Physics::RigidBody2D::applyForce(const glm::vec2 &force, bool wake)
+{
+    if (body == nullptr)
+    {
+        throw std::runtime_error("RigidBody2D (applyForce): Box2d body has not been created yet.");
+    }
+
+    body->ApplyForceToCenter(b2Vec2(force.x, force.y), wake);
+}
+
+void Physics::RigidBody2D::applyForce(const glm::vec2 &force, const glm::vec2 &point, bool wake)
+{
+    if (body == nullptr)
+    {
+        throw std::runtime_error("RigidBody2D (applyForce): Box2d body has not been created yet.");
+    }
+
+    body->ApplyForce(b2Vec2(force.x, force.y), b2Vec2(point.x, point.y), wake);
+}
+
+void Physics::RigidBody2D::applyLinearImpulse(const glm::vec2 &impulse, bool wake)
+{
+    if (body == nullptr)
+    {
+        throw std::runtime_error("RigidBody2D (applyLinearImpulse): Box2d body has not been created yet.");
+    }
+
+    body->ApplyLinearImpulseToCenter(b2Vec2(impulse.x, impulse.y), wake);
+}
+
+void Physics::RigidBody2D::applyLinearImpulse(const glm::vec2 &impulse, const glm::vec2 &point, bool wake)
+{
+    if (body == nullptr)
+    {
+        throw std::runtime_error("RigidBody2D (applyLinearImpulse): Box2d body has not been created yet.");
+    }
+
+    body->ApplyLinearImpulse(b2Vec2(impulse.x, impulse.y), b2Vec2(point.x, point.y), wake);
+}
+
+void Physics::RigidBody2D::applyTorque(float torque, bool wake)
+{
+    if (body == nullptr)
+    {
+        throw std::runtime_error("RigidBody2D (applyTorque): Box2d body has not been created yet.");
+    }
+
+    body->ApplyTorque(torque, wake);
+}
+
+void Physics::RigidBody2D::applyAngularImpulse(float impulse, bool wake)
+{
+    if (body == nullptr)
+    {
+        throw std::runtime_error("RigidBody2D (applyAngularImpulse): Box2d body has not been created yet.");
+    }
+
+    body->ApplyAngularImpulse(impulse, wake);
 }
 
 Physics::RigidBodyType Physics::RigidBody2D::getType() const
