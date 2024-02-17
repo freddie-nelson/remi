@@ -43,28 +43,33 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
         auto &transform = registry.add(e, Core::Transform());
         auto &material = registry.add(e, Rendering::Material());
         auto &renderable = registry.add(e, Rendering::Renderable(true, false));
-        
+
         auto shape = collider->GetShape();
 
-        if (shape->GetType() == b2Shape::e_polygon) {
-            auto polygon = reinterpret_cast<b2PolygonShape*>(shape);
+        if (shape->GetType() == b2Shape::e_polygon)
+        {
+            auto polygon = reinterpret_cast<b2PolygonShape *>(shape);
             auto vertices = polygon->m_vertices;
 
             std::vector<glm::vec2> points;
-            for (int i = 0; i < polygon->m_count; i++) {
+            for (int i = 0; i < polygon->m_count; i++)
+            {
                 points.push_back(glm::vec2(vertices[i].x, vertices[i].y));
             }
 
             mesh.createPolygon(points);
-        } else if (shape->GetType() == b2Shape::e_circle) {
-            auto circle = reinterpret_cast<b2CircleShape*>(shape);
+        }
+        else if (shape->GetType() == b2Shape::e_circle)
+        {
+            auto circle = reinterpret_cast<b2CircleShape *>(shape);
             auto radius = circle->m_radius;
 
             mesh.createRegularPolygon(radius, 32);
-        } 
+        }
 
         transform.setZIndex(Config::MAX_Z_INDEX);
         transform.setTranslation(glm::vec2(aabb.GetCenter().x, aabb.GetCenter().y));
+        transform.setRotation(collider->GetBody()->GetAngle());
 
         material.setColor(Rendering::Color(0.0f, 1.0f, 0.0f, 0.4f));
 
