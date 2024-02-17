@@ -221,13 +221,13 @@ void Application::init()
     registry.add(player, Core::Transform());
 
     auto &body = registry.add(player, Physics::RigidBody2D());
-    body.fixedRotation = true;
+    body.setFixedRotation(true);
 
     auto shape = new Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
     auto &collider = registry.add(player, Physics::Collider2D(shape));
     delete shape;
 
-    collider.friction = 0.5f;
+    collider.setFriction(0.5f);
 
     sceneGraph.relate(player, camera);
     sceneGraph.relate(player, character);
@@ -246,9 +246,9 @@ void Application::init()
     auto &fBody = registry.add(floor, Physics::RigidBody2D());
     auto &fCollider = registry.add(floor, Physics::Collider2D(new Physics::PolygonColliderShape2D(fm)));
 
-    fBody.type = Physics::RigidBodyType::STATIC;
-    fCollider.density = 0.0f;
-    fCollider.friction = 1.0f;
+    fBody.setType(Physics::RigidBodyType::STATIC);
+    fCollider.setDensity(0.0f);
+    fCollider.setFriction(1.0f);
 
     // fps text
     auto fpsText = Rendering::MemoizedText::text("FPS: 0", font);
@@ -293,7 +293,7 @@ void Application::init()
         t.translate(glm::vec2(rand() % areaX - areaX / 2, rand() % areaY - areaY / 2));
 
         auto &collider = registry.get<Physics::Collider2D>(e);
-        collider.friction = 1.0f;
+        collider.setFriction(1.0f);
     }
 }
 
@@ -487,11 +487,11 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
 
     if (charVel.x != 0.0f)
     {
-        playerBody.velocity.x = charVel.x;
+        playerBody.setVelocityX(charVel.x);
     }
     if (charVel.y != 0.0f)
     {
-        playerBody.velocity.y = charVel.y;
+        playerBody.setVelocityY(charVel.y);
     }
 
     // raycast test

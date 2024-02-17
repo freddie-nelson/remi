@@ -234,30 +234,32 @@ void Physics::PhysicsWorld::createBodies(const World::World &world, const std::u
         bodyDef.position.Set(transform.getTranslation().x, transform.getTranslation().y);
         bodyDef.angle = transform.getRotation();
 
-        bodyDef.type = static_cast<b2BodyType>(body.type);
+        bodyDef.type = static_cast<b2BodyType>(body.getType());
 
-        bodyDef.linearVelocity.x = body.velocity.x;
-        bodyDef.linearVelocity.y = body.velocity.y;
+        bodyDef.linearVelocity.x = body.getVelocity().x;
+        bodyDef.linearVelocity.y = body.getVelocity().y;
 
-        bodyDef.angularVelocity = body.angularVelocity;
+        bodyDef.angularVelocity = body.getAngularVelocity();
 
-        bodyDef.linearDamping = body.linearDamping;
-        bodyDef.angularDamping = body.angularDamping;
+        bodyDef.linearDamping = body.getLinearDamping();
+        bodyDef.angularDamping = body.getAngularDamping();
 
-        bodyDef.allowSleep = body.allowSleep;
-        bodyDef.awake = body.isAwake;
+        bodyDef.allowSleep = body.getAllowSleep();
+        bodyDef.awake = body.getIsAwake();
 
-        bodyDef.fixedRotation = body.fixedRotation;
+        bodyDef.fixedRotation = body.getFixedRotation();
 
-        bodyDef.bullet = body.isBullet;
+        bodyDef.bullet = body.getIsBullet();
 
-        bodyDef.enabled = body.isEnabled;
+        bodyDef.enabled = body.getIsEnabled();
 
-        bodyDef.gravityScale = body.gravityScale;
+        bodyDef.gravityScale = body.getGravityScale();
 
         // create body
         bodies[e] = this->world.CreateBody(&bodyDef);
         bodyToEntity[bodies[e]] = e;
+
+        body.setBody(bodies[e]);
 
         // create collider
         if (registry.has<Physics::Collider2D>(e))
@@ -293,67 +295,17 @@ void Physics::PhysicsWorld::updateBodiesWithECSValues(const World::World &world,
             box2dBody->SetTransform(b2Vec2(translation.x, translation.y), rotation);
         }
 
-        // update velocity
-        auto &box2dVel = box2dBody->GetLinearVelocity();
-
-        if (box2dVel.x != body.velocity.x || box2dVel.y != body.velocity.y)
-        {
-            box2dBody->SetLinearVelocity(b2Vec2(body.velocity.x, body.velocity.y));
-        }
-
-        // update angular velocity
-        box2dBody->SetAngularVelocity(body.angularVelocity);
-
-        // update damping
-        box2dBody->SetLinearDamping(body.linearDamping);
-        box2dBody->SetAngularDamping(body.angularDamping);
-
-        // update sleep
-        box2dBody->SetSleepingAllowed(body.allowSleep);
-
-        // update awake
-        box2dBody->SetAwake(body.isAwake);
-
-        // update fixed rotation
-        box2dBody->SetFixedRotation(body.fixedRotation);
-
-        // update bullet
-        box2dBody->SetBullet(body.isBullet);
-
-        // update enabled
-        box2dBody->SetEnabled(body.isEnabled);
-
-        // update gravity scale
-        box2dBody->SetGravityScale(body.gravityScale);
-
         // update collider
         if (registry.has<Physics::Collider2D>(e))
         {
             auto &collider = registry.get<Physics::Collider2D>(e);
 
-            if (!colliders.contains(e))
+            // collider needs recreated
+            if (collider.getFixture() == nullptr)
             {
-                createBox2DCollider(world, e);
-            }
-
-            // update shape
-            if (collider.isShapeDirty())
-            {
-                // collider needs completely re-constructed
                 destroyBox2DCollider(e);
                 createBox2DCollider(world, e);
-
-                collider.informOfShapeUpdate();
             }
-
-            // update fixture
-            auto &fixture = colliders[e];
-
-            fixture->SetDensity(collider.density);
-            fixture->SetFriction(collider.friction);
-            fixture->SetRestitution(collider.restitution);
-            fixture->SetRestitutionThreshold(collider.restitutionThreshold);
-            fixture->SetSensor(collider.isSensor);
         }
         // collider needs removed from body
         else if (colliders.contains(e))
@@ -383,14 +335,16 @@ void Physics::PhysicsWorld::createBox2DCollider(const World::World &world, ECS::
     // create fixture
     b2FixtureDef fixtureDef;
     fixtureDef.shape = shape;
-    fixtureDef.density = collider.density;
-    fixtureDef.friction = collider.friction;
-    fixtureDef.restitution = collider.restitution;
-    fixtureDef.restitutionThreshold = collider.restitutionThreshold;
-    fixtureDef.isSensor = collider.isSensor;
+    fixtureDef.density = collider.getDensity();
+    fixtureDef.friction = collider.getFriction();
+    fixtureDef.restitution = collider.getRestitution();
+    fixtureDef.restitutionThreshold = collider.getRestitutionThreshold();
+    fixtureDef.isSensor = collider.getIsSensor();
 
     // add fixture to body
     colliders[e] = bodies[e]->CreateFixture(&fixtureDef);
+
+    collider.setFixture(colliders[e]);
 }
 
 void Physics::PhysicsWorld::destroyBox2DCollider(ECS::Entity e)
@@ -449,12 +403,15 @@ void Physics::PhysicsWorld::updateECSWithBox2DValues(const World::World &world)
         auto &box2dVel = box2dBody->GetLinearVelocity();
         auto box2dAngVel = box2dBody->GetAngularVelocity();
 
-        if (box2dVel.x != body.velocity.x || box2dVel.y != body.velocity.y)
+        if (box2dVel.x != body.getVelocity().x || box2dVel.y != body.getVelocity().y)
         {
-            body.velocity = glm::vec2(box2dVel.x, box2dVel.y);
+            body.setVelocity(glm::vec2(box2dVel.x, box2dVel.y));
         }
 
         // update angular velocity
-        body.angularVelocity = box2dAngVel;
+        body.setAngularVelocity(box2dAngVel);
+
+        // update awake
+        body.setIsAwake(box2dBody->IsAwake());
     }
 }
