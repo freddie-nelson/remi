@@ -12,7 +12,7 @@
 #include "Physics/PhysicsWorld.h"
 #include "World/World.h"
 
-namespace blz
+namespace remi
 {
 
     /**
@@ -28,7 +28,7 @@ namespace blz
          *
          * Changing this after engine creation will not change the title of the window.
          */
-        std::string windowTitle = "Blaze";
+        std::string windowTitle = "remi";
 
         /**
          * The width of the window.

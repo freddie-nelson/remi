@@ -15,11 +15,11 @@ dev_headers_path = os.path.join(dev_path, "externals/include")
 install_script = os.path.join(dir_path, "install.py")
 uninstall_script = os.path.join(dir_path, "uninstall.py")
 
-# build and install blaze
-print("Building and installing blaze...")
+# build and install remi
+print("Building and installing remi...")
 exit_code = os.system(f"python {install_script}")
 if exit_code != 0:
-    print("Failed to build and install blaze!")
+    print("Failed to build and install remi!")
     exit(exit_code)
 
 # symlink headers into dev
@@ -111,15 +111,15 @@ for file in os.listdir(lib_path):
     shutil.copy(path, new_path)
 
 # copy wasm lib
-# wasm_build = os.path.join(build_path, "libblaze++.a")
+# wasm_build = os.path.join(build_path, "libremi.a")
 # if os.path.exists(wasm_build):
 #     if not os.path.exists(os.path.join(dev_build_path, "lib")):
 #         os.mkdir(os.path.join(dev_build_path, "lib"))
 
-#     shutil.copy(wasm_build, os.path.join(dev_build_path, "lib/libblaze++.a"))
+#     shutil.copy(wasm_build, os.path.join(dev_build_path, "lib/libremi.a"))
 
-# uninstall blaze
-# print("Uninstalling blaze...")
+# uninstall remi
+# print("Uninstalling remi...")
 # os.system(f"python {uninstall_script}")
 
 # run dev

@@ -13,7 +13,7 @@
 #include "../include/emscriptenHelpers.h"
 #endif
 
-blz::Engine::Engine(EngineConfig config)
+remi::Engine::Engine(EngineConfig config)
 {
     this->config = config;
     Config::MAX_Z_INDEX = config.maxZIndex;
@@ -51,7 +51,7 @@ blz::Engine::Engine(EngineConfig config)
     keyboard = new Input::Keyboard(window->getGLFWWindow());
 }
 
-blz::Engine::~Engine()
+remi::Engine::~Engine()
 {
     delete keyboard;
     delete mouse;
@@ -63,7 +63,7 @@ blz::Engine::~Engine()
     delete window;
 }
 
-void blz::Engine::run()
+void remi::Engine::run()
 {
     MainLoopArgs *args = new MainLoopArgs();
 
@@ -101,62 +101,62 @@ void blz::Engine::run()
 #endif
 }
 
-blz::EngineConfig &blz::Engine::getConfig()
+remi::EngineConfig &remi::Engine::getConfig()
 {
     return config;
 }
 
-Core::Window *const blz::Engine::getWindow()
+Core::Window *const remi::Engine::getWindow()
 {
     return window;
 }
 
-Rendering::Renderer *const blz::Engine::getRenderer()
+Rendering::Renderer *const remi::Engine::getRenderer()
 {
     return renderer;
 }
 
-Rendering::RenderPipeline *const blz::Engine::getPipeline()
+Rendering::RenderPipeline *const remi::Engine::getPipeline()
 {
     return pipeline;
 }
 
-Rendering::RenderManager *const blz::Engine::getRenderManager()
+Rendering::RenderManager *const remi::Engine::getRenderManager()
 {
     return renderManager;
 }
 
-Rendering::AnimationSystem *const blz::Engine::getAnimationSystem()
+Rendering::AnimationSystem *const remi::Engine::getAnimationSystem()
 {
     return animationSystem;
 }
 
-Physics::PhysicsWorld *const blz::Engine::getPhysicsWorld()
+Physics::PhysicsWorld *const remi::Engine::getPhysicsWorld()
 {
     return physicsWorld;
 }
 
-World::World *const blz::Engine::getWorld()
+World::World *const remi::Engine::getWorld()
 {
     return world;
 }
 
-Input::Mouse *const blz::Engine::getMouse()
+Input::Mouse *const remi::Engine::getMouse()
 {
     return mouse;
 }
 
-Input::Keyboard *const blz::Engine::getKeyboard()
+Input::Keyboard *const remi::Engine::getKeyboard()
 {
     return keyboard;
 }
 
-Core::SpaceTransformer *const blz::Engine::getSpaceTransformer()
+Core::SpaceTransformer *const remi::Engine::getSpaceTransformer()
 {
     return spaceTransformer;
 }
 
-void blz::Engine::mainLoop(MainLoopArgs *args)
+void remi::Engine::mainLoop(MainLoopArgs *args)
 {
     auto &[timeBetweenFixedUpdatesSeconds, timeBetweenFixedUpdates, timeSinceLastFixedUpdate, timeBetweenUpdatesSeconds, timeBetweenUpdates, timeSinceLastUpdate, tick] = *args;
 

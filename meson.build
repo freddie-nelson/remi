@@ -1,4 +1,4 @@
-project('blaze++', 'cpp', 'c', default_options : ['libdir=' + meson.current_source_dir() / 'lib' / 'lib', 'includedir=' + meson.current_source_dir() / 'lib' / 'include'])
+project('remi', 'cpp', 'c', default_options : ['libdir=' + meson.current_source_dir() / 'lib' / 'lib', 'includedir=' + meson.current_source_dir() / 'lib' / 'include'])
 add_project_arguments('-std=c++20', language : 'cpp')
 
 cross_target = meson.get_external_property('cross_target', 'native')
@@ -13,9 +13,11 @@ install_headers = true
 incdir = include_directories('externals/include')
 lib_dir = meson.current_source_dir() / 'lib'
 
-wasm_link_args = ['-sEXPORT_ALL=1', '-sALLOW_MEMORY_GROWTH=1', '-sINVOKE_RUN=0', '-sFORCE_FILESYTEM']
+wasm_link_args = ['-sEXPORT_ALL=1', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=4096MB', '-sINVOKE_RUN=0', '-sFORCE_FILESYTEM']
 
 if get_option('buildtype') == 'debug'
+    wasm_link_args += ['-sASSERTIONS=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
+
     # crashing on wasm when trying to load a font
     # wasm_link_args += ['-sSAFE_HEAP=1'] 
 endif
@@ -43,7 +45,6 @@ if cross_target == 'native'
         install_subdir('externals/src/glad', install_dir : lib_dir / 'src/glad', strip_directory : true)
     endif
 endif
-
 
 #
 # ttf2mesh
@@ -87,11 +88,11 @@ endif
 dependencies = []
 cpp_args = []
 link_args = []
-link_with = [box2d_lib]
+link_with = []
 
 if cross_target == 'native'
     dependencies += [dependency('glfw3', required : true, static : true), dependency('boost', required: true, static : true)]
-    link_with += [glad, ttf2mesh]
+    link_with += [glad, ttf2mesh, box2d_lib]
 endif
 
 if cross_target == 'wasm'
@@ -100,12 +101,10 @@ if cross_target == 'wasm'
     if get_option('buildtype') == 'debug'
         link_args += ['-sASSERTIONS=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
     endif
-
-    link_with += [ttf2mesh]
 endif
 
 #
-# blaze
+# remi
 #
 
 # core
@@ -161,6 +160,14 @@ engine_src = ['src/Engine.cpp', 'src/emscriptenHelpers.cpp']
 
 all_src = core_src + ecs_src + input_src + physics_src + rendering_src + scene_src + utility_src + world_src + engine_src
 
+# add lib objects for wasm
+lib_objects = []
+
+if cross_target == 'wasm'
+    lib_objects += [box2d_lib.extract_all_objects(), ttf2mesh.extract_all_objects()]
+endif
+
+# create args
 engine_kwargs = {
     'dependencies' : dependencies,
     'include_directories' : incdir,
@@ -169,24 +176,26 @@ engine_kwargs = {
     'install_dir' : lib_dir / 'lib',
     'link_args' : link_args,
     'cpp_args' : cpp_args,
+    'objects' : lib_objects,
 }
 
 if cross_target == 'native'
-    engine = library('blaze++', all_src, kwargs : engine_kwargs)
+    engine = library('remi', all_src, kwargs : engine_kwargs)
 endif
 
 if cross_target == 'wasm'
-    engine = static_library('blaze++', all_src, kwargs : engine_kwargs)
+
+    engine = static_library('remi', all_src, kwargs : engine_kwargs)
 endif
 
 if install_libs
     # install pkgconfig
     # pkg = import('pkgconfig')
-    # pkg.generate(engine, version : '1.0', name : 'blaze++', filebase : 'blaze++', description : 'The blaze game engine.', install_dir : lib_dir / 'lib/pkgconfig', libraries : [glad])
+    # pkg.generate(engine, version : '1.0', name : 'remi', filebase : 'remi', description : 'The remi game engine.', install_dir : lib_dir / 'lib/pkgconfig', libraries : [glad])
 endif
 
 if install_headers
     # install src and headers
-    install_subdir('src', install_dir : lib_dir / 'src/blaze++', strip_directory : true)
-    install_subdir('include', install_dir : lib_dir / 'include/blaze++', strip_directory : true)
+    install_subdir('src', install_dir : lib_dir / 'src/remi', strip_directory : true)
+    install_subdir('include', install_dir : lib_dir / 'include/remi', strip_directory : true)
 endif

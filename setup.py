@@ -40,13 +40,13 @@ else:
     exit_code = 1
 
 if exit_code != 0:
-    print("Failed to setup blaze!")
+    print("Failed to setup remi!")
     exit(exit_code)
 
-# must install blaze before setting up dev
+# must install remi before setting up dev
 exit_code = os.system(f"python {install_script}")
 if exit_code != 0:
-    print("Failed to build and install blaze!")
+    print("Failed to build and install remi!")
     print("Attempting to setup dev anyway...")
 
 # and copy lib into dev
@@ -54,7 +54,7 @@ if exit_code != 0:
 # if not os.path.exists(dev_lib_path):
 #     os.mkdir(dev_lib_path)
 
-# shutil.copy(os.path.join(build_path, "libblaze++.a"), os.path.join(dev_lib_path, "libblaze++.a"))
+# shutil.copy(os.path.join(build_path, "libremi.a"), os.path.join(dev_lib_path, "libremi.a"))
 
 # setup dev
 dev_path = os.path.join(dir_path, "dev")
@@ -68,6 +68,6 @@ else:
     exit_code = 1
 
 if exit_code != 0:
-    print("Failed to setup blaze dev!")
+    print("Failed to setup remi dev!")
     exit(exit_code)
 

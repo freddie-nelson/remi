@@ -63,7 +63,7 @@ namespace Rendering
          *
          * @returns The type of the data.
          */
-        virtual blz::TypeId getDataType() = 0;
+        virtual remi::TypeId getDataType() = 0;
 
         /**
          * Gets the name of the data type.
@@ -138,9 +138,9 @@ namespace Rendering
          *
          * @returns The type of the data.
          */
-        blz::TypeId getDataType()
+        remi::TypeId getDataType()
         {
-            return blz::TypeInfoGenerator::id<T>;
+            return remi::TypeInfoGenerator::id<T>;
         }
 
         /**
@@ -150,7 +150,7 @@ namespace Rendering
          */
         std::string getDataTypeName()
         {
-            return blz::TypeInfoGenerator::name<T>;
+            return remi::TypeInfoGenerator::name<T>;
         }
     };
 
@@ -212,7 +212,7 @@ namespace Rendering
 
             if (!isType<T>(input))
             {
-                throw std::invalid_argument("[" + getName() + "]: Input to render pass is of type '" + input->getDataTypeName() + "', expected '" + blz::TypeInfoGenerator::name<T> + "'.");
+                throw std::invalid_argument("[" + getName() + "]: Input to render pass is of type '" + input->getDataTypeName() + "', expected '" + remi::TypeInfoGenerator::name<T> + "'.");
             }
         }
 
@@ -228,7 +228,7 @@ namespace Rendering
         template <typename T>
         bool isType(RenderPassInput *input)
         {
-            return input->getDataType() == blz::TypeInfoGenerator::id<T>;
+            return input->getDataType() == remi::TypeInfoGenerator::id<T>;
         }
     };
 }

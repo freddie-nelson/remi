@@ -4,9 +4,9 @@
 #include <string>
 #include <unordered_map>
 
-std::unordered_map<std::string, blz::TypeId> memoizedTypeIds;
+std::unordered_map<std::string, remi::TypeId> memoizedTypeIds;
 
-blz::TypeId blz::generateTypeId(const char *typeName)
+remi::TypeId remi::generateTypeId(const char *typeName)
 {
     std::string name(typeName);
 

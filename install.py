@@ -7,15 +7,15 @@ build_path = os.path.join(dir_path, "build")
 install_path = os.path.join(dir_path, "lib")
 install_lib_path = os.path.join(install_path, "lib")
 install_include_path = os.path.join(install_path, "include")
-install_pkgconfig_file = os.path.join(install_lib_path, "pkgconfig/blaze++.pc")
+install_pkgconfig_file = os.path.join(install_lib_path, "pkgconfig/remi.pc")
 
 # remove old install
 shutil.rmtree(install_path, ignore_errors=True)
 
-# build and install blaze
+# build and install remi
 exit_code = os.system(f"cd {build_path} && meson compile && meson install")
 if exit_code != 0:
-    print("Failed to build and install blaze!")
+    print("Failed to build and install remi!")
     exit(exit_code)
 
 

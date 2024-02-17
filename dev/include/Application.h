@@ -1,8 +1,8 @@
 #pragma once
 
-#include <blaze++/Rendering/Renderer.h>
-#include <blaze++/World/World.h>
-#include <blaze++/Engine.h>
+#include <remi/Rendering/Renderer.h>
+#include <remi/World/World.h>
+#include <remi/Engine.h>
 
 class Application : public World::System
 {
@@ -13,7 +13,7 @@ public:
     void run();
 
 private:
-    blz::Engine *engine;
+    remi::Engine *engine;
 
     void init();
     void destroy();

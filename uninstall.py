@@ -8,7 +8,7 @@ build_path = os.path.join(dir_path, "build")
 install_path = os.path.join(dir_path, "lib")
 install_lib_path = os.path.join(install_path, "lib")
 install_include_path = os.path.join(install_path, "include")
-install_pkgconfig_file = os.path.join(install_lib_path, "pkgconfig/blaze++.pc")
+install_pkgconfig_file = os.path.join(install_lib_path, "pkgconfig/remi.pc")
 
 mingw64_path = os.path.join("C:/", "msys64/mingw64")
 mingw64_include_path = os.path.join(mingw64_path, "include")
@@ -29,7 +29,7 @@ if os.path.exists(mingw64_path):
         os.remove(os.path.join(mingw64_lib_path, path))
 
     # remove pkgconfig
-    os.remove(os.path.join(mingw64_pkgconfig_path, "blaze++.pc"))
+    os.remove(os.path.join(mingw64_pkgconfig_path, "remi.pc"))
 
 # uninstall
 shutil.rmtree(install_path)

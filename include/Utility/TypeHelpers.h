@@ -3,7 +3,7 @@
 #include <typeinfo>
 #include <string>
 
-namespace blz
+namespace remi
 {
     using TypeId = unsigned long long;
 

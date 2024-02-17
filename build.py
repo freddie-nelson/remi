@@ -6,6 +6,6 @@ build_path = os.path.join(dir_path, "build")
 
 exit_code = os.system(f"cd {build_path} && meson compile")
 if exit_code != 0:
-    print("Failed to build blaze!")
+    print("Failed to build remi!")
     exit(exit_code)
 

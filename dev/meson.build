@@ -9,11 +9,11 @@ lib_dir = join_paths(meson.current_source_dir(), '../lib')
 cpp_compiler = meson.get_compiler('cpp')
 
 if cross_target == 'native'
-    blaze = cpp_compiler.find_library('blaze++', dirs : join_paths(lib_dir, 'lib'), required : true) 
+    remi = cpp_compiler.find_library('remi', dirs : join_paths(lib_dir, 'lib'), required : true) 
 endif
 
 if cross_target == 'wasm'
-    blaze = cpp_compiler.find_library('blaze++', dirs : join_paths(lib_dir, 'lib'), required : true, static : true)
+    remi = cpp_compiler.find_library('remi', dirs : join_paths(lib_dir, 'lib'), required : true, static : true)
 endif
 
 #
@@ -27,8 +27,8 @@ link_args = []
 link_with = []
 name_suffix = ''
 
-# add blaze to the dependencies
-dependencies += [blaze]
+# add remi to the dependencies
+dependencies += [remi]
 
 includes = ['-I' + join_paths(lib_dir, 'include'), '-I' + join_paths(meson.current_source_dir(), '../externals/include')]
 link_args += includes
@@ -45,7 +45,8 @@ endif
 
 # wasm build
 if cross_target == 'wasm'
-    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1']
+    link_args += ['-sUSE_GLFW=3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=4096MB']
+    
     if get_option('buildtype') == 'debug'
         link_args += ['-sASSERTIONS=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
 

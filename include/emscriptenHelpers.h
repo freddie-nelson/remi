@@ -4,7 +4,7 @@
 #include <emscripten.h>
 #include <functional>
 
-namespace blz
+namespace remi
 {
     void emscriptenSetMainLoop(std::function<void()> &cb, int fps, bool simulateInfiniteLoop);
 }

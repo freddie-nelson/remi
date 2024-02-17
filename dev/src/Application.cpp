@@ -1,30 +1,30 @@
 #include "./include/Application.h"
 
-#include <blaze++/Core/SpaceTransformer.h>
-#include <blaze++/ECS/SparseSet.h>
-#include <blaze++/Rendering/Mesh/Mesh.h>
-#include <blaze++/Rendering/Mesh/Polygons.h>
-#include <blaze++/Rendering/Material/Material.h>
-#include <blaze++/Core/Timestep.h>
-#include <blaze++/Core/Transform.h>
-#include <blaze++/Core/BoundingCircle.h>
-#include <blaze++/Rendering/Renderable.h>
-#include <blaze++/Rendering/Camera/Camera.h>
-#include <blaze++/Rendering/Camera/ActiveCamera.h>
-#include <blaze++/Rendering/Font/Font.h>
-#include <blaze++/Rendering/Font/Text.h>
-#include <blaze++/Rendering/Font/MemoizedText.h>
-#include <blaze++/Rendering/Material/ShaderMaterial.h>
-#include <blaze++/Rendering/Shader/Uniform.h>
-#include <blaze++/Core/Timestep.h>
-#include <blaze++/Rendering/Passes/ColorBlendPass.h>
-#include <blaze++/Rendering/Passes/GaussianBlurPass.h>
-#include <blaze++/Rendering/Passes/BrightnessPass.h>
-#include <blaze++/Rendering/Passes/PosterizePass.h>
-#include <blaze++/Rendering/Texture/AnimatedTexture.h>
-#include <blaze++/Physics/RigidBody2D.h>
-#include <blaze++/Physics/Collider2D.h>
-#include <blaze++/Physics/Ray.h>
+#include <remi/Core/SpaceTransformer.h>
+#include <remi/ECS/SparseSet.h>
+#include <remi/Rendering/Mesh/Mesh.h>
+#include <remi/Rendering/Mesh/Polygons.h>
+#include <remi/Rendering/Material/Material.h>
+#include <remi/Core/Timestep.h>
+#include <remi/Core/Transform.h>
+#include <remi/Core/BoundingCircle.h>
+#include <remi/Rendering/Renderable.h>
+#include <remi/Rendering/Camera/Camera.h>
+#include <remi/Rendering/Camera/ActiveCamera.h>
+#include <remi/Rendering/Font/Font.h>
+#include <remi/Rendering/Font/Text.h>
+#include <remi/Rendering/Font/MemoizedText.h>
+#include <remi/Rendering/Material/ShaderMaterial.h>
+#include <remi/Rendering/Shader/Uniform.h>
+#include <remi/Core/Timestep.h>
+#include <remi/Rendering/Passes/ColorBlendPass.h>
+#include <remi/Rendering/Passes/GaussianBlurPass.h>
+#include <remi/Rendering/Passes/BrightnessPass.h>
+#include <remi/Rendering/Passes/PosterizePass.h>
+#include <remi/Rendering/Texture/AnimatedTexture.h>
+#include <remi/Physics/RigidBody2D.h>
+#include <remi/Physics/Collider2D.h>
+#include <remi/Physics/Ray.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -70,12 +70,12 @@ ECS::Entity camera;
 void Application::init()
 {
     // init engine
-    blz::EngineConfig config;
+    remi::EngineConfig config;
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
     // config.drawDebugPhysics = true;
 
-    engine = new blz::Engine(config);
+    engine = new remi::Engine(config);
 
     auto window = engine->getWindow();
     auto renderer = engine->getRenderer();
@@ -272,7 +272,7 @@ void Application::init()
     fpsTransform.setTranslation(localPos);
 
     // create physics bodies
-    size_t count = 0;
+    size_t count = 50;
     float width = 0.5f;
     float height = 0.5f;
     int areaX = std::sqrt(count);
