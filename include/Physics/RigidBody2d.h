@@ -1,5 +1,10 @@
 #pragma once
 
+#include "../ECS/Entity.h"
+#include "../World/World.h"
+#include "ContactInfo.h"
+
+#include <functional>
 #include <glm/vec2.hpp>
 #include <box2d/b2_body.h>
 
@@ -22,7 +27,16 @@ namespace Physics
     };
 
     /**
+     * A callback for when two rigid bodies collide.
+     *
+     * @param contactInfo The information about the contact.
+    */
+    using RigidBodyCollisionCallback = std::function<void(const ContactInfo &)>;
+
+    /**
      * Represents a 2D rigid body.
+     *
+     * @note Static and kinematic bodies do not collide with each other, they only collide with other dynamic bodies.
      */
     class RigidBody2D
     {
@@ -120,6 +134,46 @@ namespace Physics
         void applyAngularImpulse(float impulse, bool wake = true);
 
         /**
+         * Starts contact between two rigid bodies.
+         * 
+         * This informs the rigid body that it has begun contact/collision with another rigid body.
+         *
+         * This will call the begin contact callback if it is set.
+         *
+         * @param contactInfo The information about the contact.
+        */
+        void beginContact(const ContactInfo &contactInfo);
+
+        /**
+         * Ends contact between two rigid bodies.
+         * 
+         * This informs the rigid body that it has stopped contact/collision with another rigid body.
+         *
+         * This will call the end contact callback if it is set.
+         *
+         * @param contactInfo The information about the contact.
+        */
+        void endContact(const ContactInfo &contactInfo);
+
+        /**
+         * Sets the callback for when two rigid bodies start colliding.
+         *
+         * This is called when the bodies first start touching / have just collided.
+         *
+         * @param callback The callback for when two rigid bodies start contact.
+        */
+        void setBeginContactCallback(RigidBodyCollisionCallback callback);
+
+        /**
+         * Sets the callback for when two rigid bodies stop colliding.
+         *
+         * This is called when the bodies stop touching / separate.
+         *
+         * @param callback The callback for when two rigid bodies stop contact.
+        */
+        void setEndContactCallback(RigidBodyCollisionCallback callback);
+
+        /**
          * Gets the type of the body.
          *
          * @returns The type of the body.
@@ -128,6 +182,8 @@ namespace Physics
 
         /**
          * Sets the type of the body.
+         *
+         * @note Static and kinematic bodies do not collide with each other, they only collide with other dynamic bodies.
          *
          * @param type The type of the body.
          */
@@ -341,6 +397,16 @@ namespace Physics
          * The underlying Box2D body.
          */
         b2Body *body = nullptr;
+
+        /**
+         * The callback for when two rigid bodies collide.
+        */
+        RigidBodyCollisionCallback beginContactCallback = nullptr;
+
+        /**
+         * The callback for when two rigid bodies stop colliding.
+        */
+        RigidBodyCollisionCallback endContactCallback = nullptr;
 
         /**
          * The type of the body.

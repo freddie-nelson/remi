@@ -70,6 +70,26 @@ void Physics::RigidBody2D::applyAngularImpulse(float impulse, bool wake)
     body->ApplyAngularImpulse(impulse, wake);
 }
 
+void Physics::RigidBody2D::beginContact(const ContactInfo &contactInfo) {
+    if (beginContactCallback != nullptr) {
+        beginContactCallback(contactInfo);
+    }
+}
+
+void Physics::RigidBody2D::endContact(const ContactInfo &contactInfo) {
+    if (endContactCallback != nullptr) {
+        endContactCallback(contactInfo);
+    }
+}
+
+void Physics::RigidBody2D::setBeginContactCallback(RigidBodyCollisionCallback callback) {
+    beginContactCallback = callback;
+}
+
+void Physics::RigidBody2D::setEndContactCallback(RigidBodyCollisionCallback callback) {
+    endContactCallback = callback;
+}
+
 Physics::RigidBodyType Physics::RigidBody2D::getType() const
 {
     return type;

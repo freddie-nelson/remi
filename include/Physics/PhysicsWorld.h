@@ -3,6 +3,8 @@
 #include "../World/World.h"
 #include "../Core/SpaceTransformer.h"
 #include "Ray.h"
+#include "ContactListener.h"
+#include "BodyUserData.h"
 
 #include <unordered_map>
 #include <vector>
@@ -175,6 +177,7 @@ namespace Physics
 
         const Core::SpaceTransformer *spaceTransformer;
 
+
         /**
          * The box2d world.
          */
@@ -186,16 +189,23 @@ namespace Physics
         std::unordered_map<ECS::Entity, b2Body *> bodies;
 
         /**
-         * The body to entity map.
-         */
-        std::unordered_map<b2Body *, ECS::Entity> bodyToEntity;
-
-        /**
          * The entity to colliders map.
          *
          * This is a map of entities to their colliders (fixtures).
          */
         std::unordered_map<ECS::Entity, std::vector<b2Fixture *>> colliders;
+
+        /**
+         * The body to entity map.
+         *
+         * Should only be used within the physics world class.
+        */
+        std::unordered_map<b2Body *, ECS::Entity> bodyToEntity;
+
+        /**
+         * The contact listener for the world.
+        */
+        ContactListener contactListener;
 
         /**
          * Updates the bodies map.
@@ -217,6 +227,15 @@ namespace Physics
          * @param entitySet The set of entities to create bodies for.
          */
         void createBodies(const World::World &world, const std::unordered_set<ECS::Entity> &entitySet);
+
+        /**
+         * Destroys the given box2d body.
+         *
+         * This will delete the bodies user data and remove the body from the associated maps.
+         *
+         * @param body The body to destroy.
+        */
+        void destroyBody(b2Body *body);
 
         /**
          * Injects the data from the ecs components into the box2d bodies.

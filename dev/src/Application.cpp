@@ -219,6 +219,11 @@ void Application::init()
     auto &body = registry.add(player, Physics::RigidBody2D());
     body.setFixedRotation(true);
 
+    body.setBeginContactCallback([](Physics::ContactInfo contactInfo) {
+        std::cout << "player contact: " << contactInfo.entityA << ", " << contactInfo.entityB << std::endl;
+    });
+
+
     auto shape = new Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
     auto &collider = registry.add(player, Physics::Collider2D(shape));
     delete shape;

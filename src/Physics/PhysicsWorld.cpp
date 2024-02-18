@@ -3,19 +3,23 @@
 #include "../../include/Physics/Collider2D.h"
 #include "../../include/Core/Transform.h"
 #include "../../include/Physics/QueryCallback.h"
-#include "include/Physics/ColliderShape.h"
+#include "../../include/Physics/ColliderShape.h"
+#include "include/Physics/BodyUserData.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
 #include <box2d/b2_circle_shape.h>
 #include <box2d/b2_fixture.h>
 #include <box2d/b2_contact.h>
+#include <cstdint>
 #include <unordered_set>
 #include <string>
 
 Physics::PhysicsWorld::PhysicsWorld(PhysicsWorldConfig config, const Core::SpaceTransformer *spaceTransformer) : spaceTransformer(spaceTransformer), world(b2Vec2(config.gravity.x, config.gravity.y))
 {
     setConfig(config);
+
+    world.SetContactListener(&contactListener);
 }
 
 Physics::PhysicsWorld::~PhysicsWorld()
@@ -25,6 +29,9 @@ Physics::PhysicsWorld::~PhysicsWorld()
 
 void Physics::PhysicsWorld::fixedUpdate(World::World &world, const Core::Timestep &timestep)
 {
+    // update contact listener world
+    contactListener.setWorld(&world);
+
     // create, destroy and update bodies with ECS values
     updateBodies(world);
 
@@ -78,6 +85,13 @@ std::vector<ECS::Entity> Physics::PhysicsWorld::query(const Core::BoundingCircle
     shape.m_p = b2Vec2(circle.getCentre().x, circle.getCentre().y);
 
     b2BodyDef bodyDef;
+
+    // needs to be dynamic to collide with static bodies too
+    bodyDef.type = b2_dynamicBody;
+
+    auto userData = new BodyUserData(0, true);
+    bodyDef.userData.pointer = reinterpret_cast<uintptr_t>(userData);
+
     b2Body *circleBody = world.CreateBody(&bodyDef);
 
     b2FixtureDef fixtureDef;
@@ -113,6 +127,7 @@ std::vector<ECS::Entity> Physics::PhysicsWorld::query(const Core::BoundingCircle
     }
 
     world.DestroyBody(circleBody);
+    delete userData;
 
     return circleResults;
 }
@@ -183,26 +198,31 @@ void Physics::PhysicsWorld::updateBodies(const World::World &world)
 {
     auto &registry = world.getRegistry();
 
-    auto entities = registry.view<Core::Transform, Physics::RigidBody2D>();
+    auto &entities = registry.view<Core::Transform, Physics::RigidBody2D>();
     std::unordered_set<ECS::Entity> entitySet(entities.begin(), entities.end());
 
-    // check if any bodies need to be removed or added
-    for (auto it = bodies.begin(); it != bodies.end();)
-    {
-        auto &entity = it->first;
+    std::vector<b2Body *> bodiesToDestroy;
 
+    // check if any bodies need to be removed or added
+    for (auto &[entity, body] : bodies)
+    {
         // entity is not in the registry or no longer a valid body
         if (!entitySet.contains(entity))
         {
-            bodyToEntity.erase(it->second);
-            it = bodies.erase(it);
+            bodiesToDestroy.push_back(body);
         }
         // remove the entity from the set if it is still a valid body
+        // it does not need to be created
         else
         {
             entitySet.erase(entity);
-            ++it;
         }
+    }
+
+    // destroy bodies
+    for (auto &body : bodiesToDestroy)
+    {
+        destroyBody(body);
     }
 
     // now all bodies in the set are new bodies
@@ -256,6 +276,8 @@ void Physics::PhysicsWorld::createBodies(const World::World &world, const std::u
 
         bodyDef.gravityScale = body.getGravityScale();
 
+        bodyDef.userData.pointer = reinterpret_cast<uintptr_t>(new BodyUserData(e));
+
         // create body
         bodies[e] = this->world.CreateBody(&bodyDef);
         bodyToEntity[bodies[e]] = e;
@@ -268,6 +290,20 @@ void Physics::PhysicsWorld::createBodies(const World::World &world, const std::u
             createBox2DCollider(world, e);
         }
     }
+}
+
+void Physics::PhysicsWorld::destroyBody(b2Body *body)
+{
+    // delete user data
+    auto data = reinterpret_cast<BodyUserData *>(body->GetUserData().pointer);
+    delete data;
+
+    // destroy body
+    this->world.DestroyBody(body);
+
+    // remove from maps
+    bodies.erase(bodyToEntity[body]);
+    bodyToEntity.erase(body);
 }
 
 void Physics::PhysicsWorld::updateBodiesWithECSValues(const World::World &world, const std::unordered_set<ECS::Entity> &createdEntities)
