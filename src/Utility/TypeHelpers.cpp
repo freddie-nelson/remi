@@ -35,9 +35,9 @@ remi::TypeId remi::generateTypeId(const char *typeName)
 
     memoizedTypeIds[name] = h;
 
-    std::cout << "generateTypeId " << name << std::endl;
-    std::cout << "memoizedTypeIds.size(): " << memoizedTypeIds.size() << std::endl;
-    std::cout << "memoizedTypeIds[name]: " << memoizedTypeIds[name] << std::endl;
+    // std::cout << "generateTypeId " << name << std::endl;
+    // std::cout << "memoizedTypeIds.size(): " << memoizedTypeIds.size() << std::endl;
+    // std::cout << "memoizedTypeIds[name]: " << memoizedTypeIds[name] << std::endl;
 
     return h; // or return h % C;
 }
