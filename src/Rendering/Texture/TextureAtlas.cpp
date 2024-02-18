@@ -93,7 +93,7 @@ glm::vec2 Rendering::TextureAtlas::add(const Texture *texture, bool repack)
 
         pack();
     }
-    catch (std::runtime_error &e)
+    catch (std::exception &e)
     {
         // remove the texture from the atlas and repack
         textures.erase(texId);
@@ -194,6 +194,7 @@ void Rendering::TextureAtlas::pack()
     // std::cout << "sorted textures" << std::endl;
 
     // ! weird bug here on wasm desktop where textures get corrupted? junk values end up being for width, height and channels
+    // ? fixed?
 
     // represents empty spaces in the atlas
     std::list<AtlasSpace> spaces;
@@ -280,10 +281,22 @@ void Rendering::TextureAtlas::pack()
         // remove the space
 
         // space below texture
-        spaces.push_front({glm::vec2(space.position.x, space.position.y + texHeight + padding), space.width, space.height - texHeight - padding});
+        int spaceBelowHeight = static_cast<int>(space.height) - texHeight - padding;
+        AtlasSpace spaceBelow = {glm::vec2(space.position.x, space.position.y + texHeight + padding), space.width, spaceBelowHeight < 0 ? 0 : spaceBelowHeight};
+
+        if (spaceBelow.width > 0 && spaceBelow.height > 0)
+        {
+            spaces.push_front(std::move(spaceBelow));
+        }
 
         // space to right of texture
-        spaces.push_front({glm::vec2(space.position.x + texWidth + padding, space.position.y), space.width - texWidth - padding, texHeight});
+        int spaceRightWidth = static_cast<int>(space.width) - texWidth - padding;
+        AtlasSpace spaceRight = {glm::vec2(space.position.x + texWidth + padding, space.position.y), spaceRightWidth < 0 ? 0 : spaceRightWidth, texHeight};
+
+        if (spaceRight.width > 0 && spaceRight.height > 0)
+        {
+            spaces.push_front(std::move(spaceRight));
+        }
     }
 
     // test atlas output

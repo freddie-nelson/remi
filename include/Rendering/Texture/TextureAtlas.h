@@ -79,7 +79,7 @@ namespace Rendering
          * @param texture The texture to add to the atlas.
          * @param repack Whether to repack the atlas after adding the texture.
          *
-         * @returns The position of the top left corner of the texture in the atlas.
+         * @returns The position of the top left corner of the texture in the atlas when the atlas is repacked successfully.
          *
          * @throws std::invalid_argument If the texture is null.
          * @throws std::invalid_argument If the texture is too big for the atlas.
