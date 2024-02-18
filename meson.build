@@ -198,4 +198,7 @@ if install_headers
     # install src and headers
     install_subdir('src', install_dir : lib_dir / 'src/remi', strip_directory : true)
     install_subdir('include', install_dir : lib_dir / 'include/remi', strip_directory : true)
+
+    # install externals
+    install_subdir('externals/include', install_dir : lib_dir / 'include', strip_directory : true, exclude_directories : ['boost'])
 endif
