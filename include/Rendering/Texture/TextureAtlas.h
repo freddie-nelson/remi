@@ -98,6 +98,15 @@ namespace Rendering
         void remove(TextureId texId, bool repack = true);
 
         /**
+         * Gets the texture in the atlas.
+         *
+         * @param texId The texture to get.
+         *
+         * @returns The texture in the atlas.
+         */
+        const Texture *getTexture(TextureId texId);
+
+        /**
          * Gets the position of the top left corner of the texture in the atlas.
          *
          * @param texId The texture to get the position of.

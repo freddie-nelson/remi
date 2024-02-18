@@ -37,7 +37,7 @@ public:
         auto rendererHeight = renderer.getHeight();
 
         sceneGraph.relate(camera, entity);
-        auto pos = spaceTransformer.transform(glm::vec2(55.0f, rendererHeight - 20.0f), camera, Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::LOCAL);
+        auto pos = spaceTransformer.transform(glm::vec2(65.0f, rendererHeight - 20.0f), camera, Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::LOCAL);
 
         t.setTranslation(pos);
         t.setScale(glm::vec2(0.3f, 0.3f));

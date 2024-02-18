@@ -93,7 +93,7 @@ glm::vec2 Rendering::TextureAtlas::add(const Texture *texture, bool repack)
 
         pack();
     }
-    catch (std::exception &e)
+    catch (std::runtime_error &e)
     {
         // remove the texture from the atlas and repack
         textures.erase(texId);
@@ -119,6 +119,16 @@ void Rendering::TextureAtlas::remove(TextureId texId, bool repack)
 
     if (repack)
         pack();
+}
+
+const Rendering::Texture *Rendering::TextureAtlas::getTexture(TextureId texId)
+{
+    if (!has(texId))
+    {
+        throw std::invalid_argument("TextureAtlas (getTexture): texture is not in the atlas.");
+    }
+
+    return textures[texId];
 }
 
 glm::vec2 Rendering::TextureAtlas::get(TextureId texId)

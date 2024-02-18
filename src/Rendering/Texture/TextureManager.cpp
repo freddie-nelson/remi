@@ -62,7 +62,7 @@ std::vector<Rendering::TextureManager::BoundTexture> Rendering::TextureManager::
         auto atlasIndex = getContainingAtlas(texture);
         if (atlasIndex == -1)
         {
-            atlasIndex = addTextureToAtlas(texture, false, false);
+            atlasIndex = addTextureToAtlas(texture, true, false);
             atlasesToReload.emplace(atlasIndex);
         }
 
@@ -81,8 +81,21 @@ std::vector<Rendering::TextureManager::BoundTexture> Rendering::TextureManager::
     for (auto atlas : atlasesToReload)
     {
         // std::cout << "reloading atlas " << atlas << std::endl;
-        atlases[atlas]->pack();
-        loadAtlas(atlas);
+        try
+        {
+            atlases[atlas]->pack();
+            loadAtlas(atlas);
+        }
+        catch (std::runtime_error &e)
+        {
+            // recursively unbind and rebind all textures in the atlas
+            // until they all fit
+            // ! probably very slow
+            unbind(textures);
+            createAtlas();
+
+            return bind(textures);
+        }
     }
 
     return boundTextures;
@@ -113,6 +126,45 @@ void Rendering::TextureManager::unbind(const Texture *texture)
     loadAtlas(atlasIndex);
 }
 
+void Rendering::TextureManager::unbind(const std::vector<const Texture *> &textures)
+{
+    if (textures.empty())
+    {
+        return;
+    }
+
+    std::unordered_set<size_t> atlasesToRepack;
+
+    for (auto texture : textures)
+    {
+        if (texture == nullptr)
+        {
+            throw std::invalid_argument("TextureManager (unbind): texture must not be null.");
+        }
+
+        if (!textureToAtlas.contains(texture->getId()))
+        {
+            // texture is not bound
+            continue;
+        }
+
+        // remove from atlas but don't repack yet
+        auto atlas = textureToAtlas[texture->getId()];
+        atlases[atlas]->remove(texture->getId(), false);
+
+        atlasesToRepack.emplace(std::move(atlas));
+
+        textureToAtlas.erase(texture->getId());
+    }
+
+    // repack and reload atlases
+    for (auto atlas : atlasesToRepack)
+    {
+        atlases[atlas]->pack();
+        loadAtlas(atlas);
+    }
+}
+
 void Rendering::TextureManager::bindRenderTarget(GLuint texture)
 {
     if (texture == 0)
@@ -132,9 +184,10 @@ void Rendering::TextureManager::unbindRenderTarget()
 
 void Rendering::TextureManager::unbindUnusedTextures()
 {
-    std::unordered_set<size_t> atlasesToRepack;
 
     long long lastUsedCutoff = lastUsedCount - lastUsedTextureRemovalThreshold;
+
+    std::vector<const Texture *> texturesToRemove;
 
     // remove textures that haven't been used in a while
     for (auto it = textureLastUsed.begin(); it != textureLastUsed.end(); it++)
@@ -143,23 +196,11 @@ void Rendering::TextureManager::unbindUnusedTextures()
 
         if (lastUsed < lastUsedCutoff)
         {
-            // remove from atlas but don't repack yet
-            auto atlas = textureToAtlas[texId];
-            atlases[atlas]->remove(texId, false);
-
-            atlasesToRepack.emplace(std::move(atlas));
-
-            textureToAtlas.erase(texId);
-            it = textureLastUsed.erase(it);
+            texturesToRemove.push_back(atlases[textureToAtlas[texId]]->getTexture(texId));
         }
     }
 
-    // repack and reload atlases
-    for (auto atlas : atlasesToRepack)
-    {
-        atlases[atlas]->pack();
-        loadAtlas(atlas);
-    }
+    unbind(texturesToRemove);
 
     lastUsedCount++;
 }

@@ -78,6 +78,15 @@ namespace Rendering
         void unbind(const Texture *texture);
 
         /**
+         * Unbinds the given textures.
+         *
+         * If the texture is not bound then this will do nothing.
+         *
+         * @param textures The textures to unbind.
+         */
+        void unbind(const std::vector<const Texture *> &textures);
+
+        /**
          * Binds the given render target so that it can be used for rendering.
          *
          * This will bind the render target texture to the last texture unit.
