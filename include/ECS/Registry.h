@@ -27,8 +27,10 @@ namespace ECS
     public:
         /**
          * Creates a new registry.
+         *
+         * @param maxEntities The maximum number of entities that can be created.
          */
-        Registry();
+        Registry(size_t maxEntities);
 
         /**
          * Destroys the registry.
@@ -97,7 +99,7 @@ namespace ECS
             std::unordered_set<Entity> entitySet;
             viewHelper<Types...>(TypeList<Types...>{}, entitySet);
 
-            auto cached = cachedViews.emplace(std::move(cacheKey), std::vector<Entity>(entitySet.begin(), entitySet.end()));
+            auto cached = cachedViews.insert_or_assign(std::move(cacheKey), std::vector<Entity>(entitySet.begin(), entitySet.end()));
 
             // for (Entity entity : cached.first->second)
             // {
@@ -250,6 +252,11 @@ namespace ECS
         size_t size() const;
 
     private:
+        /**
+         * The maximum number of entities that can be created.
+        */
+        size_t maxEntities;
+
         std::queue<Entity> freeEntityIds;
 
         /**
@@ -394,7 +401,7 @@ namespace ECS
             {
                 for (Entity entity : entitiesT)
                 {
-                    entitySet.insert(entity);
+                    entitySet.insert(std::move(entity));
                 }
             }
             else
@@ -409,11 +416,15 @@ namespace ECS
                 // remove entities that don't have the component
                 std::unordered_set<Entity> entitySetT(entitiesT.begin(), entitiesT.end());
 
-                for (Entity entity : entitySet)
+                for (auto it = entitySet.begin(); it != entitySet.end();)
                 {
-                    if (!entitySetT.contains(entity))
+                    if (!entitySetT.contains(*it))
                     {
-                        entitySet.erase(entity);
+                        it = entitySet.erase(it);
+                    }
+                    else
+                    {
+                        it++;
                     }
                 }
             }
@@ -433,12 +444,12 @@ namespace ECS
         {
             ComponentId componentId = ComponentIdGenerator::id<T>;
 
-            if (componentPools.count(componentId) != 0)
+            if (componentPools.contains(componentId))
             {
                 throw std::runtime_error("Registry (createComponentPool): Component pool already exists.");
             }
 
-            SparseSet<T> *componentPool = new SparseSet<T>();
+            SparseSet<T> *componentPool = new SparseSet<T>(maxEntities - 1);
 
             componentPools[componentId] = reinterpret_cast<SparseSetBase *>(componentPool);
 

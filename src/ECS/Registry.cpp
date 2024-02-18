@@ -1,9 +1,9 @@
 #include "../../include/ECS/Registry.h"
 
-ECS::Registry::Registry()
+ECS::Registry::Registry(size_t maxEntities) : maxEntities(maxEntities)
 {
     // create entity ids
-    for (Entity entity = 0; entity <= ECS_SPARSE_SET_DEFAULT_MAX_ID; entity++)
+    for (Entity entity = 0; entity <= maxEntities; entity++)
     {
         freeEntityIds.push(entity);
     }

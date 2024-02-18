@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-World::World::World() : registry(ECS::Registry()), sceneGraph(Scene::SceneGraph(&registry))
+World::World::World(size_t maxEntities) : registry(ECS::Registry(maxEntities)), sceneGraph(Scene::SceneGraph(&registry))
 {
 }
 

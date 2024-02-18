@@ -4,15 +4,19 @@
 #include <string>
 #include <unordered_map>
 
-std::unordered_map<std::string, remi::TypeId> memoizedTypeIds;
 
 remi::TypeId remi::generateTypeId(const char *typeName)
 {
+    // NOTE: had this outside function but was causing memory leak and heap overflow on wasm build
+    // wasm might not like variables declared outside of functions and being used but who knows
+    // works as static variable
+    static std::unordered_map<std::string, remi::TypeId> memoizedTypeIds;
+
     std::string name(typeName);
 
     if (memoizedTypeIds.contains(name))
     {
-        return memoizedTypeIds[typeName];
+        return memoizedTypeIds[name];
     }
 
     const unsigned int A = 54059; /* a prime */
@@ -30,6 +34,10 @@ remi::TypeId remi::generateTypeId(const char *typeName)
     // std::cout << "hash: " << h << std::endl;
 
     memoizedTypeIds[name] = h;
+
+    std::cout << "generateTypeId " << name << std::endl;
+    std::cout << "memoizedTypeIds.size(): " << memoizedTypeIds.size() << std::endl;
+    std::cout << "memoizedTypeIds[name]: " << memoizedTypeIds[name] << std::endl;
 
     return h; // or return h % C;
 }

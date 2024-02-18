@@ -31,7 +31,7 @@ remi::Engine::Engine(EngineConfig config)
     std::cout << "Default render pipeline:" << std::endl;
     std::cout << pipeline->toString() << std::endl;
 
-    world = new World::World();
+    world = new World::World(config.maxEntities);
 
     spaceTransformer = new Core::SpaceTransformer(renderer, world, config.pixelsPerMeter);
 

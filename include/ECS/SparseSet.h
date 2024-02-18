@@ -76,9 +76,13 @@ namespace ECS
             this->maxId = maxId;
             NULL_INDEX = maxId + 1;
 
-            denseIds = std::vector<size_t>();
-            dense = std::vector<T>();
-            sparse = std::vector<size_t>(maxId + 1, NULL_INDEX);
+            try {
+                denseIds = std::vector<size_t>();
+                dense = std::vector<T>();
+                sparse = std::vector<size_t>(maxId + 1, NULL_INDEX);
+            } catch (std::bad_alloc &e) {
+                throw std::runtime_error("SparseSet (SparseSet): Could not allocate memory for sparse set for type '" + std::string(typeid(T).name()) + "'.");
+            }
         }
 
         /**

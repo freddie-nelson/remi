@@ -55,22 +55,19 @@ Rendering::PosterizePass *posterizePass;
 
 Rendering::Font *font;
 
-struct FPS
-{
-    unsigned int fps;
-};
-
 // ! Implement some kind of texture/asset loading system at engine level
 // would avoid user having to manage memory etc for textures and maybe other things
 
 ECS::Entity player;
 ECS::Entity character;
 ECS::Entity camera;
+ECS::Entity fpsEntity;
 
 void Application::init()
 {
     // init engine
     remi::EngineConfig config;
+    // config.maxEntities = 1000;
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
     // config.drawDebugPhysics = true;
@@ -152,7 +149,7 @@ void Application::init()
     ECS::Entity textEntity = registry.create();
     registry.add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
     registry.add(textEntity, Core::Transform());
-    // registry.add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), gradient));
+    registry.add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), gradient));
     registry.add(textEntity, Rendering::Renderable(true, true));
 
     const std::string textShader =
@@ -231,6 +228,8 @@ void Application::init()
     sceneGraph.relate(player, camera);
     sceneGraph.relate(player, character);
 
+    std::cout << "player: " << player << std::endl;
+
     // floor
     auto floor = registry.create();
     std::cout << "floor: " << floor << std::endl;
@@ -251,23 +250,22 @@ void Application::init()
 
     // fps text
     auto fpsText = Rendering::MemoizedText::text("FPS: 0", font);
-    auto fps = registry.create();
-    registry.add(fps, FPS{});
-    auto &fpsMesh = registry.add(fps, fpsText.mesh(Rendering::Text::TextAlignment::LEFT));
-    auto &fpsTransform = registry.add(fps, Core::Transform());
-    auto &fpsMaterial = registry.add(fps, Rendering::Material());
-    auto &fpsRenderable = registry.add(fps, Rendering::Renderable(true, false));
+    fpsEntity = registry.create();
+    auto &fpsMesh = registry.add(fpsEntity, fpsText.mesh(Rendering::Text::TextAlignment::LEFT));
+    auto &fpsTransform = registry.add(fpsEntity, Core::Transform());
+    auto &fpsMaterial = registry.add(fpsEntity, Rendering::Material());
+    auto &fpsRenderable = registry.add(fpsEntity, Rendering::Renderable(true, false));
 
     fpsTransform.scale(0.25f);
     fpsTransform.setZIndex(Config::MAX_Z_INDEX);
 
-    sceneGraph.relate(camera, fps);
+    sceneGraph.relate(camera, fpsEntity);
 
     float paddingX = 55.0f;
     float paddingY = 15.0f;
     auto spaceTransformer = engine->getSpaceTransformer();
     auto screenPos = glm::vec2(paddingX, window->getHeight() - paddingY);
-    auto localPos = spaceTransformer->transform(screenPos, fps, Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::LOCAL);
+    auto localPos = spaceTransformer->transform(screenPos, fpsEntity, Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::LOCAL);
 
     fpsTransform.setTranslation(localPos);
 
@@ -350,17 +348,10 @@ void Application::update(World::World &world, const Core::Timestep &timestep)
         t.scale(1.0f + camZoomSpeed * timestep.getSeconds());
 
     // update fps text
-    auto fpsEntity = registry.view<FPS>()[0];
-    auto &fpsComponent = registry.get<FPS>(fpsEntity);
     auto &fpsMesh = registry.get<Rendering::Mesh2D>(fpsEntity);
 
-    if (fpsComponent.fps != static_cast<unsigned int>(fps))
-    {
-        fpsComponent.fps = fps;
-
-        auto fpsText = Rendering::MemoizedText::text("FPS: " + std::to_string(fpsComponent.fps), font);
-        fpsMesh = fpsText.mesh(Rendering::Text::TextAlignment::LEFT);
-    }
+    auto fpsText = Rendering::MemoizedText::text("FPS: " + std::to_string(static_cast<unsigned int>(fps)), font);
+    fpsMesh = fpsText.mesh(Rendering::Text::TextAlignment::LEFT);
 
     // set text entity uniform
     auto textEntity = registry.view<Rendering::ShaderMaterial>()[0];

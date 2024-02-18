@@ -26,8 +26,10 @@ namespace World
          * Creates a new world.
          *
          * The world will create a new registry and scene graph.
+         *
+         * @param maxEntities The maximum number of entities the world can have.
          */
-        World();
+        World(size_t maxEntities);
 
         /**
          * Destroys the world.
