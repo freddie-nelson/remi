@@ -4,6 +4,8 @@ This directory contains examples of how to use remi.
 
 Directories starting with `__` are not examples, but rather helper directories for the examples.
 
+The `__helpers` directory contains helper functions/classes for the examples. These must be header only.
+
 Each example directory must contain a `info.json` file with the following structure:
 
 ```ts

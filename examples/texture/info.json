@@ -1,0 +1,6 @@
+{
+  "name": "Texture",
+  "description": "A simple example of loading and displaying a textured entity.",
+  "src_files": ["main.cpp"],
+  "assets_dir": "assets"
+}
