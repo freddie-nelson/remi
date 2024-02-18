@@ -15,7 +15,7 @@ namespace Physics
     /**
      * Represents a 2D collider.
      */
-    class Collider2D
+    class Collider2D 
     {
     public:
         /**
@@ -144,32 +144,30 @@ namespace Physics
         /**
          * Gets the underlying Box2D fixture.
          *
-         * Do not delete this fixture without setting it to null first.
+         * This may be null if the fixture has not been created yet.
          *
          * @warning Do not use this unless you know what you are doing.
          *
-         * @returns The underlying Box2D fixture.
+         * @returns The underlying Box2D fixtures.
          */
-        b2Fixture *getFixture();
+        std::vector<b2Fixture *> *getFixtures();
 
         /**
          * Sets the underlying Box2D fixture.
          *
-         * Do not delete the passed fixture without setting it to null first.
-         *
-         * Setting the fixture to null will cause it to be recreated on the next physics update. This can be used to change the shape of the collider.
+         * Setting the fixture to null will cause it to be recreated on the next physics update. This can be used to change the shape of the collider. This is done internally by `setShape`.
          *
          * @warning Do not use this unless you know what you are doing.
          *
          * @param fixture The underlying Box2D fixture.
          */
-        void setFixture(b2Fixture *fixture);
+        void setFixtures(std::vector<b2Fixture *> *fixtures);
 
     protected:
         /**
-         * The underlying Box2D fixture.
+         * The underlying Box2D fixtures.
          */
-        b2Fixture *fixture = nullptr;
+        std::vector<b2Fixture *> *fixtures = nullptr;
 
         /**
          * The shape of the collider.

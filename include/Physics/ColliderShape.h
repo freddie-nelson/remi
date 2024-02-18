@@ -1,6 +1,10 @@
 #pragma once
 
 #include "../Rendering/Mesh/Mesh.h"
+#include "box2d/b2_chain_shape.h"
+#include "box2d/b2_circle_shape.h"
+#include "box2d/b2_edge_shape.h"
+#include "box2d/b2_polygon_shape.h"
 
 #include <box2d/b2_shape.h>
 #include <glm/vec2.hpp>
@@ -12,6 +16,7 @@ namespace Physics
     enum ColliderShapeType
     {
         POLYGON,
+        CONCAVE_POLYGON,
         CIRCLE,
         EDGE,
         CHAIN,
@@ -62,11 +67,17 @@ namespace Physics
     public:
         /**
          * Creates a new 2D polygon collider.
+         *
+         * The vertices should be in counter-clockwise order and represent a convex polygon.
+         *
+         * @param vertices The vertices of the polygon.
          */
         PolygonColliderShape2D(std::vector<glm::vec2> vertices);
 
         /**
          * Creates a new 2D polygon collider.
+         *
+         * The mesh should be a convex polygon.
          *
          * @param mesh The mesh to create the collider from.
          */
@@ -74,6 +85,8 @@ namespace Physics
 
         /**
          * Creates a new 2D polygon collider.
+         *
+         * The mesh should be a convex polygon.
          *
          * @param mesh The mesh to create the collider from.
          * @param transform The transform of the mesh.
@@ -83,9 +96,11 @@ namespace Physics
         /**
          * Creates a Box2D shape from the collider shape.
          *
+         * The shape is created on the heap and should be deleted when no longer needed.
+         *
          * @returns The Box2D shape.
          */
-        b2Shape *createBox2DShape() const override;
+        b2PolygonShape *createBox2DShape() const override;
 
         /**
          * Clones the collider shape.
@@ -100,6 +115,86 @@ namespace Physics
          * This is in local space.
          */
         std::vector<glm::vec2> vertices;
+    };
+
+    /**
+     * Represents a 2D concave polygon collider.
+     *
+     * This is a collider that is a concave polygon. [[info]](https://en.wikipedia.org/wiki/Concave_polygon)
+     *
+     * This class will split the concave polygon into triangles and add all of them as fixtures to the box2d body.
+     */
+    class ConcavePolygonColliderShape2D : public ColliderShape2D
+    {
+    public:
+        /**
+         * Creates a new 2D concave polygon collider.
+         *
+         * The vertices should be in counter-clockwise order and represent a concave polygon.
+         *
+         * @param vertices The vertices of the polygon.
+         */
+        ConcavePolygonColliderShape2D(std::vector<glm::vec2> vertices);
+
+        /**
+         * Creates a new 2D polygon collider.
+         *
+         * The mesh should be a concave polygon.
+         *
+         * @param mesh The mesh to create the collider from.
+         */
+        ConcavePolygonColliderShape2D(const Rendering::Mesh2D &mesh);
+
+        /**
+         * Creates a new 2D polygon collider.
+         *
+         * The mesh should be a concave polygon.
+         *
+         * @param mesh The mesh to create the collider from.
+         * @param transform The transform of the mesh.
+         */
+        ConcavePolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform);
+
+        /**
+         * Creates a Box2D shape from the collider shape.
+         *
+         * This is actually a pointer to an array of shapes. The size is given by `getShapeCount`.
+         *
+         * The array is created on the heap and should be deleted when no longer needed.
+         *
+         * @returns The Box2D shape.
+         */
+        b2PolygonShape *createBox2DShape() const override;
+
+        /**
+         * Clones the collider shape.
+         *
+         * @returns The cloned collider shape.
+         */
+        ColliderShape2D *clone() const override;
+
+        /**
+         * Gets the number of shapes in the concave polygon. 
+         * 
+         * This is the number of triangles the concave polygon was split into.
+         * 
+         * This is also the length of the array returned by createBox2DShape.
+         *
+         * @returns The number of triangles that make up the concave polygon.
+        */
+        size_t getShapeCount() const;
+
+        /**
+         * The vertices of the concave polygon.
+         *
+         * This is in local space.
+         */
+        std::vector<glm::vec2> vertices;
+
+        /**
+         * The indices to split the vertices into triangles.
+        */
+        std::vector<unsigned int> indices;
     };
 
     /**
@@ -123,7 +218,7 @@ namespace Physics
          *
          * @returns The Box2D shape.
          */
-        b2Shape *createBox2DShape() const override;
+        b2CircleShape *createBox2DShape() const override;
 
         /**
          * Clones the collider shape.
@@ -184,9 +279,11 @@ namespace Physics
         /**
          * Creates a Box2D shape from the collider shape.
          *
+         * The shape is created on the heap and should be deleted when no longer needed.
+         *
          * @returns The Box2D shape.
          */
-        b2Shape *createBox2DShape() const override;
+        b2EdgeShape *createBox2DShape() const override;
 
         /**
          * Clones the collider shape.
@@ -270,9 +367,11 @@ namespace Physics
         /**
          * Creates a Box2D shape from the collider shape.
          *
+         * The shape is created on the heap and should be deleted when no longer needed.
+         *
          * @returns The Box2D shape.
          */
-        b2Shape *createBox2DShape() const override;
+        b2ChainShape *createBox2DShape() const override;
 
         /**
          * Clones the collider shape.

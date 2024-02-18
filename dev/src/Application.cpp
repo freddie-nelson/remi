@@ -279,19 +279,27 @@ void Application::init()
     for (size_t i = 0; i < count; i++)
     {
         auto e = registry.create();
-        registry.add(e, Core::Transform());
         registry.add(e, Rendering::Mesh2D(width, height));
         registry.add(e, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
         registry.add(e, Rendering::Renderable(true, false));
         registry.add(e, Physics::RigidBody2D());
-        registry.add(e, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(e))));
 
-        auto &t = registry.get<Core::Transform>(e);
+        auto &t = registry.add(e, Core::Transform());
         t.translate(glm::vec2(rand() % areaX - areaX / 2, rand() % areaY - areaY / 2));
 
-        auto &collider = registry.get<Physics::Collider2D>(e);
+        auto &collider = registry.add(e, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(e))));
         collider.setFriction(1.0f);
+
     }
+
+    // create concave collider
+    auto concave = registry.create();
+    registry.add(concave, Core::Transform());
+    auto &concaveMesh = registry.add(concave, Rendering::Mesh2D({{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}, {0.5f, 0.5f}}));
+    registry.add(concave, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
+    registry.add(concave, Rendering::Renderable(true, false));
+    registry.add(concave, Physics::RigidBody2D());
+    registry.add(concave, Physics::Collider2D(new Physics::ConcavePolygonColliderShape2D(concaveMesh)));
 }
 
 void Application::destroy()

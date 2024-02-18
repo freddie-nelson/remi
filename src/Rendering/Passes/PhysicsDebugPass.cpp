@@ -34,55 +34,57 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
 
     std::vector<ECS::Entity> entities;
 
-    for (auto &[_, collider] : colliders)
+    for (auto &[_, fixtures] : colliders)
     {
-        auto &aabb = collider->GetAABB(0);
+        for (auto fixture : fixtures) {
+            auto &aabb = fixture->GetAABB(0);
 
-        auto e = registry.create();
-        auto &mesh = registry.add(e, Rendering::Mesh2D(aabb.GetExtents().x * 2, aabb.GetExtents().y * 2));
-        auto &transform = registry.add(e, Core::Transform());
-        auto &material = registry.add(e, Rendering::Material());
-        auto &renderable = registry.add(e, Rendering::Renderable(true, false));
+            auto e = registry.create();
+            auto &mesh = registry.add(e, Rendering::Mesh2D(aabb.GetExtents().x * 2, aabb.GetExtents().y * 2));
+            auto &transform = registry.add(e, Core::Transform());
+            auto &material = registry.add(e, Rendering::Material());
+            auto &renderable = registry.add(e, Rendering::Renderable(true, false));
 
-        auto shape = collider->GetShape();
+            auto shape = fixture->GetShape();
 
-        if (shape->GetType() == b2Shape::e_polygon)
-        {
-            auto polygon = reinterpret_cast<b2PolygonShape *>(shape);
-            auto vertices = polygon->m_vertices;
-
-            std::vector<glm::vec2> points;
-            for (int i = 0; i < polygon->m_count; i++)
+            if (shape->GetType() == b2Shape::e_polygon)
             {
-                points.push_back(glm::vec2(vertices[i].x, vertices[i].y));
+                auto polygon = reinterpret_cast<b2PolygonShape *>(shape);
+                auto vertices = polygon->m_vertices;
+
+                std::vector<glm::vec2> points;
+                for (int i = 0; i < polygon->m_count; i++)
+                {
+                    points.push_back(glm::vec2(vertices[i].x, vertices[i].y));
+                }
+
+                mesh.createPolygon(points);
+            }
+            else if (shape->GetType() == b2Shape::e_circle)
+            {
+                auto circle = reinterpret_cast<b2CircleShape *>(shape);
+                auto radius = circle->m_radius;
+
+                mesh.createRegularPolygon(radius, 32);
             }
 
-            mesh.createPolygon(points);
+            transform.setZIndex(Config::MAX_Z_INDEX);
+            transform.setTranslation(glm::vec2(aabb.GetCenter().x, aabb.GetCenter().y));
+            transform.setRotation(fixture->GetBody()->GetAngle());
+
+            if (fixture->IsSensor())
+            {
+                material.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 0.3f));
+            }
+            else
+            {
+                material.setColor(Rendering::Color(0.0f, 1.0f, 0.0f, 0.3f));
+            }
+
+            // std::cout << "aabb: " << aabb.GetCenter().x << ", " << aabb.GetCenter().y << ", " << aabb.GetExtents().x << ", " << aabb.GetExtents().y << std::endl;
+
+            entities.push_back(e);
         }
-        else if (shape->GetType() == b2Shape::e_circle)
-        {
-            auto circle = reinterpret_cast<b2CircleShape *>(shape);
-            auto radius = circle->m_radius;
-
-            mesh.createRegularPolygon(radius, 32);
-        }
-
-        transform.setZIndex(Config::MAX_Z_INDEX);
-        transform.setTranslation(glm::vec2(aabb.GetCenter().x, aabb.GetCenter().y));
-        transform.setRotation(collider->GetBody()->GetAngle());
-
-        if (collider->IsSensor())
-        {
-            material.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 0.3f));
-        }
-        else
-        {
-            material.setColor(Rendering::Color(0.0f, 1.0f, 0.0f, 0.3f));
-        }
-
-        // std::cout << "aabb: " << aabb.GetCenter().x << ", " << aabb.GetCenter().y << ", " << aabb.GetExtents().x << ", " << aabb.GetExtents().y << std::endl;
-
-        entities.push_back(e);
     }
 
     renderer.batch(world, renderer.getActiveCamera(registry), entities);

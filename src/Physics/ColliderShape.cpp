@@ -1,9 +1,23 @@
 #include "../../include/Physics/ColliderShape.h"
+#include "include/Rendering/Mesh/Triangulate.h"
 
 #include <box2d/b2_polygon_shape.h>
 #include <box2d/b2_circle_shape.h>
 #include <box2d/b2_edge_shape.h>
 #include <box2d/b2_chain_shape.h>
+
+//
+// ColliderShape2D
+//
+
+Physics::ColliderShapeType Physics::ColliderShape2D::getType() const
+{
+    return type;
+}
+
+//
+// PolygonColliderShape2D
+//
 
 Physics::PolygonColliderShape2D::PolygonColliderShape2D(std::vector<glm::vec2> vertices)
 {
@@ -23,7 +37,7 @@ Physics::PolygonColliderShape2D::PolygonColliderShape2D(const Rendering::Mesh2D 
     vertices = mesh.transform(transform).getVertices();
 }
 
-b2Shape *Physics::PolygonColliderShape2D::createBox2DShape() const
+b2PolygonShape *Physics::PolygonColliderShape2D::createBox2DShape() const
 {
     b2PolygonShape *shape = new b2PolygonShape();
     b2Vec2 b2Vertices[vertices.size()];
@@ -43,6 +57,75 @@ Physics::ColliderShape2D *Physics::PolygonColliderShape2D::clone() const
     return new PolygonColliderShape2D(*this);
 }
 
+//
+// ConcavePolygonColliderShape2D
+//
+
+Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(std::vector<glm::vec2> vertices)
+{
+    type = ColliderShapeType::CONCAVE_POLYGON;
+
+    auto iv = Rendering::triangulate(vertices);
+
+    vertices = std::move(iv.vertices);
+    indices = std::move(iv.indices);
+}
+
+Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(const Rendering::Mesh2D &mesh)
+{
+    type = ColliderShapeType::CONCAVE_POLYGON;
+
+    vertices = mesh.getVertices();
+    indices = mesh.getIndices();
+}
+
+Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform)
+{
+    type = ColliderShapeType::CONCAVE_POLYGON;
+
+    auto transformedMesh = mesh.transform(transform);
+
+    vertices = transformedMesh.getVertices();
+    indices = transformedMesh.getIndices();
+}
+
+b2PolygonShape *Physics::ConcavePolygonColliderShape2D::createBox2DShape() const
+{
+    auto triCount = getShapeCount();
+    b2PolygonShape *shapes = new b2PolygonShape[triCount];
+
+    for (size_t i = 0; i < triCount; i++)
+    {
+        auto &shape = shapes[i];
+
+        b2Vec2 b2Vertices[3];
+        for (size_t j = 0; j < 3; j++)
+        {
+            auto index = indices[i * 3 + j];
+            auto vertex = vertices[index];
+            b2Vertices[j].Set(vertex.x, vertex.y);
+        }
+
+        shape.Set(b2Vertices, 3);
+    }
+
+    return shapes;
+}
+
+Physics::ColliderShape2D *Physics::ConcavePolygonColliderShape2D::clone() const
+{
+    return new ConcavePolygonColliderShape2D(*this);
+}
+
+size_t Physics::ConcavePolygonColliderShape2D::getShapeCount() const
+{
+    return indices.size() / 3;
+}
+
+//
+// CircleColliderShape2D
+//
+
 Physics::CircleColliderShape2D::CircleColliderShape2D(float radius, glm::vec2 centre)
 {
     type = ColliderShapeType::CIRCLE;
@@ -50,7 +133,7 @@ Physics::CircleColliderShape2D::CircleColliderShape2D(float radius, glm::vec2 ce
     this->centre = centre;
 }
 
-b2Shape *Physics::CircleColliderShape2D::createBox2DShape() const
+b2CircleShape *Physics::CircleColliderShape2D::createBox2DShape() const
 {
     b2CircleShape *shape = new b2CircleShape();
     shape->m_p.Set(centre.x, centre.y);
@@ -63,6 +146,10 @@ Physics::ColliderShape2D *Physics::CircleColliderShape2D::clone() const
 {
     return new CircleColliderShape2D(*this);
 }
+
+//
+// EdgeColliderShape2D
+//
 
 Physics::EdgeColliderShape2D::EdgeColliderShape2D(glm::vec2 start, glm::vec2 end)
 {
@@ -84,7 +171,7 @@ Physics::EdgeColliderShape2D::EdgeColliderShape2D(glm::vec2 adjacentStart, glm::
     oneSided = false;
 }
 
-b2Shape *Physics::EdgeColliderShape2D::createBox2DShape() const
+b2EdgeShape *Physics::EdgeColliderShape2D::createBox2DShape() const
 {
     b2EdgeShape *shape = new b2EdgeShape();
     if (oneSided)
@@ -104,6 +191,10 @@ Physics::ColliderShape2D *Physics::EdgeColliderShape2D::clone() const
     return new EdgeColliderShape2D(*this);
 }
 
+//
+// ChainColliderShape2D
+//
+
 Physics::ChainColliderShape2D::ChainColliderShape2D(std::vector<glm::vec2> vertices)
 {
     type = ColliderShapeType::CHAIN;
@@ -120,7 +211,7 @@ Physics::ChainColliderShape2D::ChainColliderShape2D(glm::vec2 adjacentStart, std
     isLoop = false;
 }
 
-b2Shape *Physics::ChainColliderShape2D::createBox2DShape() const
+b2ChainShape *Physics::ChainColliderShape2D::createBox2DShape() const
 {
     b2ChainShape *shape = new b2ChainShape();
     b2Vec2 b2Vertices[vertices.size()];

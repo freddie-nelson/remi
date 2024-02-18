@@ -73,6 +73,8 @@ namespace Physics
         /**
          * Raycasts against all bodies with colliders in the world.
          *
+         * If a ray starts inside a collider, that collider will not be included in the results.
+         *
          * @param ray The ray to cast.
          * @param type The type of raycast to perform.
          *
@@ -166,7 +168,7 @@ namespace Physics
          *
          * @returns The box2d colliders.
          */
-        const std::unordered_map<ECS::Entity, b2Fixture *> &getColliders() const;
+        const std::unordered_map<ECS::Entity, std::vector<b2Fixture *>> &getColliders() const;
 
     private:
         PhysicsWorldConfig config;
@@ -193,7 +195,7 @@ namespace Physics
          *
          * This is a map of entities to their colliders (fixtures).
          */
-        std::unordered_map<ECS::Entity, b2Fixture *> colliders;
+        std::unordered_map<ECS::Entity, std::vector<b2Fixture *>> colliders;
 
         /**
          * Updates the bodies map.

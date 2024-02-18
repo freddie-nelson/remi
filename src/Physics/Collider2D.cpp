@@ -13,7 +13,7 @@ Physics::Collider2D::Collider2D(const Collider2D &other)
     restitution = other.restitution;
     restitutionThreshold = other.restitutionThreshold;
     isSensor = other.isSensor;
-    fixture = nullptr;
+    fixtures = nullptr;
 }
 
 Physics::Collider2D::~Collider2D()
@@ -30,7 +30,7 @@ void Physics::Collider2D::setShape(ColliderShape2D *shape)
 {
     delete this->shape;
     this->shape = shape->clone();
-    fixture = nullptr;
+    fixtures = nullptr;
 }
 
 float Physics::Collider2D::getDensity() const
@@ -42,9 +42,12 @@ void Physics::Collider2D::setDensity(float density)
 {
     this->density = density;
 
-    if (fixture != nullptr)
+    if (fixtures != nullptr)
     {
-        fixture->SetDensity(density);
+        for (b2Fixture *fixture : *fixtures)
+        {
+            fixture->SetDensity(density);
+        }
     }
 }
 
@@ -57,9 +60,12 @@ void Physics::Collider2D::setFriction(float friction)
 {
     this->friction = friction;
 
-    if (fixture != nullptr)
+    if (fixtures != nullptr)
     {
-        fixture->SetFriction(friction);
+        for (b2Fixture *fixture : *fixtures)
+        {
+            fixture->SetFriction(friction);
+        }
     }
 }
 
@@ -72,9 +78,12 @@ void Physics::Collider2D::setRestitution(float restitution)
 {
     this->restitution = restitution;
 
-    if (fixture != nullptr)
+    if (fixtures != nullptr)
     {
-        fixture->SetRestitution(restitution);
+        for (b2Fixture *fixture : *fixtures)
+        {
+            fixture->SetRestitution(restitution);
+        }
     }
 }
 
@@ -87,9 +96,12 @@ void Physics::Collider2D::setRestitutionThreshold(float restitutionThreshold)
 {
     this->restitutionThreshold = restitutionThreshold;
 
-    if (fixture != nullptr)
+    if (fixtures != nullptr)
     {
-        fixture->SetRestitutionThreshold(restitutionThreshold);
+        for (b2Fixture *fixture : *fixtures)
+        {
+            fixture->SetRestitutionThreshold(restitutionThreshold);
+        }
     }
 }
 
@@ -102,18 +114,21 @@ void Physics::Collider2D::setIsSensor(bool isSensor)
 {
     this->isSensor = isSensor;
 
-    if (fixture != nullptr)
+    if (fixtures != nullptr)
     {
-        fixture->SetSensor(isSensor);
+        for (b2Fixture *fixture : *fixtures)
+        {
+            fixture->SetSensor(isSensor);
+        }
     }
 }
 
-b2Fixture *Physics::Collider2D::getFixture()
+std::vector<b2Fixture *> *Physics::Collider2D::getFixtures()
 {
-    return fixture;
+    return fixtures;
 }
 
-void Physics::Collider2D::setFixture(b2Fixture *fixture)
+void Physics::Collider2D::setFixtures(std::vector<b2Fixture *> *fixtures)
 {
-    this->fixture = fixture;
+    this->fixtures = fixtures;
 }

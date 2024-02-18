@@ -3,6 +3,7 @@
 #include "../../include/Physics/Collider2D.h"
 #include "../../include/Core/Transform.h"
 #include "../../include/Physics/QueryCallback.h"
+#include "include/Physics/ColliderShape.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
@@ -173,7 +174,7 @@ const std::unordered_map<ECS::Entity, b2Body *> &Physics::PhysicsWorld::getBodie
     return bodies;
 }
 
-const std::unordered_map<ECS::Entity, b2Fixture *> &Physics::PhysicsWorld::getColliders() const
+const std::unordered_map<ECS::Entity, std::vector<b2Fixture *>> &Physics::PhysicsWorld::getColliders() const
 {
     return colliders;
 }
@@ -301,7 +302,7 @@ void Physics::PhysicsWorld::updateBodiesWithECSValues(const World::World &world,
             auto &collider = registry.get<Physics::Collider2D>(e);
 
             // collider needs recreated
-            if (collider.getFixture() == nullptr)
+            if (collider.getFixtures() == nullptr)
             {
                 destroyBox2DCollider(e);
                 createBox2DCollider(world, e);
@@ -330,21 +331,47 @@ void Physics::PhysicsWorld::createBox2DCollider(const World::World &world, ECS::
     auto &registry = world.getRegistry();
     auto &collider = registry.get<Physics::Collider2D>(e);
 
-    b2Shape *shape = collider.getShape()->createBox2DShape();
+    auto colliderShape = collider.getShape();
+
+    std::vector<b2Fixture *> fixtures;
 
     // create fixture
-    b2FixtureDef fixtureDef;
-    fixtureDef.shape = shape;
-    fixtureDef.density = collider.getDensity();
-    fixtureDef.friction = collider.getFriction();
-    fixtureDef.restitution = collider.getRestitution();
-    fixtureDef.restitutionThreshold = collider.getRestitutionThreshold();
-    fixtureDef.isSensor = collider.getIsSensor();
+    if (colliderShape->getType() == Physics::ColliderShapeType::CONCAVE_POLYGON) {
+        auto concaveShape = reinterpret_cast<const Physics::ConcavePolygonColliderShape2D *>(colliderShape);
+        auto shapeCount = concaveShape->getShapeCount();
+        auto shapes = concaveShape->createBox2DShape();
 
-    // add fixture to body
-    colliders[e] = bodies[e]->CreateFixture(&fixtureDef);
+        for (size_t i = 0; i < shapeCount; i++) {
+            b2FixtureDef fixtureDef;
+            fixtureDef.shape = &shapes[i];
+            fixtureDef.density = collider.getDensity();
+            fixtureDef.friction = collider.getFriction();
+            fixtureDef.restitution = collider.getRestitution();
+            fixtureDef.restitutionThreshold = collider.getRestitutionThreshold();
+            fixtureDef.isSensor = collider.getIsSensor();
 
-    collider.setFixture(colliders[e]);
+            fixtures.push_back(bodies[e]->CreateFixture(&fixtureDef));
+        }
+
+        delete[] shapes;
+    } else {
+        b2Shape *shape = colliderShape->createBox2DShape();
+
+        b2FixtureDef fixtureDef;
+        fixtureDef.shape = shape;
+        fixtureDef.density = collider.getDensity();
+        fixtureDef.friction = collider.getFriction();
+        fixtureDef.restitution = collider.getRestitution();
+        fixtureDef.restitutionThreshold = collider.getRestitutionThreshold();
+        fixtureDef.isSensor = collider.getIsSensor();
+
+        fixtures.push_back(bodies[e]->CreateFixture(&fixtureDef));
+
+        delete shape;
+    }
+
+    colliders.insert_or_assign(e, std::move(fixtures));
+    collider.setFixtures(&colliders[e]);
 }
 
 void Physics::PhysicsWorld::destroyBox2DCollider(ECS::Entity e)
@@ -354,7 +381,11 @@ void Physics::PhysicsWorld::destroyBox2DCollider(ECS::Entity e)
         throw std::runtime_error("PhysicsWorld (destroyBox2DCollider): Entity '" + std::to_string(e) + "' has no collider.");
     }
 
-    bodies[e]->DestroyFixture(colliders[e]);
+    for (auto &fixture : colliders[e])
+    {
+        bodies[e]->DestroyFixture(fixture);
+    }
+
     colliders.erase(e);
 }
 
