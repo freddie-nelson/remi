@@ -6,6 +6,7 @@ fs = import('fs')
 cross_target = meson.get_external_property('cross_target', 'native')
 lib_dir = join_paths(meson.current_source_dir(), '../../../lib')
 helpers_dir = join_paths(meson.current_source_dir(), '../../__helpers')
+externals_dir = join_paths(meson.current_source_dir(), '../../../externals/include')
 
 cpp_compiler = meson.get_compiler('cpp')
 
@@ -31,7 +32,7 @@ name_suffix = ''
 # add remi to the dependencies
 dependencies += [remi]
 
-includes = ['-I' + join_paths(lib_dir, 'include'), '-I' + helpers_dir]
+includes = ['-I' + join_paths(lib_dir, 'include'), '-I' + helpers_dir, '-I' + externals_dir]
 link_args += includes
 cpp_args += includes 
 
