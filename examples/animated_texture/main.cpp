@@ -6,6 +6,9 @@
 #include <remi/Rendering/Renderable.h>
 #include <remi/Core/Transform.h>
 
+#include <Fps.h>
+#include <BasicCamera.h>
+
 int main()
 {
     // create engine
@@ -16,12 +19,9 @@ int main()
     auto &world = *engine.getWorld();
     auto &registry = world.getRegistry();
 
-    // create camera
-    // we need an active camera to see anything
-    auto camera = registry.create();
-    registry.add(camera, Rendering::Camera(config.windowWidth, config.windowHeight));
-    registry.add(camera, Rendering::ActiveCamera());
-    registry.add(camera, Core::Transform());
+    // add camera and fps counter
+    BasicCamera camera(&engine);
+    Fps fps(&engine);
 
     // create  square in the middle of the screen
     auto square = registry.create();

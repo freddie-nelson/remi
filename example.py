@@ -12,6 +12,7 @@ examples_dir = os.path.join(base_dir, 'examples')
 examples_build_dir_name = '__build'
 examples_build_dir = os.path.join(examples_dir, examples_build_dir_name)
 examples_helpers_dir = os.path.join(examples_dir, '__helpers')
+examples_helpers_assets_dir = os.path.join(examples_helpers_dir, 'assets')
 
 def get_examples_names():
     return [d for d in os.listdir(examples_dir) if not d.startswith("__") and os.path.isdir(os.path.join(examples_dir, d))]
@@ -58,6 +59,9 @@ def build_example(example, clean=True, target="native", mode="debug"):
 
         # copy example build files to build dir
         shutil.copytree(examples_build_dir, build_dir, dirs_exist_ok=True)
+
+        # copy example assets to build dir
+        shutil.copytree(examples_helpers_assets_dir, os.path.join(build_dir, os.path.basename(examples_helpers_assets_dir)), dirs_exist_ok=True)
     
     # check if meson.build exists
     meson_build_file = os.path.join(build_dir, 'meson.build')
@@ -67,7 +71,15 @@ def build_example(example, clean=True, target="native", mode="debug"):
     # replace __SRC_FILES__ and __ASSETS_DIR__ in meson.build
     with open(meson_build_file, 'r') as f:
         meson_build_content = f.read()
-        meson_build_content = meson_build_content.replace("__ASSETS_DIR__", f"'{example['assets_dir']}'")
+
+        assets = []
+        if example['assets_dir'] != "":
+            assets.append(f"'{example['assets_dir']}'")
+        
+        if os.path.basename(examples_helpers_assets_dir) not in assets:
+            assets.append(f"'{os.path.basename(examples_helpers_assets_dir)}'")
+
+        meson_build_content = meson_build_content.replace("__ASSETS_DIR__", ", ".join(assets))
         meson_build_content = meson_build_content.replace("__SRC_FILES__", f"{example['src_files']}")
     
     with open(meson_build_file, 'w') as f:
@@ -95,6 +107,9 @@ def build_example(example, clean=True, target="native", mode="debug"):
             raise Exception(f"Example {example['dir']} does not contain a valid assets directory")
 
         shutil.copytree(os.path.join(example['dir'], example['assets_dir']), os.path.join(build_dir, 'build', example['assets_dir']), dirs_exist_ok=True)
+
+        # copy example assets to meson build dir
+        shutil.copytree(examples_helpers_assets_dir, os.path.join(build_dir, 'build', os.path.basename(examples_helpers_assets_dir)), dirs_exist_ok=True)
     
     # copy in remi dll
     if target == "native":

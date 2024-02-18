@@ -6,6 +6,8 @@
 #include <remi/Rendering/Renderable.h>
 #include <remi/Core/Transform.h>
 
+#include <Fps.h>
+
 int main()
 {
     // create engine
@@ -22,6 +24,9 @@ int main()
     registry.add(camera, Rendering::Camera(config.windowWidth, config.windowHeight));
     registry.add(camera, Rendering::ActiveCamera());
     registry.add(camera, Core::Transform());
+
+    // add fps counter
+    Fps fps(&engine);
 
     // create white square in the middle of the screen
     auto square = registry.create();
