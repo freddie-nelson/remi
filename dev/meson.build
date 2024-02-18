@@ -9,7 +9,7 @@ lib_dir = join_paths(meson.current_source_dir(), '../lib')
 cpp_compiler = meson.get_compiler('cpp')
 
 if cross_target == 'native'
-    remi = cpp_compiler.find_library('remi', dirs : join_paths(lib_dir, 'lib'), required : true) 
+    remi = cpp_compiler.find_library('remi', dirs : join_paths(lib_dir, 'lib'), required : true, static : false) 
 endif
 
 if cross_target == 'wasm'

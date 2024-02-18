@@ -12,6 +12,10 @@ namespace Rendering
      * Represents a render target.
      *
      * This can be used to render to a texture.
+     *
+     * The render target has two texutres, one for drawing to and one for reading from.
+     *
+     * After rendering to the draw texture, `updateReadTexture` should be called to update the read texture. This is automatically done when calling `unbind` with `drawToReadTexture` set to `true`.
      */
     class RenderTarget
     {
@@ -32,9 +36,9 @@ namespace Rendering
         /**
          * Binds the render target.
          *
-         * This will make all rendering go to the texture.
+         * This will make all rendering go to the draw texture.
          *
-         * @param textureManager The texture manager to bind the texture to.
+         * @param textureManager The texture manager to bind the read texture to.
          * @param bindFramebuffer Whether to bind the framebuffer.
          */
         void bind(TextureManager &textureManager, bool bindFramebuffer = true) const;
@@ -44,9 +48,15 @@ namespace Rendering
          *
          * This will make all rendering go to the screen.
          *
-         * @param textureManager The texture manager to unbind the texture from.
+         * @param textureManager The texture manager to unbind the read texture from.
+         * @param drawToReadTexture Whether to draw the draw texture to the read texture.
          */
-        void unbind(TextureManager &textureManager) const;
+        void unbind(TextureManager &textureManager, bool drawToReadTexture = true) const;
+
+        /**
+         * Will perform a render pass to update the read texture with the contents of the draw texture.
+        */
+        void updateReadTexture() const;
 
         /**
          * Clears the render target.
@@ -103,22 +113,34 @@ namespace Rendering
         GLuint getFramebuffer() const;
 
         /**
-         * Gets the texture object.
+         * Gets the draw texture object.
          *
-         * @returns The texture object.
+         * @returns The draw texture object.
          */
-        GLuint getTexture() const;
+        GLuint getDrawTexture() const;
+
+        /**
+         * Gets the read texture object.
+         *
+         * @returns The read texture object.
+         */
+        GLuint getReadTexture() const;
 
     private:
         unsigned int width;
         unsigned int height;
 
         GLuint framebuffer = 0;
-        GLuint texture = 0;
+        GLuint drawTexture = 0;
         GLuint depthBuffer = 0;
+
+        GLuint readFramebuffer = 0;
+        GLuint readTexture = 0;
 
         void create();
         void destroy();
         void update();
+
+        GLuint createTexture();
     };
 }

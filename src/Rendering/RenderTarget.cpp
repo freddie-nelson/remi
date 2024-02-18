@@ -15,7 +15,7 @@ Rendering::RenderTarget::~RenderTarget()
 
 void Rendering::RenderTarget::bind(TextureManager &textureManager, bool bindFramebuffer) const
 {
-    textureManager.bindRenderTarget(texture);
+    textureManager.bindRenderTarget(readTexture);
 
     if (bindFramebuffer)
     {
@@ -24,10 +24,25 @@ void Rendering::RenderTarget::bind(TextureManager &textureManager, bool bindFram
     }
 }
 
-void Rendering::RenderTarget::unbind(TextureManager &textureManager) const
+void Rendering::RenderTarget::unbind(TextureManager &textureManager, bool drawToReadTexture) const
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     textureManager.unbindRenderTarget();
+
+    if (drawToReadTexture)
+        updateReadTexture();
+}
+
+void Rendering::RenderTarget::updateReadTexture() const
+{
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, readFramebuffer);
+
+    // bind read texture
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
 
 void Rendering::RenderTarget::clear(const Color &c, bool color, bool depth, bool stencil) const
@@ -87,9 +102,14 @@ GLuint Rendering::RenderTarget::getFramebuffer() const
     return framebuffer;
 }
 
-GLuint Rendering::RenderTarget::getTexture() const
+GLuint Rendering::RenderTarget::getDrawTexture() const
 {
-    return texture;
+    return drawTexture;
+}
+
+GLuint Rendering::RenderTarget::getReadTexture() const
+{
+    return readTexture;
 }
 
 void Rendering::RenderTarget::create()
@@ -101,21 +121,11 @@ void Rendering::RenderTarget::create()
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-    // create texture
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-    // set filtering options
-    // TODO: make filter mode configurable?
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // unbind texture
-    glBindTexture(GL_TEXTURE_2D, 0);
+    // create draw texture
+    drawTexture = createTexture();
 
     // attach texture to framebuffer
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, drawTexture, 0);
 
     // create depth/stencil buffer render buffer object
     glGenRenderbuffers(1, &depthBuffer);
@@ -138,6 +148,22 @@ void Rendering::RenderTarget::create()
 
     // unbind framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // create read framebuffer
+    glGenFramebuffers(1, &readFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, readFramebuffer);
+
+    // create read texture
+    readTexture = createTexture();
+
+    // attach texture to framebuffer
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, readTexture, 0);
+
+    // check if framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        throw std::runtime_error("RenderTarget (create): read framebuffer is not complete. Status: " + glFramebufferStatusToString(glCheckFramebufferStatus(GL_FRAMEBUFFER)) + ".");
+    }
 }
 
 void Rendering::RenderTarget::destroy()
@@ -148,16 +174,29 @@ void Rendering::RenderTarget::destroy()
         framebuffer = 0;
     }
 
-    if (texture != 0)
+    if (drawTexture != 0)
     {
-        glDeleteTextures(1, &texture);
-        texture = 0;
+        glDeleteTextures(1, &drawTexture);
+        drawTexture = 0;
     }
+
 
     if (depthBuffer != 0)
     {
         glDeleteRenderbuffers(1, &depthBuffer);
         depthBuffer = 0;
+    }
+
+    if (readFramebuffer != 0)
+    {
+        glDeleteFramebuffers(1, &readFramebuffer);
+        readFramebuffer = 0;
+    }
+
+    if (readTexture != 0)
+    {
+        glDeleteTextures(1, &readTexture);
+        readTexture = 0;
     }
 }
 
@@ -168,4 +207,22 @@ void Rendering::RenderTarget::update()
 
     // create new objects
     create();
+}
+
+GLuint Rendering::RenderTarget::createTexture() {
+    GLuint texture;
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+    // set filtering options
+    // TODO: make filter mode configurable?
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // unbind texture
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return texture;
 }
