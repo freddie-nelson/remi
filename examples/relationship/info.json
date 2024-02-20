@@ -2,5 +2,5 @@
   "name": "Relationship",
   "description": "An simple example of parent child relationships, a red child rotates with it's parent.",
   "src_files": ["main.cpp"],
-  "assets_dir": "assets"
+  "assets_dir": ""
 }
