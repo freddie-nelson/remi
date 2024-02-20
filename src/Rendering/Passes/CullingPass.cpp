@@ -116,6 +116,16 @@ size_t Rendering::CullingPass::getRenderables(World::World &world, const std::ve
             continue;
         }
 
+        if (renderable.noCulling)
+        {
+            if ((isStatic && renderable.isStatic) || (!isStatic && !renderable.isStatic))
+            {
+                renderables.push_back(e);
+            }
+
+            continue;
+        }
+
         if (isStatic && !renderable.isStatic)
         {
             // check if entity was previously static
