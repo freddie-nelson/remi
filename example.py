@@ -108,8 +108,8 @@ def build_example(example, clean=True, target="native", mode="debug"):
 
         shutil.copytree(os.path.join(example['dir'], example['assets_dir']), os.path.join(build_dir, 'build', example['assets_dir']), dirs_exist_ok=True)
 
-        # copy example assets to meson build dir
-        shutil.copytree(examples_helpers_assets_dir, os.path.join(build_dir, 'build', os.path.basename(examples_helpers_assets_dir)), dirs_exist_ok=True)
+    # copy example assets to meson build dir
+    shutil.copytree(examples_helpers_assets_dir, os.path.join(build_dir, 'build', os.path.basename(examples_helpers_assets_dir)), dirs_exist_ok=True)
     
     # copy in remi dll
     if target == "native":
