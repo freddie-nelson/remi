@@ -25,7 +25,7 @@ public:
         entity = registry.create();
         registry.add(entity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
         registry.add(entity, text.mesh());
-        registry.add(entity, Rendering::Renderable(true, true));
+        registry.add(entity, Rendering::Renderable(true, false));
 
         auto &t = registry.add(entity, Core::Transform());
         t.setZIndex(Config::MAX_Z_INDEX);

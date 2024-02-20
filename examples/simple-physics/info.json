@@ -1,0 +1,6 @@
+{
+  "name": "Simple Physics",
+  "description": "A simple physics example of rigidbodies colliding with a static floor body.",
+  "src_files": ["main.cpp"],
+  "assets_dir": "assets"
+}
