@@ -1,0 +1,6 @@
+{
+  "name": "Text",
+  "description": "An simple example of text rendering.",
+  "src_files": ["main.cpp"],
+  "assets_dir": "assets"
+}
