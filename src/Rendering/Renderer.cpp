@@ -49,7 +49,7 @@ Rendering::Renderer::Renderer(Core::Window *window, unsigned int width, unsigned
 
     enableDepthTest(true);
     enableDepthWrite(true);
-    enableAlphaBlending(false);
+    enableAlphaBlending(true);
 
     // init shaders
     shaders.emplace(DEFAULT_SHADER_KEY, new RendererShaders(meshFragShader));

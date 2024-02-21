@@ -63,7 +63,7 @@ namespace Rendering
      *
      * Depth testing is enabled by default.
      *
-     * Alpha blending is disabled by default.
+     * Alpha blending is enabled by default.
      *
      * The default alpha blending function is `GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA`.
      *
@@ -209,7 +209,7 @@ namespace Rendering
         /**
          * Enables or disables alpha blending.
          *
-         * Alpha blending is disabled by default.
+         * Alpha blending is enabled by default.
          *
          * When alpha blending is enabled, the renderer will blend the fragment color with the color already in the framebuffer.
          *
