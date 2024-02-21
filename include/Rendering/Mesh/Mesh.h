@@ -53,11 +53,12 @@ namespace Rendering
          *
          * The vertices must be in counter-clockwise order and represent a simple polygon.
          *
-         * The polygon will be centred at (0, 0).
+         * The polygon will be centred at (0, 0) if preserveCentre is false.
          *
          * @param vertices The vertices of the polygon.
+         * @param preserveCentre Whether to preserve the vertices original centre or not
          */
-        Mesh2D(std::vector<glm::vec2> vertices);
+        Mesh2D(std::vector<glm::vec2> vertices, bool preserveCentre = false);
 
         /**
          * Creates a mesh instance.
@@ -106,7 +107,7 @@ namespace Rendering
          * @param thickness The thickness of the line.
          * @param centre Whether to centre the line at (0, 0) or not.
          */
-         Mesh2D(const glm::vec2 &start, const glm::vec2 &end, float thickness, bool centre = false);
+        Mesh2D(const glm::vec2 &start, const glm::vec2 &end, float thickness, bool centre = false);
 
         /**
          * Creates the vertices and indices of the mesh to form a polygon.
@@ -115,11 +116,12 @@ namespace Rendering
          *
          * The vertices must be in counter-clockwise order and represent a simple polygon.
          *
-         * The polygon will be centred at (0, 0).
+         * The polygon will be centred at (0, 0) if preserveCentre is false.
          *
          * @param vertices The vertices of the polygon.
+         * @param preserveCentre Whether to preserve the vertices original centre or not
          */
-        void createPolygon(const std::vector<glm::vec2> &vertices);
+        void createPolygon(const std::vector<glm::vec2> &vertices, bool preserveCentre = false);
 
         /**
          * Creates the vertices and indices of the mesh to form a regular polygon.
@@ -147,12 +149,12 @@ namespace Rendering
          * Creates the vertices and indices of the mesh to form a line.
          *
          * The line can be centred at (0, 0) or not.
-         * 
+         *
          * @param start The start of the line.
          * @param end The end of the line.
          * @param thickness The thickness of the line.
          * @param centre Whether to centre the line at (0, 0) or not.
-        */
+         */
         void createLine(const glm::vec2 &start, const glm::vec2 &end, float thickness, bool centre = false);
 
         /**

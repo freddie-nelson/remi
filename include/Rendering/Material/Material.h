@@ -15,7 +15,7 @@ namespace Rendering
      *
      * The color is multiplied by the texture color to get the final color of the material.
      *
-     * If the texture is not set it will be set to a 32x32 white texture.
+     * If the texture is not set it will be set to a 64x64 white texture.
      *
      * The material can also be animated by setting the texture to an animated texture. The material cannot have a texture and an animated texture at the same time.
      *

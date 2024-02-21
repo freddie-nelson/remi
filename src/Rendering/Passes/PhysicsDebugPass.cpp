@@ -36,11 +36,13 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
 
     for (auto &[_, fixtures] : colliders)
     {
-        for (auto fixture : fixtures) {
+        for (auto fixture : fixtures)
+        {
             auto &aabb = fixture->GetAABB(0);
+            auto body = fixture->GetBody();
 
             auto e = registry.create();
-            auto &mesh = registry.add(e, Rendering::Mesh2D(aabb.GetExtents().x * 2, aabb.GetExtents().y * 2));
+            auto &mesh = registry.add(e, Rendering::Mesh2D());
             auto &transform = registry.add(e, Core::Transform());
             auto &material = registry.add(e, Rendering::Material());
             auto &renderable = registry.add(e, Rendering::Renderable(true, false));
@@ -55,10 +57,11 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
                 std::vector<glm::vec2> points;
                 for (int i = 0; i < polygon->m_count; i++)
                 {
-                    points.push_back(glm::vec2(vertices[i].x, vertices[i].y));
+                    auto world = body->GetWorldPoint(vertices[i]);
+                    points.push_back(glm::vec2(world.x, world.y));
                 }
 
-                mesh.createPolygon(points);
+                mesh.createPolygon(points, true);
             }
             else if (shape->GetType() == b2Shape::e_circle)
             {
@@ -66,11 +69,21 @@ Rendering::RenderPassInput *Rendering::PhysicsDebugPass::execute(Rendering::Rend
                 auto radius = circle->m_radius;
 
                 mesh.createRegularPolygon(radius, 32);
+
+                auto pos = fixture->GetAABB(0).GetCenter();
+                transform.setTranslation(glm::vec2(pos.x, pos.y));
+                transform.setRotation(body->GetAngle());
+            }
+            else
+            {
+                mesh.createRect(aabb.GetExtents().x * 2, aabb.GetExtents().y * 2);
+
+                auto pos = fixture->GetAABB(0).GetCenter();
+                transform.setTranslation(glm::vec2(pos.x, pos.y));
+                transform.setRotation(body->GetAngle());
             }
 
             transform.setZIndex(Config::MAX_Z_INDEX);
-            transform.setTranslation(glm::vec2(aabb.GetCenter().x, aabb.GetCenter().y));
-            transform.setRotation(fixture->GetBody()->GetAngle());
 
             if (fixture->IsSensor())
             {

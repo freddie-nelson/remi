@@ -27,9 +27,9 @@ Rendering::Mesh2D::Mesh2D()
     aabb.setMax(glm::vec2{0.5f, 0.5f});
 }
 
-Rendering::Mesh2D::Mesh2D(std::vector<glm::vec2> vertices)
+Rendering::Mesh2D::Mesh2D(std::vector<glm::vec2> vertices, bool preserveCentre)
 {
-    createPolygon(vertices);
+    createPolygon(vertices, preserveCentre);
 }
 
 Rendering::Mesh2D::Mesh2D(std::vector<glm::vec2> vertices, std::vector<unsigned int> indices, bool preserveCentre)
@@ -56,9 +56,9 @@ Rendering::Mesh2D::Mesh2D(const glm::vec2 &start, const glm::vec2 &end, float th
     createLine(start, end, thickness, centre);
 }
 
-void Rendering::Mesh2D::createPolygon(const std::vector<glm::vec2> &vertices)
+void Rendering::Mesh2D::createPolygon(const std::vector<glm::vec2> &vertices, bool preserveCentre)
 {
-    auto iv = Rendering::createPolygon(vertices, true);
+    auto iv = Rendering::createPolygon(vertices, !preserveCentre);
 
     setVertices(std::move(iv.vertices));
     setIndices(std::move(iv.indices));
@@ -120,7 +120,9 @@ void Rendering::Mesh2D::createLine(const glm::vec2 &start, const glm::vec2 &end,
     if (centre)
     {
         setCentre(glm::vec2(0));
-    } else {
+    }
+    else
+    {
         setCentre(glm::vec2(0));
         setCentre(glm::vec2((start + end) / 2.0f));
     }
