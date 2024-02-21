@@ -3,7 +3,7 @@
 ECS::Registry::Registry(size_t maxEntities) : maxEntities(maxEntities)
 {
     // create entity ids
-    for (Entity entity = 0; entity <= maxEntities; entity++)
+    for (Entity entity = 0; entity < maxEntities; entity++)
     {
         freeEntityIds.push(entity);
     }
