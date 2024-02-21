@@ -1,5 +1,10 @@
 #include "../../../include/Physics/Joints/Joint.h"
 
+Physics::JointType Physics::Joint::getType() const
+{
+    return type;
+}
+
 void Physics::Joint::setConnected(ECS::Entity connected)
 {
     this->connected = connected;

@@ -2,16 +2,30 @@
 
 #include "../../ECS/Entity.h"
 #include "../../Core/Timestep.h"
+#include "../../World/World.h"
+#include "../PhysicsWorld.h"
 
 #include <box2d/b2_joint.h>
 #include <glm/vec2.hpp>
 
 namespace Physics
 {
+    enum JointType
+    {
+        DISTANCE,
+    };
+
     class Joint
     {
     public:
         virtual ~Joint() = default;
+
+        /**
+         * Gets the type of the joint.
+         *
+         * @returns The type of the joint.
+         */
+        JointType getType() const;
 
         /**
          * Sets the entity the joint is connected to.
@@ -136,6 +150,19 @@ namespace Physics
         float getReactionTorque(const Core::Timestep &timestep) const;
 
         /**
+         * Creates the box2d joint.
+         *
+         * This creates the specific box2d joint type and returns it.
+         *
+         * @param world The world the joint is in.
+         * @param physicsWorld The physics world the joint is in.
+         * @param owner The entity that owns the joint. (The first body in the joint, not connected body)
+         *
+         * @returns The box2d joint.
+         */
+        virtual b2Joint *createBox2DJoint(World::World &world, PhysicsWorld &physicsWorld, ECS::Entity owner) = 0;
+
+        /**
          * Sets the underlying box2d joint.
          *
          * @warning Do not use this unless you know what you are doing.
@@ -175,6 +202,11 @@ namespace Physics
          * @param connected The entity to connect to (must have a rigidbody).
          */
         Joint(ECS::Entity connected);
+
+        /**
+         * The type of the joint.
+         */
+        JointType type;
 
         /**
          * The connected body.
