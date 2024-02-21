@@ -15,8 +15,6 @@
 
 int main()
 {
-    srand(time(0));
-
     // create engine
     remi::EngineConfig config;
     remi::Engine engine(config);
@@ -54,16 +52,26 @@ int main()
     auto &floorTransform = registry.add(floor, Core::Transform());
     floorTransform.translate(glm::vec2(0.0f, -3.0f));
 
-    // create boxes
+    // create concave colliders
+    // concave colliders are split into multiple triangles so may not be the most high performance
+    // for concave polygons with many vertices
     size_t count = 100;
     float size = 0.5f;
-    size_t xRange = 12;
-    size_t yRange = 4;
+    size_t xRange = 14;
+    size_t yRange = count * 0.75f;
+
+    std::vector<glm::vec2> vertices = {
+        glm::vec2(0),
+        glm::vec2(size, 0),
+        glm::vec2(size),
+        glm::vec2(size * 0.5f),
+        glm::vec2(0, size),
+    };
 
     for (size_t i = 0; i < count; i++)
     {
         auto box = registry.create();
-        auto &boxMesh = registry.add(box, Rendering::Mesh2D(size, size));
+        auto &boxMesh = registry.add(box, Rendering::Mesh2D(vertices));
         registry.add(box, Rendering::Material());
         registry.add(box, Rendering::Renderable(true, false));
 
@@ -71,8 +79,8 @@ int main()
         auto &boxBody = registry.add(box, Physics::RigidBody2D());
         boxBody.setType(Physics::RigidBodyType::DYNAMIC);
 
-        // use box mesh to create collider
-        auto boxShape = new Physics::PolygonColliderShape2D(boxMesh);
+        // use box mesh to create concave collider
+        auto boxShape = new Physics::ConcavePolygonColliderShape2D(boxMesh);
         auto &boxCollider = registry.add(box, Physics::Collider2D(boxShape));
 
         // make box non slippery

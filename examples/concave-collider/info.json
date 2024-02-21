@@ -1,0 +1,6 @@
+{
+  "name": "Concave Collider",
+  "description": "An example of concave rigidbodies.",
+  "src_files": ["main.cpp"],
+  "assets_dir": ""
+}

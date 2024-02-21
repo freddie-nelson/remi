@@ -70,7 +70,7 @@ void Application::init()
     // config.maxEntities = 1000;
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
-    // config.drawDebugPhysics = true;
+    config.drawDebugPhysics = true;
 
     engine = new remi::Engine(config);
 
@@ -219,10 +219,8 @@ void Application::init()
     auto &body = registry.add(player, Physics::RigidBody2D());
     body.setFixedRotation(true);
 
-    body.setBeginContactCallback([](Physics::ContactInfo contactInfo) {
-        std::cout << "player contact: " << contactInfo.entityA << ", " << contactInfo.entityB << std::endl;
-    });
-
+    body.setBeginContactCallback([](Physics::ContactInfo contactInfo)
+                                 { std::cout << "player contact: " << contactInfo.entityA << ", " << contactInfo.entityB << std::endl; });
 
     auto shape = new Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
     auto &collider = registry.add(player, Physics::Collider2D(shape));
@@ -294,7 +292,6 @@ void Application::init()
 
         auto &collider = registry.add(e, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(e))));
         collider.setFriction(1.0f);
-
     }
 
     // create concave collider
