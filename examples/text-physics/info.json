@@ -1,0 +1,6 @@
+{
+  "name": "Text Physics",
+  "description": "An example showing how to create physics interactive text.",
+  "src_files": ["main.cpp"],
+  "assets_dir": "assets"
+}

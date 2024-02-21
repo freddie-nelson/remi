@@ -1,0 +1,6 @@
+{
+  "name": "Text Physics Letters",
+  "description": "An example showing how to create physics interactive text, where each letter is it's own body.",
+  "src_files": ["main.cpp"],
+  "assets_dir": "assets"
+}

@@ -15,13 +15,13 @@ namespace Physics
     /**
      * Represents a 2D collider.
      */
-    class Collider2D 
+    class Collider2D
     {
     public:
         /**
          * Creates a new 2D collider.
          *
-         * The shape will be cloned so you can delete the original.
+         * The shape will be cloned so you can delete the original, create it on the stack or reuse it.
          *
          * @param shape The shape of the collider.
          */

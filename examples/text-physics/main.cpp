@@ -5,8 +5,10 @@
 #include <remi/Rendering/Material/Material.h>
 #include <remi/Rendering/Renderable.h>
 #include <remi/Core/Transform.h>
-#include <remi/Physics/RigidBody2D.h>
-#include <remi/Physics/Collider2D.h>
+#include <remi/Rendering/Font/Font.h>
+#include <remi/Rendering/Font/Text.h>
+#include <remi/Physics/RigidBody2d.h>
+#include <remi/Physics/Collider2d.h>
 
 #include <Fps.h>
 #include <BasicCamera.h>
@@ -15,10 +17,10 @@
 
 int main()
 {
-    srand(time(0));
-
     // create engine
     remi::EngineConfig config;
+    // config.drawDebugPhysics = true;
+
     remi::Engine engine(config);
 
     // get world and registry
@@ -41,44 +43,44 @@ int main()
     floorBody.setType(Physics::RigidBodyType::STATIC);
 
     // use floor mesh to create collider
-    auto floorShape = Physics::PolygonColliderShape2D(floorMesh);
-    auto &floorCollider = registry.add(floor, Physics::Collider2D(&floorShape));
+    auto floorShape = new Physics::PolygonColliderShape2D(floorMesh);
+    auto &floorCollider = registry.add(floor, Physics::Collider2D(floorShape));
 
     // make floor non slippery
     floorCollider.setFriction(0.5f);
+
+    // shape is clone in so we can delete it
+    delete floorShape;
 
     // move floor down
     auto &floorTransform = registry.add(floor, Core::Transform());
     floorTransform.translate(glm::vec2(0.0f, -3.0f));
 
-    // create boxes
-    size_t count = 100;
-    float size = 0.5f;
-    size_t xRange = 12;
-    size_t yRange = 4;
+    // load font
+    Rendering::Font font = Rendering::Font("assets/Anta-Regular.ttf");
 
-    for (size_t i = 0; i < count; i++)
-    {
-        auto box = registry.create();
-        auto &boxMesh = registry.add(box, Rendering::Mesh2D(size, size));
-        registry.add(box, Rendering::Material());
-        registry.add(box, Rendering::Renderable(true, false));
+    // create text
+    Rendering::Text text("Hello World!", font);
 
-        // make box dynamic rigidbody
-        auto &boxBody = registry.add(box, Physics::RigidBody2D());
-        boxBody.setType(Physics::RigidBodyType::DYNAMIC);
+    // create text entity
+    auto textEntity = registry.create();
+    registry.add(textEntity, Core::Transform());
+    registry.add(textEntity, Rendering::Material());
+    registry.add(textEntity, Rendering::Renderable(true, true));
 
-        // use box mesh to create collider
-        auto boxShape = Physics::PolygonColliderShape2D(boxMesh);
-        auto &boxCollider = registry.add(box, Physics::Collider2D(&boxShape));
+    // create text mesh as normal
+    auto &textMesh = registry.add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
 
-        // make box non slippery
-        boxCollider.setFriction(0.5f);
+    // add physics to text
+    registry.add(textEntity, Physics::RigidBody2D());
 
-        // set position
-        auto &t = registry.add(box, Core::Transform());
-        t.translate(glm::vec2((rand() % xRange) - xRange / 2.0f, rand() % yRange));
-    }
+    // use text mesh to create collider
+    // note: text mesh is concave so we use concave polygon collider
+    auto textShape = Physics::ConcavePolygonColliderShape2D(textMesh);
+    auto &textCollider = registry.add(textEntity, Physics::Collider2D(&textShape));
+
+    // make text non slippery
+    textCollider.setFriction(0.5f);
 
     // run engine
     engine.run();

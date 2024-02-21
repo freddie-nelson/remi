@@ -5,6 +5,7 @@
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <algorithm>
+#include <stdexcept>
 
 Rendering::Text::Text(std::string text, const Font &font) : text(text), font(font)
 {
@@ -89,6 +90,12 @@ const Rendering::Mesh2D &Rendering::Text::createMesh(TextAlignment align) const
 
             xAdvance += charAdvance;
         }
+    }
+
+    // text is degenerate
+    if (vertices.size() < 3)
+    {
+        throw std::runtime_error("Text (createMesh): Text '" + text + "' does not produce a valid mesh. This may be due to only having whitespace characters.");
     }
 
     Mesh2D mesh(std::move(vertices), std::move(indices));
