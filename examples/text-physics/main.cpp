@@ -60,7 +60,7 @@ int main()
     Rendering::Font font = Rendering::Font("assets/Anta-Regular.ttf");
 
     // create text
-    Rendering::Text text("Hello World!", font);
+    Rendering::Text text("Hello, World!", font);
 
     // create text entity
     auto textEntity = registry.create();

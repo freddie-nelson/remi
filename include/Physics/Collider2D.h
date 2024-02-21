@@ -144,7 +144,7 @@ namespace Physics
         /**
          * Gets the underlying Box2D fixture.
          *
-         * This may be null if the fixture has not been created yet.
+         * May be nullptr if the fixture has not been created yet.
          *
          * @warning Do not use this unless you know what you are doing.
          *

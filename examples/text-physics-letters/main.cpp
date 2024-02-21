@@ -60,7 +60,7 @@ int main()
     Rendering::Font font = Rendering::Font("assets/Anta-Regular.ttf");
 
     // create text
-    std::string s = "Hello World!";
+    std::string s = "Hello, World!";
 
     for (size_t i = 0; i < s.size(); i++)
     {

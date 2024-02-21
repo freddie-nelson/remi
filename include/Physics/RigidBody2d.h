@@ -30,7 +30,7 @@ namespace Physics
      * A callback for when two rigid bodies collide.
      *
      * @param contactInfo The information about the contact.
-    */
+     */
     using RigidBodyCollisionCallback = std::function<void(const ContactInfo &)>;
 
     /**
@@ -84,14 +84,14 @@ namespace Physics
 
         /**
          * Applies a linear impulse to the body at its center.
-         * 
+         *
          * If wake is true the body will be woken up if it is sleeping.
-         * 
+         *
          * The velocities of the body may not be updated until the next physics update.
          *
          * @param impulse The impulse to apply.
          * @param wake Whether or not to wake the body up.
-        */
+         */
         void applyLinearImpulse(const glm::vec2 &impulse, bool wake = true);
 
         /**
@@ -119,7 +119,7 @@ namespace Physics
          * @param torque The torque to apply.
          * @param wake Whether or not to wake the body up.
          */
-        void applyTorque(float torque, bool wake = true);  
+        void applyTorque(float torque, bool wake = true);
 
         /**
          * Applies an angular impulse to the body.
@@ -135,24 +135,24 @@ namespace Physics
 
         /**
          * Starts contact between two rigid bodies.
-         * 
+         *
          * This informs the rigid body that it has begun contact/collision with another rigid body.
          *
          * This will call the begin contact callback if it is set.
          *
          * @param contactInfo The information about the contact.
-        */
+         */
         void beginContact(const ContactInfo &contactInfo);
 
         /**
          * Ends contact between two rigid bodies.
-         * 
+         *
          * This informs the rigid body that it has stopped contact/collision with another rigid body.
          *
          * This will call the end contact callback if it is set.
          *
          * @param contactInfo The information about the contact.
-        */
+         */
         void endContact(const ContactInfo &contactInfo);
 
         /**
@@ -161,7 +161,7 @@ namespace Physics
          * This is called when the bodies first start touching / have just collided.
          *
          * @param callback The callback for when two rigid bodies start contact.
-        */
+         */
         void setBeginContactCallback(RigidBodyCollisionCallback callback);
 
         /**
@@ -170,7 +170,7 @@ namespace Physics
          * This is called when the bodies stop touching / separate.
          *
          * @param callback The callback for when two rigid bodies stop contact.
-        */
+         */
         void setEndContactCallback(RigidBodyCollisionCallback callback);
 
         /**
@@ -377,6 +377,8 @@ namespace Physics
         /**
          * Gets the underlying Box2D body.
          *
+         * May be nullptr if the body has not been created yet.
+         *
          * @warning Do not use this unless you know what you are doing.
          *
          * @returns The underlying Box2D body.
@@ -400,12 +402,12 @@ namespace Physics
 
         /**
          * The callback for when two rigid bodies collide.
-        */
+         */
         RigidBodyCollisionCallback beginContactCallback = nullptr;
 
         /**
          * The callback for when two rigid bodies stop colliding.
-        */
+         */
         RigidBodyCollisionCallback endContactCallback = nullptr;
 
         /**
