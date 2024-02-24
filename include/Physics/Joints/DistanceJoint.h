@@ -21,18 +21,22 @@ namespace Physics
         DistanceJoint(ECS::Entity connected, glm::vec2 anchorA = glm::vec2(0), glm::vec2 anchorB = glm::vec2(0));
 
         /**
-         * Sets the length of the distance joint.
+         * Sets the rest length of the distance joint.
          *
          * This is the distance the joint will try to maintain between the two bodies.
          *
          * @param length The length of the distance joint.
+         *
+         * @returns The actual rest length of the distance joint.
          */
-        void setLength(float length);
+        float setLength(float length);
 
         /**
-         * Gets the length of the distance joint.
+         * Gets the rest length of the distance joint.
          *
-         * @returns The length of the distance joint.
+         * If -1 then the length hasn't been set yet.
+         *
+         * @returns The rest length of the distance joint.
          */
         float getLength() const;
 
@@ -44,11 +48,15 @@ namespace Physics
          * Must be less than or equal to the maximum length.
          *
          * @param minLength The minimum length of the distance joint.
+         *
+         * @returns The actual minimum length of the distance joint.
          */
-        void setMinLength(float minLength);
+        float setMinLength(float minLength);
 
         /**
          * Gets the minimum length of the distance joint.
+         *
+         * If -1 then the min length hasn't been set yet.
          *
          * @returns The minimum length of the distance joint.
          */
@@ -62,11 +70,15 @@ namespace Physics
          * Must be greater than or equal to the minimum length.
          *
          * @param maxLength The maximum length of the distance joint.
+         *
+         * @returns The actual maximum length of the distance joint.
          */
-        void setMaxLength(float maxLength);
+        float setMaxLength(float maxLength);
 
         /**
          * Gets the maximum length of the distance joint.
+         *
+         * If -1 then the max length hasn't been set yet.
          *
          * @returns The maximum length of the distance joint.
          */
@@ -78,6 +90,8 @@ namespace Physics
          * This is the stiffness of the spring that the distance joint uses to maintain the distance between the two bodies.
          *
          * This is in N/m.
+         *
+         * Usually between 0 and 1.
          *
          * @param stiffness The stiffness of the distance joint.
          */
@@ -96,6 +110,8 @@ namespace Physics
          * This is the damping of the spring that the distance joint uses to maintain the distance between the two bodies.
          *
          * This is in (N * s)/m.
+         *
+         * Usually between 0 and 1.
          *
          * @param damping The damping of the distance joint.
          */
@@ -120,6 +136,21 @@ namespace Physics
         void setJoint(b2Joint *joint) override;
 
         /**
+         * Creates the box2d distance joint.
+         *
+         * This does not set the joint component's joint variable.
+         *
+         * @param world The world the entity is in.
+         * @param entity The entity that owns the joint.
+         * @param box2dWorld The box2d world to create the joint in.
+         * @param owner The box2d body of the owning entity.
+         * @param connected The box2d body of the connected entity.
+         *
+         * @returns The box2d distance joint.
+         */
+        b2DistanceJoint *createBox2DJoint(World::World &world, ECS::Entity entity, b2World *box2dWorld, b2Body *owner, b2Body *connected) override;
+
+        /**
          * Gets the underlying Box2D joint.
          *
          * May be nullptr if the joint has not been created yet.
@@ -142,12 +173,12 @@ namespace Physics
         const b2DistanceJoint *getJoint() const override;
 
     private:
-        b2DistanceJoint *joint;
+        b2DistanceJoint *joint = nullptr;
 
-        float length;
-        float minLength;
-        float maxLength;
-        float stiffness;
-        float damping;
+        float length = -1.0f;
+        float minLength = -1.0f;
+        float maxLength = -1.0f;
+        float stiffness = 1.0f;
+        float damping = 0.0f;
     };
 }

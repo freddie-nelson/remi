@@ -5,10 +5,12 @@
 #include "Ray.h"
 #include "ContactListener.h"
 #include "BodyUserData.h"
+#include "./Joints/Joint.h"
 
 #include <unordered_map>
 #include <vector>
 #include <box2d/b2_world.h>
+#include <box2d/b2_joint.h>
 #include <glm/vec2.hpp>
 
 // TODO: multithread the physics world
@@ -177,7 +179,6 @@ namespace Physics
 
         const Core::SpaceTransformer *spaceTransformer;
 
-
         /**
          * The box2d world.
          */
@@ -199,12 +200,19 @@ namespace Physics
          * The body to entity map.
          *
          * Should only be used within the physics world class.
-        */
+         */
         std::unordered_map<b2Body *, ECS::Entity> bodyToEntity;
 
         /**
+         * The joints map.
+         *
+         * This is the joints owned by each entity. Entities can only own one of each joint type.
+         */
+        std::unordered_map<ECS::Entity, std::unordered_map<JointType, b2Joint *>> joints;
+
+        /**
          * The contact listener for the world.
-        */
+         */
         ContactListener contactListener;
 
         /**
@@ -216,7 +224,7 @@ namespace Physics
          *
          * @param world The world to use.
          */
-        void updateBodies(const World::World &world);
+        void updateBodies(World::World &world);
 
         /**
          * Creates the bodies for the entities.
@@ -233,9 +241,10 @@ namespace Physics
          *
          * This will delete the bodies user data and remove the body from the associated maps.
          *
+         * @param world The world to use.
          * @param body The body to destroy.
-        */
-        void destroyBody(b2Body *body);
+         */
+        void destroyBody(World::World &world, b2Body *body);
 
         /**
          * Injects the data from the ecs components into the box2d bodies.
@@ -268,5 +277,111 @@ namespace Physics
          * @param world The world to use.
          */
         void updateECSWithBox2DValues(const World::World &world);
+
+        /**
+         * Updates the joints for the world.
+         *
+         * @param world The world to use.
+         * @param timestep The timestep.
+         */
+        void updateJoints(World::World &world, const Core::Timestep &timestep);
+
+        /**
+         * Destroys all joints that are no longer valid.
+         *
+         * A joint is no longer valid if the corresponding component has a `nullptr` box2d joint, or the connected body no longer exists.
+         *
+         * @param world The world to use.
+         * @param timestep The timestep.
+         */
+        void destroyInvalidJoints(World::World &world, const Core::Timestep &timestep);
+
+        /**
+         * Creates the given joints.
+         *
+         * @param world The world to use.
+         */
+        void createJoints(World::World &world);
+
+        /**
+         * Destroys the given box2d joint.
+         *
+         * This will remove the joint from the associated maps.
+         *
+         * This will also remove the joint component from the owning entity.
+         *
+         * If the entity does not have that joint type then nothing will happen.
+         *
+         * @param world The world to use.
+         * @param e The entity that owns the joint.
+         * @param type The type of joint to destroy.
+         * @param removeComponent Wether or not to remove the joint component from the entity.
+         */
+        void destroyJoint(World::World &world, ECS::Entity e, JointType type, bool removeComponent);
+
+        /**
+         * Info for `destroyJoints`.
+         */
+        struct DestroyJointData
+        {
+            ECS::Entity e;
+            JointType type;
+            bool removeComponent;
+        };
+
+        /**
+         * Destroys the joint given for each entity and type of joint.
+         *
+         * If the entity does not have that joint type then nothing will happen.
+         *
+         * @param world The world to use.
+         * @param jointsToDestroy The joints to destroy.
+         */
+        void destroyJoints(World::World &world, const std::vector<DestroyJointData> &jointsToDestroy);
+
+        /**
+         * Removes the joint component from the entity in the reigstry for the given joint type.
+         *
+         * If the entity does not have the joint component nothing will happen.
+         *
+         * @param world The world to use.
+         * @param e The entity to remove the joint from.
+         * @param type The type of joint to remove.
+         */
+        void removeJointComponent(World::World &world, ECS::Entity e, JointType type);
+
+        /**
+         * Gets all the joints for the given entity.
+         *
+         * @param world The world to use.
+         * @param e The entity to get the joints for.
+         *
+         * @returns All the joints for the entity.
+         */
+        std::unordered_map<JointType, Joint *> getJoints(World::World &world, ECS::Entity e);
+
+        /**
+         * Checks if the given entity has the given joint type as a component.
+         *
+         * @param world The world to use.
+         * @param e The entity to check.
+         * @param type The type of joint to check for.
+         *
+         * @returns True if the entity has the joint type, false otherwise.
+         */
+        bool hasJoint(World::World &world, ECS::Entity e, JointType type);
+
+        /**
+         * Gets the joint component for the given entity.
+         *
+         * @param world The world to use.
+         * @param e The entity to get the joint for.
+         * @param type The type of joint to get.
+         *
+         * @returns The joint component for the entity.
+         *
+         * @throws std::runtime_error if the entity does not have the joint type.
+         */
+        Physics::Joint *getJoint(World::World &world, ECS::Entity e, JointType type);
     };
 }

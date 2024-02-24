@@ -4,7 +4,8 @@
 #include "../../include/Core/Transform.h"
 #include "../../include/Physics/QueryCallback.h"
 #include "../../include/Physics/ColliderShape.h"
-#include "include/Physics/BodyUserData.h"
+#include "../../include/Physics/BodyUserData.h"
+#include "../../include/Physics/Joints/DistanceJoint.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
@@ -14,6 +15,7 @@
 #include <cstdint>
 #include <unordered_set>
 #include <string>
+#include <stdexcept>
 
 Physics::PhysicsWorld::PhysicsWorld(PhysicsWorldConfig config, const Core::SpaceTransformer *spaceTransformer) : spaceTransformer(spaceTransformer), world(b2Vec2(config.gravity.x, config.gravity.y))
 {
@@ -34,6 +36,9 @@ void Physics::PhysicsWorld::fixedUpdate(World::World &world, const Core::Timeste
 
     // create, destroy and update bodies with ECS values
     updateBodies(world);
+
+    // create, destroy and update joints with ECS values
+    updateJoints(world, timestep);
 
     // step box2d world
     this->world.Step(timestep.getSeconds(), config.velocityIterations, config.positionIterations);
@@ -194,7 +199,7 @@ const std::unordered_map<ECS::Entity, std::vector<b2Fixture *>> &Physics::Physic
     return colliders;
 }
 
-void Physics::PhysicsWorld::updateBodies(const World::World &world)
+void Physics::PhysicsWorld::updateBodies(World::World &world)
 {
     auto &registry = world.getRegistry();
 
@@ -222,7 +227,7 @@ void Physics::PhysicsWorld::updateBodies(const World::World &world)
     // destroy bodies
     for (auto &body : bodiesToDestroy)
     {
-        destroyBody(body);
+        destroyBody(world, body);
     }
 
     // now all bodies in the set are new bodies
@@ -292,11 +297,24 @@ void Physics::PhysicsWorld::createBodies(const World::World &world, const std::u
     }
 }
 
-void Physics::PhysicsWorld::destroyBody(b2Body *body)
+void Physics::PhysicsWorld::destroyBody(World::World &world, b2Body *body)
 {
-    // delete user data
     auto data = reinterpret_cast<BodyUserData *>(body->GetUserData().pointer);
+    auto entity = data->entity;
+
+    // delete user data
     delete data;
+
+    // destroy bodies joints
+    if (joints.contains(entity))
+    {
+        auto &entityJoints = joints[entity];
+
+        for (auto &[type, joint] : entityJoints)
+        {
+            destroyJoint(world, entity, type, false);
+        }
+    }
 
     // destroy body
     this->world.DestroyBody(body);
@@ -372,12 +390,14 @@ void Physics::PhysicsWorld::createBox2DCollider(const World::World &world, ECS::
     std::vector<b2Fixture *> fixtures;
 
     // create fixture
-    if (colliderShape->getType() == Physics::ColliderShapeType::CONCAVE_POLYGON) {
+    if (colliderShape->getType() == Physics::ColliderShapeType::CONCAVE_POLYGON)
+    {
         auto concaveShape = reinterpret_cast<const Physics::ConcavePolygonColliderShape2D *>(colliderShape);
         auto shapeCount = concaveShape->getShapeCount();
         auto shapes = concaveShape->createBox2DShape();
 
-        for (size_t i = 0; i < shapeCount; i++) {
+        for (size_t i = 0; i < shapeCount; i++)
+        {
             b2FixtureDef fixtureDef;
             fixtureDef.shape = &shapes[i];
             fixtureDef.density = collider.getDensity();
@@ -390,7 +410,9 @@ void Physics::PhysicsWorld::createBox2DCollider(const World::World &world, ECS::
         }
 
         delete[] shapes;
-    } else {
+    }
+    else
+    {
         b2Shape *shape = colliderShape->createBox2DShape();
 
         b2FixtureDef fixtureDef;
@@ -481,4 +503,216 @@ void Physics::PhysicsWorld::updateECSWithBox2DValues(const World::World &world)
         // update awake
         body.setIsAwake(box2dBody->IsAwake());
     }
+}
+
+void Physics::PhysicsWorld::updateJoints(World::World &world, const Core::Timestep &timestep)
+{
+    auto &registry = world.getRegistry();
+    auto &sceneGraph = world.getSceneGraph();
+
+    destroyInvalidJoints(world, timestep);
+    createJoints(world);
+}
+
+void Physics::PhysicsWorld::destroyInvalidJoints(World::World &world, const Core::Timestep &timestep)
+{
+    std::vector<DestroyJointData> jointsToDestroy;
+
+    // destroy joints that are no longer valid
+    // or need recreated
+    for (auto &[e, body] : bodies)
+    {
+        // joints have not been created for the body yet so no
+        // need to destroy any
+        if (!joints.contains(e) || joints[e].size() == 0)
+        {
+            continue;
+        }
+
+        auto &createdJoints = joints[e];
+        auto entityJoints = getJoints(world, e);
+
+        for (auto &[type, box2dJoint] : createdJoints)
+        {
+            // entity no longer has joint component so destroy joint
+            if (!entityJoints.contains(type))
+            {
+                jointsToDestroy.push_back({e, type, false});
+                continue;
+            }
+
+            auto &entityJoint = entityJoints[type];
+
+            // if statement could just be or but looks more readable this way (compiler will optimise away anyway)
+            // need to destroy joint so it can be recreated
+            if (entityJoint->getJoint() == nullptr)
+            {
+                jointsToDestroy.push_back({e, type, false});
+            }
+            // need to destroy joint as connected body no longer exists
+            else if (!bodies.contains(entityJoint->getConnected()))
+            {
+                jointsToDestroy.push_back({e, type, true});
+            }
+            // joint is past breaking force and so must be destroyed
+            else if (entityJoint->getBreakForce() != 0.0f && glm::length(entityJoint->getReactionForce(timestep)) > entityJoint->getBreakForce())
+            {
+                jointsToDestroy.push_back({e, type, true});
+            }
+            // joitn is past breaking torque so must be destroyed
+            else if (entityJoint->getBreakTorque() && entityJoint->getReactionTorque(timestep) > entityJoint->getBreakTorque())
+            {
+                jointsToDestroy.push_back({e, type, true});
+            }
+        }
+    }
+
+    destroyJoints(world, jointsToDestroy);
+}
+
+void Physics::PhysicsWorld::createJoints(World::World &world)
+{
+    for (auto &[e, body] : bodies)
+    {
+        auto entityJoints = getJoints(world, e);
+
+        for (auto &[type, entityJoint] : entityJoints)
+        {
+            auto joint = entityJoint->getJoint();
+
+            // doesn't need created
+            if (joint != nullptr)
+            {
+                continue;
+            }
+
+            // check if joint already exists
+            if (joints.contains(e) && joints[e].contains(type))
+            {
+                throw std::runtime_error("PhysicsWorld: (createJoints): Joint already exists for entity '" + std::to_string(e) + "'. Should never call `createJoints` before `destroyInvalidJoints`.");
+            }
+
+            // check if connected entity is a valid body
+            auto connected = entityJoint->getConnected();
+            if (!bodies.contains(connected))
+            {
+                throw std::runtime_error("PhysicsWorld (createJoints): Connected entity on joint for entity '" + std::to_string(e) + "' is not a valid body. Should never call `createJoints` before `destroyInvalidJoints`.");
+            }
+
+            // create joints map entry if needed
+            if (!joints.contains(e))
+            {
+                joints.emplace(e, std::unordered_map<JointType, b2Joint *>());
+            }
+
+            // create joint
+            joints[e][type] = entityJoint->createBox2DJoint(world, e, &this->world, body, bodies[connected]);
+            entityJoint->setJoint(joints[e][type]);
+        }
+    }
+}
+
+void Physics::PhysicsWorld::destroyJoint(World::World &world, ECS::Entity e, JointType type, bool removeComponent)
+{
+    auto &registry = world.getRegistry();
+
+    // joint doesn't exist
+    if (!joints.contains(e) || !joints[e].contains(type))
+    {
+        return;
+    }
+
+    auto &joint = joints[e][type];
+    auto userData = reinterpret_cast<JointUserData *>(joint->GetUserData().pointer);
+
+    // nullify joint on component
+    getJoint(world, e, type)->setJoint(nullptr);
+
+    // connected body does not exist so joint is invalid
+    // we must remove the joint component from the ecs
+    if (removeComponent && hasJoint(world, e, type))
+    {
+        removeJointComponent(world, e, type);
+    }
+
+    // delete user data
+    delete userData;
+
+    // destroy joint
+    this->world.DestroyJoint(joint);
+
+    // remove from joints map
+    joints[e].erase(type);
+}
+
+void Physics::PhysicsWorld::destroyJoints(World::World &world, const std::vector<DestroyJointData> &jointsToDestroy)
+{
+    for (auto &[e, type, removeComponent] : jointsToDestroy)
+    {
+        destroyJoint(world, e, type, removeComponent);
+    }
+}
+
+void Physics::PhysicsWorld::removeJointComponent(World::World &world, ECS::Entity e, JointType type)
+{
+    auto &registry = world.getRegistry();
+
+    if (!hasJoint(world, e, type))
+    {
+        return;
+    }
+
+    switch (type)
+    {
+    case JointType::DISTANCE:
+        registry.remove<Physics::DistanceJoint>(e);
+        break;
+
+    default:
+        throw std::runtime_error("PhysicsWorld (removeJointComponent): JointType not implemented.");
+    }
+}
+
+std::unordered_map<Physics::JointType, Physics::Joint *> Physics::PhysicsWorld::getJoints(World::World &world, ECS::Entity e)
+{
+    auto &registry = world.getRegistry();
+
+    std::unordered_map<JointType, Joint *> joints;
+
+    if (registry.has<DistanceJoint>(e))
+    {
+        joints.emplace(JointType::DISTANCE, &registry.get<DistanceJoint>(e));
+    }
+
+    return joints;
+}
+
+bool Physics::PhysicsWorld::hasJoint(World::World &world, ECS::Entity e, JointType type)
+{
+    auto &registry = world.getRegistry();
+
+    switch (type)
+    {
+    case JointType::DISTANCE:
+        return registry.has<Physics::DistanceJoint>(e);
+    default:
+        throw std::invalid_argument("PhysicsWorld (hasJoint): JointType not implemented.");
+    }
+
+    return false;
+}
+
+Physics::Joint *Physics::PhysicsWorld::getJoint(World::World &world, ECS::Entity e, JointType type)
+{
+    auto &registry = world.getRegistry();
+
+    switch (type)
+    {
+    case JointType::DISTANCE:
+        return &registry.get<Physics::DistanceJoint>(e);
+    default:
+        throw std::invalid_argument("PhysicsWorld (getJoint): JointType not implemented.");
+    }
+
+    return nullptr;
 }

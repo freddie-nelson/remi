@@ -3,18 +3,35 @@
 #include "../../ECS/Entity.h"
 #include "../../Core/Timestep.h"
 #include "../../World/World.h"
-#include "../PhysicsWorld.h"
 
+#include <box2d/b2_world.h>
 #include <box2d/b2_joint.h>
 #include <glm/vec2.hpp>
 
 namespace Physics
 {
+    /**
+     * Represents the type of joint.
+     */
     enum JointType
     {
         DISTANCE,
     };
 
+    /**
+     * The user data attached to the b2Joint by the physics world.
+     */
+    struct JointUserData
+    {
+        ECS::Entity owner;
+        ECS::Entity connected;
+    };
+
+    /**
+     * Represents a joint between 2 entities.
+     *
+     * If the connected entity is destroyed or is no longer a valid body then the joint will be destroyed, and removed from the owning entity.
+     */
     class Joint
     {
     public:
@@ -29,6 +46,8 @@ namespace Physics
 
         /**
          * Sets the entity the joint is connected to.
+         *
+         * The entity must be a valid rigidbody.
          *
          * @param connected The entity the joint is connected to.
          */
@@ -154,13 +173,17 @@ namespace Physics
          *
          * This creates the specific box2d joint type and returns it.
          *
-         * @param world The world the joint is in.
-         * @param physicsWorld The physics world the joint is in.
-         * @param owner The entity that owns the joint. (The first body in the joint, not connected body)
+         * This does not set the joint component's joint variable.
+         *
+         * @param world The world the entity is in.
+         * @param entity The entity that owns the joint.
+         * @param box2dWorld The box2d world to create the joint in.
+         * @param owner The box2d body of the owning entity.
+         * @param connected The box2d body of the connected entity.
          *
          * @returns The box2d joint.
          */
-        virtual b2Joint *createBox2DJoint(World::World &world, PhysicsWorld &physicsWorld, ECS::Entity owner) = 0;
+        virtual b2Joint *createBox2DJoint(World::World &world, ECS::Entity entity, b2World *box2dWorld, b2Body *owner, b2Body *connected) = 0;
 
         /**
          * Sets the underlying box2d joint.

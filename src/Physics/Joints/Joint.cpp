@@ -8,6 +8,9 @@ Physics::JointType Physics::Joint::getType() const
 void Physics::Joint::setConnected(ECS::Entity connected)
 {
     this->connected = connected;
+
+    // joint will be recreated next physics step
+    setJoint(nullptr);
 }
 
 ECS::Entity Physics::Joint::getConnected() const
@@ -18,6 +21,9 @@ ECS::Entity Physics::Joint::getConnected() const
 void Physics::Joint::setCollideConnected(bool collideConnected)
 {
     this->collideConnected = collideConnected;
+
+    // joint will be recreated on next physics update
+    setJoint(nullptr);
 }
 
 bool Physics::Joint::getCollideConnected() const
@@ -28,6 +34,9 @@ bool Physics::Joint::getCollideConnected() const
 void Physics::Joint::setAnchorA(glm::vec2 anchor)
 {
     anchorA = anchor;
+
+    // joint will be recreated in next physics step
+    setJoint(nullptr);
 }
 
 const glm::vec2 &Physics::Joint::getAnchorA() const
@@ -38,6 +47,9 @@ const glm::vec2 &Physics::Joint::getAnchorA() const
 void Physics::Joint::setAnchorB(glm::vec2 anchor)
 {
     anchorB = anchor;
+
+    // joint will be recreated in next physics step
+    setJoint(nullptr);
 }
 
 const glm::vec2 &Physics::Joint::getAnchorB() const

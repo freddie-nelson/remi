@@ -86,6 +86,10 @@ void remi::Engine::run()
     // poll for events before first update
     glfwPollEvents();
 
+    // pre update scene graph
+    auto &sceneGraph = world->getSceneGraph();
+    sceneGraph.updateModelMatrices();
+
     // pre update physics world
     // this will make sure that the physics world is in sync with the world before the first update
     physicsWorld->fixedUpdate(*world, Core::Timestep(0));

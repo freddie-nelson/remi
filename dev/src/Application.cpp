@@ -25,6 +25,7 @@
 #include <remi/Physics/RigidBody2D.h>
 #include <remi/Physics/Collider2D.h>
 #include <remi/Physics/Ray.h>
+#include <remi/Physics/Joints/DistanceJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -222,9 +223,8 @@ void Application::init()
     body.setBeginContactCallback([](Physics::ContactInfo contactInfo)
                                  { std::cout << "player contact: " << contactInfo.entityA << ", " << contactInfo.entityB << std::endl; });
 
-    auto shape = new Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
-    auto &collider = registry.add(player, Physics::Collider2D(shape));
-    delete shape;
+    auto shape = Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
+    auto &collider = registry.add(player, Physics::Collider2D(&shape));
 
     collider.setFriction(0.5f);
 
@@ -302,6 +302,26 @@ void Application::init()
     registry.add(concave, Rendering::Renderable(true, false));
     registry.add(concave, Physics::RigidBody2D());
     registry.add(concave, Physics::Collider2D(new Physics::ConcavePolygonColliderShape2D(concaveMesh)));
+
+    // create bodies joined by distance joint
+    auto b1 = registry.create();
+    registry.add(b1, Core::Transform());
+    registry.add(b1, Rendering::Mesh2D(0.5f, 32u));
+    registry.add(b1, Rendering::Material());
+    registry.add(b1, Rendering::Renderable(true, false));
+    registry.add(b1, Physics::RigidBody2D());
+    registry.add(b1, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
+    auto b2 = registry.create();
+    registry.add(b2, Core::Transform(glm::vec2(1.5f, 0.0f)));
+    registry.add(b2, Rendering::Mesh2D(0.5f, 32u));
+    registry.add(b2, Rendering::Material());
+    registry.add(b2, Rendering::Renderable(true, false));
+    registry.add(b2, Physics::RigidBody2D());
+    registry.add(b2, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
+    // add joint
+    registry.add(b1, Physics::DistanceJoint(b2));
 }
 
 void Application::destroy()
