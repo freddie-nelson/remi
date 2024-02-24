@@ -63,6 +63,7 @@ ECS::Entity player;
 ECS::Entity character;
 ECS::Entity camera;
 ECS::Entity fpsEntity;
+ECS::Entity deletable;
 
 void Application::init()
 {
@@ -322,6 +323,15 @@ void Application::init()
 
     // add joint
     registry.add(b1, Physics::DistanceJoint(b2));
+
+    // deletable
+    deletable = registry.create();
+    registry.add(deletable, Core::Transform());
+    registry.add(deletable, Rendering::Mesh2D(0.5f, 32u));
+    registry.add(deletable, Rendering::Material());
+    registry.add(deletable, Rendering::Renderable(true, false));
+    registry.add(deletable, Physics::RigidBody2D());
+    registry.add(deletable, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
 }
 
 void Application::destroy()
@@ -593,5 +603,11 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
 
         auto &m = registry.get<Rendering::Material>(e);
         m.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    }
+
+    // test deleting
+    if (frames == 100)
+    {
+        registry.destroy(deletable);
     }
 }

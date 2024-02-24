@@ -254,7 +254,7 @@ namespace ECS
     private:
         /**
          * The maximum number of entities that can be created.
-        */
+         */
         size_t maxEntities;
 
         std::queue<Entity> freeEntityIds;

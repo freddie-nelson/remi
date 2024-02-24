@@ -76,11 +76,14 @@ namespace ECS
             this->maxId = maxId;
             NULL_INDEX = maxId + 1;
 
-            try {
+            try
+            {
                 denseIds = std::vector<size_t>();
                 dense = std::vector<T>();
                 sparse = std::vector<size_t>(maxId + 1, NULL_INDEX);
-            } catch (std::bad_alloc &e) {
+            }
+            catch (std::bad_alloc &e)
+            {
                 throw std::runtime_error("SparseSet (SparseSet): Could not allocate memory for sparse set for type '" + std::string(typeid(T).name()) + "'.");
             }
         }
@@ -134,6 +137,16 @@ namespace ECS
         {
             if (!has(id))
             {
+                return;
+            }
+
+            if (denseIds.back() == id)
+            {
+                // if we are removing the last item in the set, we can just pop it off the dense vector
+                dense.pop_back();
+                denseIds.pop_back();
+                sparse[id] = NULL_INDEX;
+
                 return;
             }
 

@@ -41,7 +41,7 @@ namespace Rendering
          */
         virtual constexpr std::string getName() override
         {
-            return "BatchPass";
+            return "DrawPass";
         };
     };
 }

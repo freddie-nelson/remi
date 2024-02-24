@@ -5,22 +5,30 @@
 #include <box2d/b2_contact.h>
 #include <stdexcept>
 
-Physics::ContactListener::ContactListener() {
-
+Physics::ContactListener::ContactListener()
+{
 }
 
-void Physics::ContactListener::setWorld(World::World *world) {
+void Physics::ContactListener::setWorld(World::World *world)
+{
     this->world = world;
 }
 
-void Physics::ContactListener::BeginContact(b2Contact* contact) {
+void Physics::ContactListener::BeginContact(b2Contact *contact)
+{
     auto [contactInfo, ignore] = contactHelper(contact);
 
-    if (ignore) {
+    if (ignore)
+    {
         return;
     }
 
     auto &registry = world->getRegistry();
+
+    if (registry.has<Physics::RigidBody2D>(contactInfo.entityA) || registry.has<Physics::RigidBody2D>(contactInfo.entityB))
+    {
+        return;
+    }
 
     auto &rigidBodyA = registry.get<Physics::RigidBody2D>(contactInfo.entityA);
     auto &rigidBodyB = registry.get<Physics::RigidBody2D>(contactInfo.entityB);
@@ -34,14 +42,21 @@ void Physics::ContactListener::BeginContact(b2Contact* contact) {
     rigidBodyB.beginContact(contactInfoB);
 }
 
-void Physics::ContactListener::EndContact(b2Contact* contact) {
+void Physics::ContactListener::EndContact(b2Contact *contact)
+{
     auto [contactInfo, ignore] = contactHelper(contact);
 
-    if (ignore) {
+    if (ignore)
+    {
         return;
     }
 
     auto &registry = world->getRegistry();
+
+    if (registry.has<Physics::RigidBody2D>(contactInfo.entityA) || registry.has<Physics::RigidBody2D>(contactInfo.entityB))
+    {
+        return;
+    }
 
     auto &rigidBodyA = registry.get<Physics::RigidBody2D>(contactInfo.entityA);
     auto &rigidBodyB = registry.get<Physics::RigidBody2D>(contactInfo.entityB);
@@ -55,8 +70,10 @@ void Physics::ContactListener::EndContact(b2Contact* contact) {
     rigidBodyB.endContact(contactInfoB);
 }
 
-Physics::ContactListener::ContactData Physics::ContactListener::contactHelper(b2Contact *contact) {
-    if (world == nullptr) {
+Physics::ContactListener::ContactData Physics::ContactListener::contactHelper(b2Contact *contact)
+{
+    if (world == nullptr)
+    {
         throw std::runtime_error("ContactListener (contactHelper): world not set.");
     }
 
@@ -66,27 +83,32 @@ Physics::ContactListener::ContactData Physics::ContactListener::contactHelper(b2
     auto bodyA = fixtureA->GetBody();
     auto bodyB = fixtureB->GetBody();
 
-    if (bodyA == nullptr) {
+    if (bodyA == nullptr)
+    {
         throw std::runtime_error("ContactListener (BeginContact): bodyA is null.");
     }
 
-    if (bodyB == nullptr) {
+    if (bodyB == nullptr)
+    {
         throw std::runtime_error("ContactListener (BeginContact): bodyB is null.");
     }
 
     auto userDataA = reinterpret_cast<BodyUserData *>(bodyA->GetUserData().pointer);
     auto userDataB = reinterpret_cast<BodyUserData *>(bodyB->GetUserData().pointer);
 
-    if (userDataA == nullptr) {
+    if (userDataA == nullptr)
+    {
         throw std::runtime_error("ContactListener (BeginContact): userDataA is null.");
     }
 
-    if (userDataB == nullptr) {
+    if (userDataB == nullptr)
+    {
         throw std::runtime_error("ContactListener (BeginContact): userDataB is null.");
     }
 
     // If either body is a query body, then we don't want to execute the collision callbacks.
-    if (userDataA->ignoreCollisionCallbacks || userDataB->ignoreCollisionCallbacks) {
+    if (userDataA->ignoreCollisionCallbacks || userDataB->ignoreCollisionCallbacks)
+    {
         return {ContactInfo{}, true};
     }
 

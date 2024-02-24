@@ -302,9 +302,6 @@ void Physics::PhysicsWorld::destroyBody(World::World &world, b2Body *body)
     auto data = reinterpret_cast<BodyUserData *>(body->GetUserData().pointer);
     auto entity = data->entity;
 
-    // delete user data
-    delete data;
-
     // destroy bodies joints
     if (joints.contains(entity))
     {
@@ -316,12 +313,21 @@ void Physics::PhysicsWorld::destroyBody(World::World &world, b2Body *body)
         }
     }
 
-    // destroy body
-    this->world.DestroyBody(body);
+    // destroy collider
+    if (colliders.contains(entity))
+    {
+        destroyBox2DCollider(entity);
+    }
 
     // remove from maps
     bodies.erase(bodyToEntity[body]);
     bodyToEntity.erase(body);
+
+    // delete user data
+    delete data;
+
+    // destroy body
+    this->world.DestroyBody(body);
 }
 
 void Physics::PhysicsWorld::updateBodiesWithECSValues(const World::World &world, const std::unordered_set<ECS::Entity> &createdEntities)
@@ -454,6 +460,13 @@ void Physics::PhysicsWorld::updateECSWithBox2DValues(const World::World &world)
 
     for (auto &[e, box2dBody] : bodies)
     {
+        // user code could have removed the transform or rigid body
+        // these bodies will be destroyed in the next update
+        if (!registry.has<Core::Transform>(e) || !registry.has<Physics::RigidBody2D>(e))
+        {
+            continue;
+        }
+
         auto &localTransform = registry.get<Core::Transform>(e);
         auto worldTransform = Core::Transform(sceneGraph.getModelMatrix(e));
 

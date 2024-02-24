@@ -35,6 +35,11 @@ ECS::Entity ECS::Registry::create()
 
 void ECS::Registry::destroy(Entity entity)
 {
+    if (!has(entity))
+    {
+        throw std::runtime_error("Registry (destroy): entity does not exist.");
+    }
+
     // remove entity from entities vector
     for (auto it = entities.begin(); it != entities.end(); it++)
     {

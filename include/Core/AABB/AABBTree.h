@@ -373,8 +373,9 @@ namespace Core
          *
          * @param aabb The AABB to query for.
          * @param overlapping The vector to store the IDs of the overlapping AABBs in.
+         * @param includeInQuery The set of IDs to include in the query.
          */
-        void query(const AABB &aabb, std::vector<T> &overlapping) const
+        void query(const AABB &aabb, std::vector<T> &overlapping, const std::unordered_set<T> &includeInQuery) const
         {
             if (root == nullptr)
             {
@@ -391,7 +392,7 @@ namespace Core
 
                 if (node->isLeaf())
                 {
-                    if (node->aabb->overlaps(aabb))
+                    if (includeInQuery.contains(node->id) && node->aabb->overlaps(aabb))
                     {
                         overlapping.push_back(node->id);
                     }

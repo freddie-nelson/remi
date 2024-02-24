@@ -108,6 +108,8 @@ size_t Rendering::CullingPass::getRenderables(World::World &world, const std::ve
 
     size_t otherCount = 0;
 
+    std::unordered_set<ECS::Entity> includeInQuery;
+
     for (auto &e : entities)
     {
         auto &renderable = registry.get<Renderable>(e);
@@ -125,6 +127,8 @@ size_t Rendering::CullingPass::getRenderables(World::World &world, const std::ve
 
             continue;
         }
+
+        includeInQuery.emplace(e);
 
         if (isStatic && !renderable.isStatic)
         {
@@ -189,11 +193,11 @@ size_t Rendering::CullingPass::getRenderables(World::World &world, const std::ve
     // get entities in view
     if (isStatic)
     {
-        staticRenderablesTree.query(viewAabb, renderables);
+        staticRenderablesTree.query(viewAabb, renderables, includeInQuery);
     }
     else
     {
-        dynamicRenderablesTree.query(viewAabb, renderables);
+        dynamicRenderablesTree.query(viewAabb, renderables, includeInQuery);
     }
 
     return otherCount;
