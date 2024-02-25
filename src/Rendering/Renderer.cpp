@@ -410,8 +410,8 @@ void Rendering::Renderer::batch(const World::World &world, const ECS::Entity cam
         auto &shaderMaterial = registry.get<ShaderMaterial>(renderables[0]);
         batchedMeshShader.uniform(shaderMaterial.getUniforms());
 
-        if (shaderMaterial.getUniforms().contains("uTime"))
-            std::cout << *static_cast<float *>(shaderMaterial.getUniforms().at("uTime")->getValuePointer()) << std::endl;
+        // if (shaderMaterial.getUniforms().contains("uTime"))
+        //     std::cout << *static_cast<float *>(shaderMaterial.getUniforms().at("uTime")->getValuePointer()) << std::endl;
     }
 
     batchedMeshShader.attrib(&aPos);

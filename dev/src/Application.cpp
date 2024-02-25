@@ -616,14 +616,11 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     }
 
     // test deleting
-    if (frames >= 0 && !deleted)
+    if (frames >= 200 && !deleted)
     {
         std::cout << "deleting entity: " << deletable << std::endl;
         deleted = true;
         registry.destroy(deletable);
         std::cout << "deleted entity: " << deletable << std::endl;
-
-        auto &collider = registry.get<Physics::Collider2D>(61);
-        std::cout << "collider: " << collider.getShape()->getType() << std::endl;
     }
 }

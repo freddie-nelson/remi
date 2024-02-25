@@ -10,8 +10,6 @@ Physics::Collider2D::Collider2D(ColliderShape2D *shape)
 
 Physics::Collider2D::Collider2D(const Collider2D &other)
 {
-    std::cout << "Collider2D copy constructor" << std::endl;
-    std::cout << this << std::endl;
     if (other.shape == nullptr)
     {
         throw std::invalid_argument("Collider 2D (copy constructor): other collider shape is null.");
@@ -29,8 +27,6 @@ Physics::Collider2D::Collider2D(const Collider2D &other)
 
 Physics::Collider2D::Collider2D(const Collider2D &&other)
 {
-    std::cout << "Collider2D move constructor" << std::endl;
-    std::cout << this << std::endl;
     if (other.shape == nullptr)
     {
         throw std::invalid_argument("Collider 2D (move constructor): other collider shape is null.");
@@ -48,8 +44,6 @@ Physics::Collider2D::Collider2D(const Collider2D &&other)
 
 Physics::Collider2D &Physics::Collider2D::operator=(const Physics::Collider2D &other)
 {
-    std::cout << "Collider2D copy assignment" << std::endl;
-    std::cout << this << std::endl;
     if (other.shape == nullptr)
     {
         throw std::invalid_argument("Collider 2D (copy assignment): other collider shape is null.");
@@ -74,8 +68,6 @@ Physics::Collider2D &Physics::Collider2D::operator=(const Physics::Collider2D &o
 
 Physics::Collider2D &Physics::Collider2D::operator=(const Physics::Collider2D &&other)
 {
-    std::cout << "Collider2D move assignment" << std::endl;
-    std::cout << this << std::endl;
     if (other.shape == nullptr)
     {
         throw std::invalid_argument("Collider 2D (move assignment): other collider shape is null.");
@@ -100,12 +92,8 @@ Physics::Collider2D &Physics::Collider2D::operator=(const Physics::Collider2D &&
 
 Physics::Collider2D::~Collider2D()
 {
-    std::cout << "Collider2D destructor" << std::endl;
-    std::cout << this << std::endl;
-
     if (shape != nullptr)
     {
-        std::cout << "Deleting shape" << std::endl;
         delete shape;
     }
 
@@ -115,8 +103,6 @@ Physics::Collider2D::~Collider2D()
 
 const Physics::ColliderShape2D *Physics::Collider2D::getShape() const
 {
-    std::cout << "Collider2D getShape" << std::endl;
-    std::cout << this << std::endl;
     return shape;
 }
 

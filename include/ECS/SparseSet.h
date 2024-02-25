@@ -158,27 +158,14 @@ namespace ECS
 
             // swap the item we want to remove with the last item in the dense vector
             auto lastIndex = dense.size() - 1;
+            auto last = dense[lastIndex];
             auto lastId = denseIds[lastIndex];
 
-            std::swap(dense[index], dense[lastIndex]);
-            std::swap(denseIds[index], denseIds[lastIndex]);
+            dense[lastIndex] = dense[index];
+            denseIds[lastIndex] = denseIds[index];
 
-            if (id == 60 && typeid(T) == typeid(Physics::Collider2D))
-            {
-                auto collider = (Physics::Collider2D *)(void *)(&dense[index]);
-
-                std::cout << "type id: " << typeid(T).name() << std::endl;
-                std::cout << "Removed collider with ID: " << id << std::endl;
-                std::cout << "Collider shape: " << collider->getShape()->getType() << std::endl;
-            }
-            if (id == 60 && typeid(T) == typeid(Physics::Collider2D))
-            {
-                auto collider = (Physics::Collider2D *)(void *)(&dense[lastIndex]);
-
-                std::cout << "last index type id: " << typeid(T).name() << std::endl;
-                std::cout << "Removed collider with ID: " << id << std::endl;
-                std::cout << "Collider shape: " << collider->getShape()->getType() << std::endl;
-            }
+            dense[index] = std::move(last);
+            denseIds[index] = lastId;
 
             // update the sparse vector
             sparse[lastId] = index;
@@ -187,15 +174,6 @@ namespace ECS
             // remove the last item in the dense vector (which is the item we want to remove)
             dense.pop_back();
             denseIds.pop_back();
-
-            if (id == 60 && typeid(T) == typeid(Physics::Collider2D))
-            {
-                auto collider = (Physics::Collider2D *)(void *)(&dense[lastIndex]);
-
-                std::cout << "last index type id: " << typeid(T).name() << std::endl;
-                std::cout << "Removed collider with ID: " << id << std::endl;
-                std::cout << "Collider shape: " << collider->getShape()->getType() << std::endl;
-            }
         }
 
         /**

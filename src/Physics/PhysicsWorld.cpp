@@ -208,8 +208,6 @@ void Physics::PhysicsWorld::updateBodies(World::World &world)
 
     std::vector<b2Body *> bodiesToDestroy;
 
-    std::cout << "updating: " << registry.get<Physics::Collider2D>(61).getShape()->getType() << std::endl;
-
     // check if any bodies need to be removed or added
     for (auto &[entity, body] : bodies)
     {
@@ -226,26 +224,18 @@ void Physics::PhysicsWorld::updateBodies(World::World &world)
         }
     }
 
-    std::cout << "marked: " << registry.get<Physics::Collider2D>(61).getShape()->getType() << std::endl;
-
     // destroy bodies
     for (auto &body : bodiesToDestroy)
     {
         destroyBody(world, body);
     }
 
-    std::cout << "destroyed: " << registry.get<Physics::Collider2D>(61).getShape()->getType() << std::endl;
-
     // now all bodies in the set are new bodies
     // so add them to world
     createBodies(world, entitySet);
 
-    std::cout << "created: " << registry.get<Physics::Collider2D>(61).getShape()->getType() << std::endl;
-
     // inject user values into box2d bodies
     updateBodiesWithECSValues(world, entitySet);
-
-    std::cout << "updated: " << registry.get<Physics::Collider2D>(61).getShape()->getType() << std::endl;
 }
 
 void Physics::PhysicsWorld::createBodies(const World::World &world, const std::unordered_set<ECS::Entity> &entitySet)
@@ -371,18 +361,18 @@ void Physics::PhysicsWorld::updateBodiesWithECSValues(const World::World &world,
         {
             auto &collider = registry.get<Physics::Collider2D>(e);
 
-            if (collider.getShape()->getType() > Physics::ColliderShapeType::CHAIN)
-            {
-                std::cout << "collider: " << e << std::endl;
-                std::cout << "collider shape type: " << collider.getShape()->getType() << std::endl;
-                std::cout << "density: " << collider.getDensity() << std::endl;
-                std::cout << "friction: " << collider.getFriction() << std::endl;
-                std::cout << "restitution: " << collider.getRestitution() << std::endl;
-                std::cout << "restitution threshold: " << collider.getRestitutionThreshold() << std::endl;
-                std::cout << "is sensor: " << collider.getIsSensor() << std::endl;
+            // if (collider.getShape()->getType() > Physics::ColliderShapeType::CHAIN)
+            // {
+            //     std::cout << "collider: " << e << std::endl;
+            //     std::cout << "collider shape type: " << collider.getShape()->getType() << std::endl;
+            //     std::cout << "density: " << collider.getDensity() << std::endl;
+            //     std::cout << "friction: " << collider.getFriction() << std::endl;
+            //     std::cout << "restitution: " << collider.getRestitution() << std::endl;
+            //     std::cout << "restitution threshold: " << collider.getRestitutionThreshold() << std::endl;
+            //     std::cout << "is sensor: " << collider.getIsSensor() << std::endl;
 
-                throw std::runtime_error("PhysicsWorld (updateBodiesWithECSValues): Collider shape type not implemented.");
-            }
+            //     throw std::runtime_error("PhysicsWorld (updateBodiesWithECSValues): Collider shape type not implemented.");
+            // }
 
             // collider needs recreated
             if (collider.getFixtures() == nullptr)
@@ -415,10 +405,6 @@ void Physics::PhysicsWorld::createBox2DCollider(const World::World &world, ECS::
     auto &collider = registry.get<Physics::Collider2D>(e);
 
     auto colliderShape = collider.getShape();
-
-    std::cout << "creating collider shape" << std::endl;
-
-    std::cout << "type: " << colliderShape->getType() << std::endl;
 
     std::vector<b2Fixture *> fixtures;
 
@@ -513,19 +499,6 @@ void Physics::PhysicsWorld::updateECSWithBox2DValues(const World::World &world)
 
             auto localRotation = spaceTransformer->transformWorldRotationToLocal(box2dRotation, e);
             localTransform.setRotation(localRotation);
-            // if (sceneGraph.hasParent(e))
-            // {
-            //     auto localTranslation = spaceTransformer->transform(glm::vec2(box2dPos.x, box2dPos.y), e, Core::SpaceTransformer::Space::WORLD, Core::SpaceTransformer::Space::LOCAL);
-            //     localTransform.setTranslation(localTranslation);
-
-            //     auto localRotation = spaceTransformer->transformWorldRotationToLocal(box2dRotation, e);
-            //     localTransform.setRotation(localRotation);
-            // }
-            // else
-            // {
-            //     localTransform.setTranslation(glm::vec2(box2dPos.x, box2dPos.y));
-            //     localTransform.setRotation(box2dRotation);
-            // }
         }
 
         // update velocity

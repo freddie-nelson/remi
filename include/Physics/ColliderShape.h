@@ -31,10 +31,7 @@ namespace Physics
     class ColliderShape2D
     {
     public:
-        virtual ~ColliderShape2D()
-        {
-            std::cout << "ColliderShape2D destructor" << std::endl;
-        }
+        virtual ~ColliderShape2D() = default;
 
         /**
          * Gets the type of the collider shape.
