@@ -54,7 +54,11 @@ void Scene::SceneGraph::unrelate(ECS::Entity entity)
 
     childrenMap[parent].erase(entity);
 
-    updateModelMatrix(entity, false, true);
+    // update if entity has transform component
+    if (registry->has<Core::Transform>(entity))
+    {
+        updateModelMatrix(entity, false, true);
+    }
 }
 
 ECS::Entity Scene::SceneGraph::parent(ECS::Entity entity) const
@@ -116,7 +120,7 @@ void Scene::SceneGraph::updateModelMatrix(ECS::Entity entity, bool updateParent,
 {
     if (!registry->has<Core::Transform>(entity))
     {
-        throw std::invalid_argument("SceneGraph (updateModelMatrices): Entity '" + std::to_string(entity) + "' does not have a transform component.");
+        throw std::invalid_argument("SceneGraph (updateModelMatrix): Entity '" + std::to_string(entity) + "' does not have a transform component.");
     }
 
     if (!hasParent(entity))
@@ -177,7 +181,7 @@ void Scene::SceneGraph::removeEntitiesNotInRegistry()
 {
     for (auto &[e, _] : modelMatrices)
     {
-        if (!registry->has(e) || !registry->has<Core::Transform>(e))
+        if (!registry->has<Core::Transform>(e))
         {
             modelMatrices.erase(e);
             unrelate(e);

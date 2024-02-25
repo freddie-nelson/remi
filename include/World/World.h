@@ -126,6 +126,7 @@ namespace World
         ECS::Registry registry;
         Scene::SceneGraph sceneGraph;
 
+        std::unordered_set<System *> systemsSet;
         std::vector<System *> systems;
     };
 

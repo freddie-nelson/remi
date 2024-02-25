@@ -17,6 +17,12 @@ void World::World::update(const Core::Timestep &timestep)
 
     for (auto system : systemsCopy)
     {
+        // system may have been removed during the loop
+        if (!hasSystem(system))
+        {
+            continue;
+        }
+
         system->update(*this, timestep);
     }
 
@@ -30,6 +36,12 @@ void World::World::fixedUpdate(const Core::Timestep &timestep)
 
     for (auto system : systemsCopy)
     {
+        // system may have been removed during the loop
+        if (!hasSystem(system))
+        {
+            continue;
+        }
+
         system->fixedUpdate(*this, timestep);
     }
 
@@ -53,6 +65,7 @@ bool World::World::addSystem(System *system)
         throw std::invalid_argument("World (addSystem): system cannot be nullptr.");
     }
 
+    systemsSet.emplace(system);
     systems.push_back(system);
     return true;
 }
@@ -69,6 +82,7 @@ bool World::World::removeSystem(System *system)
         if (*it == system)
         {
             systems.erase(it);
+            systemsSet.erase(system);
             return true;
         }
     }
@@ -78,15 +92,7 @@ bool World::World::removeSystem(System *system)
 
 bool World::World::hasSystem(System *system)
 {
-    for (auto s : systems)
-    {
-        if (s == system)
-        {
-            return true;
-        }
-    }
-
-    return false;
+    return systemsSet.contains(system);
 }
 
 ECS::Registry &World::World::getRegistry()
