@@ -160,6 +160,8 @@ namespace Physics
          *
          * This is called when the bodies first start touching / have just collided.
          *
+         * @note It is not guaranteed that the other entity will still have a rigidbody component when the callback is called.
+         *
          * @param callback The callback for when two rigid bodies start contact.
          */
         void setBeginContactCallback(RigidBodyCollisionCallback callback);
@@ -168,6 +170,8 @@ namespace Physics
          * Sets the callback for when two rigid bodies stop colliding.
          *
          * This is called when the bodies stop touching / separate.
+         *
+         * @note It is not guaranteed that the other entity will still have a rigidbody component when the callback is called.
          *
          * @param callback The callback for when two rigid bodies stop contact.
          */

@@ -25,21 +25,22 @@ void Physics::ContactListener::BeginContact(b2Contact *contact)
 
     auto &registry = world->getRegistry();
 
-    if (registry.has<Physics::RigidBody2D>(contactInfo.entityA) || registry.has<Physics::RigidBody2D>(contactInfo.entityB))
+    if (registry.has<Physics::RigidBody2D>(contactInfo.entityA))
     {
-        return;
+        auto &rigidBodyA = registry.get<Physics::RigidBody2D>(contactInfo.entityA);
+        rigidBodyA.beginContact(contactInfo);
     }
 
-    auto &rigidBodyA = registry.get<Physics::RigidBody2D>(contactInfo.entityA);
-    auto &rigidBodyB = registry.get<Physics::RigidBody2D>(contactInfo.entityB);
+    if (registry.has<Physics::RigidBody2D>(contactInfo.entityB))
+    {
+        auto &rigidBodyB = registry.get<Physics::RigidBody2D>(contactInfo.entityB);
 
-    rigidBodyA.beginContact(contactInfo);
+        auto contactInfoB = contactInfo;
+        contactInfoB.entityA = contactInfo.entityB;
+        contactInfoB.entityB = contactInfo.entityA;
 
-    auto contactInfoB = contactInfo;
-    contactInfoB.entityA = contactInfo.entityB;
-    contactInfoB.entityB = contactInfo.entityA;
-
-    rigidBodyB.beginContact(contactInfoB);
+        rigidBodyB.beginContact(contactInfoB);
+    }
 }
 
 void Physics::ContactListener::EndContact(b2Contact *contact)
@@ -53,21 +54,22 @@ void Physics::ContactListener::EndContact(b2Contact *contact)
 
     auto &registry = world->getRegistry();
 
-    if (registry.has<Physics::RigidBody2D>(contactInfo.entityA) || registry.has<Physics::RigidBody2D>(contactInfo.entityB))
+    if (registry.has<Physics::RigidBody2D>(contactInfo.entityA))
     {
-        return;
+        auto &rigidBodyA = registry.get<Physics::RigidBody2D>(contactInfo.entityA);
+        rigidBodyA.endContact(contactInfo);
     }
 
-    auto &rigidBodyA = registry.get<Physics::RigidBody2D>(contactInfo.entityA);
-    auto &rigidBodyB = registry.get<Physics::RigidBody2D>(contactInfo.entityB);
+    if (registry.has<Physics::RigidBody2D>(contactInfo.entityB))
+    {
+        auto &rigidBodyB = registry.get<Physics::RigidBody2D>(contactInfo.entityB);
 
-    rigidBodyA.endContact(contactInfo);
+        auto contactInfoB = contactInfo;
+        contactInfoB.entityA = contactInfo.entityB;
+        contactInfoB.entityB = contactInfo.entityA;
 
-    auto contactInfoB = contactInfo;
-    contactInfoB.entityA = contactInfo.entityB;
-    contactInfoB.entityB = contactInfo.entityA;
-
-    rigidBodyB.endContact(contactInfoB);
+        rigidBodyB.endContact(contactInfoB);
+    }
 }
 
 Physics::ContactListener::ContactData Physics::ContactListener::contactHelper(b2Contact *contact)

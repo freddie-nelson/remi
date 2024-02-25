@@ -12,6 +12,8 @@
 #include "Physics/PhysicsWorld.h"
 #include "World/World.h"
 
+// ! TODO: give all internal components copy and move constructors and assignment operators
+
 namespace remi
 {
 
@@ -110,10 +112,10 @@ namespace remi
         bool drawDebugPhysics = false;
 
         /**
-         * The maximum number of entities that can be created. 
+         * The maximum number of entities that can be created.
          *
          * Reducing this will reduce memory usage.
-        */
+         */
         size_t maxEntities = 65536;
 
         /**
