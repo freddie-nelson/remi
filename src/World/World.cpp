@@ -12,7 +12,10 @@ World::World::~World()
 
 void World::World::update(const Core::Timestep &timestep)
 {
-    for (auto system : systems)
+    // create a copy of the systems vector to avoid issues with systems being added or removed during the loop
+    auto systemsCopy = systems;
+
+    for (auto system : systemsCopy)
     {
         system->update(*this, timestep);
     }
@@ -22,7 +25,10 @@ void World::World::update(const Core::Timestep &timestep)
 
 void World::World::fixedUpdate(const Core::Timestep &timestep)
 {
-    for (auto system : systems)
+    // create a copy of the systems vector to avoid issues with systems being added or removed during the loop
+    auto systemsCopy = systems;
+
+    for (auto system : systemsCopy)
     {
         system->fixedUpdate(*this, timestep);
     }

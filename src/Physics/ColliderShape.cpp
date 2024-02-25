@@ -37,6 +37,12 @@ Physics::PolygonColliderShape2D::PolygonColliderShape2D(const Rendering::Mesh2D 
     vertices = mesh.transform(transform).getVertices();
 }
 
+Physics::PolygonColliderShape2D::PolygonColliderShape2D(const PolygonColliderShape2D &other)
+{
+    type = other.type;
+    vertices = other.vertices;
+}
+
 b2PolygonShape *Physics::PolygonColliderShape2D::createBox2DShape() const
 {
     b2PolygonShape *shape = new b2PolygonShape();
@@ -89,6 +95,13 @@ Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(const Rend
     indices = transformedMesh.getIndices();
 }
 
+Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(const ConcavePolygonColliderShape2D &other)
+{
+    type = other.type;
+    vertices = other.vertices;
+    indices = other.indices;
+}
+
 b2PolygonShape *Physics::ConcavePolygonColliderShape2D::createBox2DShape() const
 {
     auto triCount = getShapeCount();
@@ -133,6 +146,13 @@ Physics::CircleColliderShape2D::CircleColliderShape2D(float radius, glm::vec2 ce
     this->centre = centre;
 }
 
+Physics::CircleColliderShape2D::CircleColliderShape2D(const CircleColliderShape2D &other)
+{
+    type = other.type;
+    radius = other.radius;
+    centre = other.centre;
+}
+
 b2CircleShape *Physics::CircleColliderShape2D::createBox2DShape() const
 {
     b2CircleShape *shape = new b2CircleShape();
@@ -169,6 +189,16 @@ Physics::EdgeColliderShape2D::EdgeColliderShape2D(glm::vec2 adjacentStart, glm::
     this->adjacentEnd = adjacentEnd;
 
     oneSided = false;
+}
+
+Physics::EdgeColliderShape2D::EdgeColliderShape2D(const EdgeColliderShape2D &other)
+{
+    type = other.type;
+    start = other.start;
+    end = other.end;
+    adjacentStart = other.adjacentStart;
+    adjacentEnd = other.adjacentEnd;
+    oneSided = other.oneSided;
 }
 
 b2EdgeShape *Physics::EdgeColliderShape2D::createBox2DShape() const
@@ -209,6 +239,15 @@ Physics::ChainColliderShape2D::ChainColliderShape2D(glm::vec2 adjacentStart, std
     this->vertices = vertices;
     this->adjacentEnd = adjacentEnd;
     isLoop = false;
+}
+
+Physics::ChainColliderShape2D::ChainColliderShape2D(const ChainColliderShape2D &other)
+{
+    type = other.type;
+    vertices = other.vertices;
+    adjacentStart = other.adjacentStart;
+    adjacentEnd = other.adjacentEnd;
+    isLoop = other.isLoop;
 }
 
 b2ChainShape *Physics::ChainColliderShape2D::createBox2DShape() const

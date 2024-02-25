@@ -35,6 +35,27 @@ namespace Physics
         Collider2D(const Collider2D &other);
 
         /**
+         * Creates a new 2D collider.
+         *
+         * @param other The 2D collider to move.
+         */
+        Collider2D(const Collider2D &&other);
+
+        /**
+         * Assigns the 2D collider.
+         *
+         * @param other The 2D collider to copy.
+         */
+        Physics::Collider2D &operator=(const Physics::Collider2D &other);
+
+        /**
+         * Assigns the 2D collider.
+         *
+         * @param other The 2D collider to move.
+         */
+        Physics::Collider2D &operator=(const Physics::Collider2D &&other);
+
+        /**
          * Destroys the 2D collider.
          */
         ~Collider2D();

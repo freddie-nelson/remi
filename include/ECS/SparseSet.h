@@ -3,6 +3,10 @@
 #include <vector>
 #include <stdexcept>
 #include <string>
+#include <iostream>
+#include <algorithm>
+
+#include "../Physics/Collider2D.h"
 
 #define ECS_SPARSE_SET_MAX_ID 16777215
 #define ECS_SPARSE_SET_DEFAULT_MAX_ID 65535
@@ -153,15 +157,28 @@ namespace ECS
             size_t index = sparse[id];
 
             // swap the item we want to remove with the last item in the dense vector
-            auto last = dense.back();
-            auto lastId = denseIds.back();
             auto lastIndex = dense.size() - 1;
+            auto lastId = denseIds[lastIndex];
 
-            dense[lastIndex] = dense[index];
-            denseIds[lastIndex] = denseIds[index];
+            std::swap(dense[index], dense[lastIndex]);
+            std::swap(denseIds[index], denseIds[lastIndex]);
 
-            dense[index] = std::move(last);
-            denseIds[index] = lastId;
+            if (id == 60 && typeid(T) == typeid(Physics::Collider2D))
+            {
+                auto collider = (Physics::Collider2D *)(void *)(&dense[index]);
+
+                std::cout << "type id: " << typeid(T).name() << std::endl;
+                std::cout << "Removed collider with ID: " << id << std::endl;
+                std::cout << "Collider shape: " << collider->getShape()->getType() << std::endl;
+            }
+            if (id == 60 && typeid(T) == typeid(Physics::Collider2D))
+            {
+                auto collider = (Physics::Collider2D *)(void *)(&dense[lastIndex]);
+
+                std::cout << "last index type id: " << typeid(T).name() << std::endl;
+                std::cout << "Removed collider with ID: " << id << std::endl;
+                std::cout << "Collider shape: " << collider->getShape()->getType() << std::endl;
+            }
 
             // update the sparse vector
             sparse[lastId] = index;
@@ -170,6 +187,15 @@ namespace ECS
             // remove the last item in the dense vector (which is the item we want to remove)
             dense.pop_back();
             denseIds.pop_back();
+
+            if (id == 60 && typeid(T) == typeid(Physics::Collider2D))
+            {
+                auto collider = (Physics::Collider2D *)(void *)(&dense[lastIndex]);
+
+                std::cout << "last index type id: " << typeid(T).name() << std::endl;
+                std::cout << "Removed collider with ID: " << id << std::endl;
+                std::cout << "Collider shape: " << collider->getShape()->getType() << std::endl;
+            }
         }
 
         /**

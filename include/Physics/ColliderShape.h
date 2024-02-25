@@ -9,13 +9,14 @@
 #include <box2d/b2_shape.h>
 #include <glm/vec2.hpp>
 #include <vector>
+#include <iostream>
 
 namespace Physics
 {
 
     enum ColliderShapeType
     {
-        POLYGON,
+        POLYGON = 0,
         CONCAVE_POLYGON,
         CIRCLE,
         EDGE,
@@ -30,7 +31,10 @@ namespace Physics
     class ColliderShape2D
     {
     public:
-        virtual ~ColliderShape2D() = default;
+        virtual ~ColliderShape2D()
+        {
+            std::cout << "ColliderShape2D destructor" << std::endl;
+        }
 
         /**
          * Gets the type of the collider shape.
@@ -92,6 +96,13 @@ namespace Physics
          * @param transform The transform of the mesh.
          */
         PolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform);
+
+        /**
+         * Creates a new 2D polygon collider.
+         *
+         * @param other The 2D polygon collider to copy.
+         */
+        PolygonColliderShape2D(const PolygonColliderShape2D &other);
 
         /**
          * Creates a Box2D shape from the collider shape.
@@ -156,6 +167,13 @@ namespace Physics
         ConcavePolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform);
 
         /**
+         * Creates a new 2D concave polygon collider.
+         *
+         * @param other The 2D concave polygon collider to copy.
+         */
+        ConcavePolygonColliderShape2D(const ConcavePolygonColliderShape2D &other);
+
+        /**
          * Creates a Box2D shape from the collider shape.
          *
          * This is actually a pointer to an array of shapes. The size is given by `getShapeCount`.
@@ -174,14 +192,14 @@ namespace Physics
         ColliderShape2D *clone() const override;
 
         /**
-         * Gets the number of shapes in the concave polygon. 
-         * 
+         * Gets the number of shapes in the concave polygon.
+         *
          * This is the number of triangles the concave polygon was split into.
-         * 
+         *
          * This is also the length of the array returned by createBox2DShape.
          *
          * @returns The number of triangles that make up the concave polygon.
-        */
+         */
         size_t getShapeCount() const;
 
         /**
@@ -193,7 +211,7 @@ namespace Physics
 
         /**
          * The indices to split the vertices into triangles.
-        */
+         */
         std::vector<unsigned int> indices;
     };
 
@@ -212,6 +230,13 @@ namespace Physics
          * @param centre The centre of the circle.
          */
         CircleColliderShape2D(float radius, glm::vec2 centre = glm::vec2(0.0f, 0.0f));
+
+        /**
+         * Creates a new 2D circle collider.
+         *
+         * @param other The 2D circle collider to copy.
+         */
+        CircleColliderShape2D(const CircleColliderShape2D &other);
 
         /**
          * Creates a Box2D shape from the collider shape.
@@ -277,6 +302,13 @@ namespace Physics
         EdgeColliderShape2D(glm::vec2 adjacentStart, glm::vec2 start, glm::vec2 end, glm::vec2 adjacentEnd);
 
         /**
+         * Creates a new 2D edge collider.
+         *
+         * @param other The 2D edge collider to copy.
+         */
+        EdgeColliderShape2D(const EdgeColliderShape2D &other);
+
+        /**
          * Creates a Box2D shape from the collider shape.
          *
          * The shape is created on the heap and should be deleted when no longer needed.
@@ -313,7 +345,7 @@ namespace Physics
          *
          * This used to create smooth collision across junctions.
          */
-        glm::vec2 adjacentStart;
+        glm::vec2 adjacentStart = glm::vec2(0.0f, 0.0f);
 
         /**
          * The vertex adjacent to the end.
@@ -322,12 +354,12 @@ namespace Physics
          *
          * This used to create smooth collision across junctions.
          */
-        glm::vec2 adjacentEnd;
+        glm::vec2 adjacentEnd = glm::vec2(0.0f, 0.0f);
 
         /**
          * Whether or not the edge is one-sided.
          */
-        bool oneSided;
+        bool oneSided = false;
     };
 
     /**
@@ -365,6 +397,13 @@ namespace Physics
         ChainColliderShape2D(glm::vec2 adjacentStart, std::vector<glm::vec2> vertices, glm::vec2 adjacentEnd);
 
         /**
+         * Creates a new 2D chain collider.
+         *
+         * @param other The 2D chain collider to copy.
+         */
+        ChainColliderShape2D(const ChainColliderShape2D &other);
+
+        /**
          * Creates a Box2D shape from the collider shape.
          *
          * The shape is created on the heap and should be deleted when no longer needed.
@@ -392,7 +431,7 @@ namespace Physics
          *
          * If this is true the chain will be closed and the last vertex will be connected to the first.
          */
-        bool isLoop;
+        bool isLoop = false;
 
         /**
          * The adjacent vertex to the start.
@@ -401,7 +440,7 @@ namespace Physics
          *
          * This used to create smooth collision across junctions.
          */
-        glm::vec2 adjacentStart;
+        glm::vec2 adjacentStart = glm::vec2(0.0f, 0.0f);
 
         /**
          * The adjacent vertex to the end.
@@ -410,11 +449,11 @@ namespace Physics
          *
          * This used to create smooth collision across junctions.
          */
-        glm::vec2 adjacentEnd;
+        glm::vec2 adjacentEnd = glm::vec2(0.0f, 0.0f);
 
         /**
          * Whether or not the chain has adjacent vertices.
          */
-        bool hasAdjacentVertices;
+        bool hasAdjacentVertices = false;
     };
 }

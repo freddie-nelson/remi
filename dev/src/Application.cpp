@@ -327,11 +327,19 @@ void Application::init()
     // deletable
     deletable = registry.create();
     registry.add(deletable, Core::Transform());
-    registry.add(deletable, Rendering::Mesh2D(0.5f, 32u));
-    registry.add(deletable, Rendering::Material());
+    registry.add(deletable, Rendering::Mesh2D(2.0f, 32u));
+    registry.add(deletable, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
     registry.add(deletable, Rendering::Renderable(true, false));
     registry.add(deletable, Physics::RigidBody2D());
-    registry.add(deletable, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+    registry.add(deletable, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
+
+    auto test = registry.create();
+    registry.add(test, Core::Transform());
+    registry.add(test, Rendering::Mesh2D(2.0f, 32u));
+    registry.add(test, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
+    registry.add(test, Rendering::Renderable(true, false));
+    registry.add(test, Physics::RigidBody2D());
+    registry.add(test, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
 }
 
 void Application::destroy()
@@ -480,6 +488,8 @@ ECS::Entity raycastEntity;
 bool createdQueryEntity = false;
 ECS::Entity queryEntity;
 
+bool deleted = false;
+
 void Application::fixedUpdate(World::World &world, const Core::Timestep &timestep)
 {
     auto &registry = world.getRegistry();
@@ -606,8 +616,14 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     }
 
     // test deleting
-    if (frames == 100)
+    if (frames >= 0 && !deleted)
     {
+        std::cout << "deleting entity: " << deletable << std::endl;
+        deleted = true;
         registry.destroy(deletable);
+        std::cout << "deleted entity: " << deletable << std::endl;
+
+        auto &collider = registry.get<Physics::Collider2D>(61);
+        std::cout << "collider: " << collider.getShape()->getType() << std::endl;
     }
 }
