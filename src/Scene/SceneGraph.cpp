@@ -173,9 +173,12 @@ void Scene::SceneGraph::updateModelMatrices()
     }
 }
 
-void Scene::SceneGraph::removeEntitiesNotInRegistry() {
-    for (auto &[e, _] : modelMatrices) {
-        if (!registry->has(e)) {
+void Scene::SceneGraph::removeEntitiesNotInRegistry()
+{
+    for (auto &[e, _] : modelMatrices)
+    {
+        if (!registry->has(e) || !registry->has<Core::Transform>(e))
+        {
             modelMatrices.erase(e);
             unrelate(e);
         }
