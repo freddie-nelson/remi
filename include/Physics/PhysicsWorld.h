@@ -56,8 +56,11 @@ namespace Physics
     public:
         /**
          * Creates a new physics world.
+         *
+         * @param entityWorld The world to use.
+         * @param spaceTransformer The space transformer to use.
          */
-        PhysicsWorld(PhysicsWorldConfig config, const Core::SpaceTransformer *spaceTransformer);
+        PhysicsWorld(PhysicsWorldConfig config, const World::World *entityWorld, const Core::SpaceTransformer *spaceTransformer);
 
         /**
          * Destroys the physics world.
@@ -178,6 +181,7 @@ namespace Physics
         PhysicsWorldConfig config;
 
         const Core::SpaceTransformer *spaceTransformer;
+        const World::World *entityWorld;
 
         /**
          * The box2d world.

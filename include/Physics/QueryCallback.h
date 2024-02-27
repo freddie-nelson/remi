@@ -3,6 +3,7 @@
 #include "../ECS/Entity.h"
 #include "../Core/AABB/AABB.h"
 #include "../Core/BoundingCircle.h"
+#include "../World/World.h"
 
 #include <vector>
 #include <unordered_map>
@@ -22,10 +23,11 @@ namespace Physics
         /**
          * Creates a new raycast callback.
          *
+         * @param world The world to use.
          * @param ray The ray being cast.
          * @param bodyToEntity The map of bodies to entities, will use these as entities in query results.
          */
-        QueryCallback(const Core::AABB &aabb, const std::unordered_map<b2Body *, ECS::Entity> &bodyToEntity);
+        QueryCallback(const World::World &world, const Core::AABB &aabb, const std::unordered_map<b2Body *, ECS::Entity> &bodyToEntity);
 
         /**
          * Reports a fixture inside the bounding shape.
@@ -42,6 +44,7 @@ namespace Physics
         const std::vector<ECS::Entity> &getResults() const;
 
     private:
+        const World::World &world;
         const Core::AABB &aabb;
 
         /**

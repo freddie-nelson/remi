@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../ECS/Entity.h"
+#include "../World/World.h"
 
 #include <vector>
 #include <unordered_map>
@@ -103,11 +104,12 @@ namespace Physics
         /**
          * Creates a new raycast callback.
          *
+         * @param world The world to use.
          * @param ray The ray being cast.
          * @param type The type of raycast to perform.
          * @param bodyToEntity The map of bodies to entities, will use these as entities in hit list.
          */
-        RaycastCallback(const Ray &ray, RaycastType type, const std::unordered_map<b2Body *, ECS::Entity> &bodyToEntity);
+        RaycastCallback(const World::World &world, const Ray &ray, RaycastType type, const std::unordered_map<b2Body *, ECS::Entity> &bodyToEntity);
 
         /**
          * Reports a fixture hit by the ray.
@@ -127,6 +129,7 @@ namespace Physics
         const std::vector<RaycastHit> &getHits() const;
 
     private:
+        const World::World &world;
         Ray ray;
         RaycastType type;
 

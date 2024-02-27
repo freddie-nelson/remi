@@ -35,7 +35,7 @@ remi::Engine::Engine(EngineConfig config)
 
     spaceTransformer = new Core::SpaceTransformer(renderer, world, config.pixelsPerMeter);
 
-    physicsWorld = new Physics::PhysicsWorld(config.physicsWorldConfig, spaceTransformer);
+    physicsWorld = new Physics::PhysicsWorld(config.physicsWorldConfig, world, spaceTransformer);
 
     if (config.drawDebugPhysics)
     {

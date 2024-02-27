@@ -1,5 +1,8 @@
 #include "../../include/Physics/Ray.h"
 
+#include "../../include/Physics/RigidBody2D.h"
+#include "../../include/Physics/Collider2D.h"
+
 #include <stdexcept>
 
 Physics::Ray::Ray(glm::vec2 origin, glm::vec2 direction, float length)
@@ -16,7 +19,7 @@ Physics::Ray::Ray(glm::vec2 start, glm::vec2 end)
     length = glm::length(end - start);
 }
 
-Physics::RaycastCallback::RaycastCallback(const Ray &ray, RaycastType type, const std::unordered_map<b2Body *, ECS::Entity> &bodyToEntity) : ray(ray), type(type), bodyToEntity(bodyToEntity)
+Physics::RaycastCallback::RaycastCallback(const World::World &world, const Ray &ray, RaycastType type, const std::unordered_map<b2Body *, ECS::Entity> &bodyToEntity) : world(world), ray(ray), type(type), bodyToEntity(bodyToEntity)
 {
 }
 
@@ -29,6 +32,17 @@ float Physics::RaycastCallback::ReportFixture(b2Fixture *fixture, const b2Vec2 &
         throw std::runtime_error("RaycastCallback (ReportFixture): Fixture does not have a body attached.");
     }
     auto entity = bodyToEntity.at(body);
+
+    // entity is invalid but not removed from physics world yet
+    if (!world.getRegistry().has<Physics::RigidBody2D>(entity) || !world.getRegistry().has<Physics::Collider2D>(entity))
+    {
+        if (type == RaycastType::CLOSEST && !hits.empty())
+        {
+            return hits[0].fraction;
+        }
+
+        return 1.0f;
+    }
 
     RaycastHit hit{
         entity,

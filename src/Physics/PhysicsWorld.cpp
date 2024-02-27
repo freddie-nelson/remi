@@ -17,7 +17,7 @@
 #include <string>
 #include <stdexcept>
 
-Physics::PhysicsWorld::PhysicsWorld(PhysicsWorldConfig config, const Core::SpaceTransformer *spaceTransformer) : spaceTransformer(spaceTransformer), world(b2Vec2(config.gravity.x, config.gravity.y))
+Physics::PhysicsWorld::PhysicsWorld(PhysicsWorldConfig config, const World::World *entityWorld, const Core::SpaceTransformer *spaceTransformer) : entityWorld(entityWorld), spaceTransformer(spaceTransformer), world(b2Vec2(config.gravity.x, config.gravity.y))
 {
     setConfig(config);
 
@@ -49,7 +49,7 @@ void Physics::PhysicsWorld::fixedUpdate(World::World &world, const Core::Timeste
 
 std::vector<Physics::RaycastHit> Physics::PhysicsWorld::raycast(const Ray &ray, RaycastType type)
 {
-    RaycastCallback callback(ray, type, bodyToEntity);
+    RaycastCallback callback(*entityWorld, ray, type, bodyToEntity);
 
     b2Vec2 p1(ray.start.x, ray.start.y);
     b2Vec2 p2(ray.end.x, ray.end.y);
@@ -61,7 +61,7 @@ std::vector<Physics::RaycastHit> Physics::PhysicsWorld::raycast(const Ray &ray, 
 
 std::vector<ECS::Entity> Physics::PhysicsWorld::query(const Core::AABB &aabb)
 {
-    QueryCallback callback(aabb, bodyToEntity);
+    QueryCallback callback(*entityWorld, aabb, bodyToEntity);
 
     b2AABB box;
     box.lowerBound = b2Vec2(aabb.getMin().x, aabb.getMin().y);
@@ -76,7 +76,7 @@ std::vector<ECS::Entity> Physics::PhysicsWorld::query(const Core::BoundingCircle
 {
     const Core::AABB aabb(circle.getCentre(), circle.getRadius());
 
-    QueryCallback callback(aabb, bodyToEntity);
+    QueryCallback callback(*entityWorld, aabb, bodyToEntity);
 
     b2AABB box;
     box.lowerBound = b2Vec2(aabb.getMin().x, aabb.getMin().y);
