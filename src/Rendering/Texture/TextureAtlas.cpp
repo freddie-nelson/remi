@@ -291,8 +291,8 @@ void Rendering::TextureAtlas::pack()
         // remove the space
 
         // space below texture
-        int spaceBelowHeight = static_cast<int>(space.height) - texHeight - padding;
-        AtlasSpace spaceBelow = {glm::vec2(space.position.x, space.position.y + texHeight + padding), space.width, spaceBelowHeight < 0 ? 0 : spaceBelowHeight};
+        unsigned int spaceBelowHeight = static_cast<int>(space.height) - texHeight - padding;
+        AtlasSpace spaceBelow = {glm::vec2(space.position.x, space.position.y + texHeight + padding), space.width, spaceBelowHeight < 0 ? 0 : static_cast<unsigned int>(spaceBelowHeight)};
 
         if (spaceBelow.width > 0 && spaceBelow.height > 0)
         {
@@ -301,7 +301,7 @@ void Rendering::TextureAtlas::pack()
 
         // space to right of texture
         int spaceRightWidth = static_cast<int>(space.width) - texWidth - padding;
-        AtlasSpace spaceRight = {glm::vec2(space.position.x + texWidth + padding, space.position.y), spaceRightWidth < 0 ? 0 : spaceRightWidth, texHeight};
+        AtlasSpace spaceRight = {glm::vec2(space.position.x + texWidth + padding, space.position.y), spaceRightWidth < 0 ? 0 : static_cast<unsigned int>(spaceRightWidth), texHeight};
 
         if (spaceRight.width > 0 && spaceRight.height > 0)
         {
