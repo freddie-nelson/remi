@@ -23,6 +23,7 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
 
     // get renderables
     std::vector<ECS::Entity> *renderables = new std::vector<ECS::Entity>;
+    renderables->reserve(entities.size());
 
     // get static renderables
     getRenderables(world, entities, viewAabb, true, *renderables);
