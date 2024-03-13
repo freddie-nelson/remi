@@ -39,6 +39,8 @@ Rendering::RenderPassInput *Rendering::BatchPass::execute(RenderPassInput *input
     transparentKeys.reserve(renderables.size());
     transparentKeys.reserve(renderables.size());
 
+    auto isAlphaBlendingEnabled = renderer.isAlphaBlendingEnabled();
+
     for (auto &e : renderables)
     {
         ShaderMaterial::FragShaderKey key = DEFAULT_SHADER_KEY;
@@ -50,7 +52,7 @@ Rendering::RenderPassInput *Rendering::BatchPass::execute(RenderPassInput *input
 
         auto material = getMaterial(registry, e);
 
-        if (material->isTransparent() && renderer.isAlphaBlendingEnabled())
+        if (isAlphaBlendingEnabled && material->isTransparent())
         {
             transparentRenderables.push_back(e);
             transparentKeys.push_back(key);

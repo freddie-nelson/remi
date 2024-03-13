@@ -93,6 +93,11 @@ bool Scene::SceneGraph::hasChildren(ECS::Entity entity) const
 
 const glm::mat4 &Scene::SceneGraph::getModelMatrix(ECS::Entity entity, bool forceUpdate) const
 {
+    if (!hasParent(entity))
+    {
+        return registry->get<Core::Transform>(entity).getTransformationMatrix();
+    }
+
     if (forceUpdate)
     {
         updateModelMatrix(entity, true, false);
@@ -123,11 +128,7 @@ void Scene::SceneGraph::updateModelMatrix(ECS::Entity entity, bool updateParent,
         throw std::invalid_argument("SceneGraph (updateModelMatrix): Entity '" + std::to_string(entity) + "' does not have a transform component.");
     }
 
-    if (!hasParent(entity))
-    {
-        modelMatrices[entity] = registry->get<Core::Transform>(entity).getTransformationMatrix();
-    }
-    else
+    if (hasParent(entity))
     {
         auto parent = this->parent(entity);
         auto &parentModelMatrix = getModelMatrix(parent, updateParent);
@@ -159,11 +160,11 @@ void Scene::SceneGraph::updateModelMatrices()
     std::vector<ECS::Entity> rootEntities;
     rootEntities.reserve(entities.size());
 
-    for (auto entity : entities)
+    for (auto &[parent, children] : childrenMap)
     {
-        if (!hasParent(entity))
+        if (!hasParent(parent))
         {
-            rootEntities.push_back(entity);
+            rootEntities.push_back(parent);
         }
     }
 

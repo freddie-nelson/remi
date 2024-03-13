@@ -118,7 +118,7 @@ void Application::init()
     // create entities
     float pixelsPerMeter = config.pixelsPerMeter;
 
-    int entityCount = 1000;
+    int entityCount = 10000;
     int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
     int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
     int zRange = 10;
