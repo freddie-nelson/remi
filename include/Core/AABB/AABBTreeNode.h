@@ -11,9 +11,9 @@ namespace Core
     template <typename T>
     struct AABBTreeNode
     {
-        AABBTreeNode *parent;
-        AABBTreeNode *left;
-        AABBTreeNode *right;
+        AABBTreeNode *parent = nullptr;
+        AABBTreeNode *left = nullptr;
+        AABBTreeNode *right = nullptr;
 
         T id;
         const AABB *aabb;
@@ -84,6 +84,21 @@ namespace Core
         bool hasSibling()
         {
             return getSibling() != nullptr;
+        }
+
+        /**
+         * Gets the height of the node.
+         *
+         * @returns The height of the node.
+         */
+        size_t height()
+        {
+            if (isLeaf())
+            {
+                return 0;
+            }
+
+            return 1 + std::max(left != nullptr ? left->height() : 0, right != nullptr ? right->height() : 0);
         }
     };
 }

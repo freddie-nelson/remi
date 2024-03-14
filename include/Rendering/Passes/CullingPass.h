@@ -109,9 +109,9 @@ namespace Rendering
         /**
          * The AABB tree for dynamic renderables.
          *
-         * The tree gives fat aabb's a margin of 2 metres.
+         * The tree gives fat aabb's a margin of 3 metres.
          */
-        Core::AABBTree<ECS::Entity> dynamicRenderablesTree = Core::AABBTree<ECS::Entity>(2.0f);
+        Core::AABBTree<ECS::Entity> dynamicRenderablesTree = Core::AABBTree<ECS::Entity>(3.0f);
 
         /**
          * Populates the renderables vector with all the entities that are inside the given aabb.

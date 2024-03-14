@@ -57,8 +57,10 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
 
     delete inputTyped;
 
-    // drawAABBTree(staticRenderablesTree, const_cast<ECS::Registry &>(registry), *inputTyped->renderer, *inputTyped->renderTarget, *inputTyped->textureManager);
-    // drawAABBTree(dynamicRenderablesTree, const_cast<ECS::Registry &>(registry), *inputTyped->renderer, *inputTyped->renderTarget, *inputTyped->textureManager);
+    // drawAABBTree(staticRenderablesTree, world, *inputTyped->renderer, *inputTyped->renderTarget, *inputTyped->textureManager);
+    // drawAABBTree(dynamicRenderablesTree, world, *inputTyped->renderer, *inputTyped->renderTarget, *inputTyped->textureManager);
+
+    // std::cout << staticRenderablesTree.height() << std::endl;
 
     return output;
 }

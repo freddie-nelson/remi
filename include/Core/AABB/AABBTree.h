@@ -354,6 +354,25 @@ namespace Core
         }
 
         /**
+         * Gets the height of the tree.
+         *
+         * Recursively calculates the height of the tree.
+         *
+         * @warning This is an expensive operation.
+         *
+         * @returns The height of the tree.
+         */
+        size_t height()
+        {
+            if (root == nullptr)
+            {
+                return 0;
+            }
+
+            return root->height();
+        }
+
+        /**
          * Checks if the tree is empty.
          *
          * @returns Whether or not the tree is empty.
@@ -381,6 +400,23 @@ namespace Core
             {
                 return;
             }
+
+            // if aabb contains the root fat aabb then just skip the query and add all the ids to the overlapping vector
+            // not completely accurate testing but good enough and fast optimisation
+            // if (aabb.contains(root->fatAabb))
+            // {
+            //     std::cout << "aabb contains root fat aabb" << std::endl;
+
+            //     for (auto &id : ids)
+            //     {
+            //         if (includeInQuery.contains(id))
+            //         {
+            //             overlapping.push_back(id);
+            //         }
+            //     }
+
+            //     return;
+            // }
 
             std::stack<AABBTreeNode<T> *> nodes;
             nodes.push(root);
