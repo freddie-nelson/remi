@@ -14,6 +14,7 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
     auto inputTyped = static_cast<RenderPassInputTyped<RenderablesPassData> *>(input);
 
     auto &world = *inputTyped->world;
+    auto &registry = world.getRegistry();
 
     auto camera = inputTyped->camera;
     auto &entities = *inputTyped->data;
@@ -25,11 +26,31 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
     std::vector<ECS::Entity> *renderables = new std::vector<ECS::Entity>;
     renderables->reserve(entities.size());
 
+    std::vector<ECS::Entity> staticEntities;
+    staticEntities.reserve(entities.size());
+
+    std::vector<ECS::Entity> dynamicEntities;
+    dynamicEntities.reserve(entities.size());
+
+    for (auto &e : entities)
+    {
+        auto &renderable = registry.get<Renderable>(e);
+
+        if (renderable.isStatic)
+        {
+            staticEntities.push_back(e);
+        }
+        else
+        {
+            dynamicEntities.push_back(e);
+        }
+    }
+
     // get static renderables
-    getRenderables(world, entities, viewAabb, true, *renderables);
+    getRenderables(world, staticEntities, viewAabb, true, *renderables);
 
     // get dynamic renderables
-    getRenderables(world, entities, viewAabb, false, *renderables);
+    getRenderables(world, dynamicEntities, viewAabb, false, *renderables);
 
     // create output
     RenderPassInputTyped<CullingPassData> *output = new RenderPassInputTyped<CullingPassData>(input, renderables);
@@ -73,28 +94,42 @@ Core::AABB Rendering::CullingPass::getCullingAABB(World::World &world, const Cor
 
 void Rendering::CullingPass::pruneTrees(const ECS::Registry &registry)
 {
-    auto staticTreeEntities = staticRenderablesTree.getIds();
+    auto &staticTreeEntities = staticRenderablesTree.getIds();
+    std::vector<ECS::Entity> toRemove;
+
     for (auto &e : staticTreeEntities)
     {
         if (!registry.has<Renderable>(e))
         {
-            staticRenderablesTree.remove(e);
-            staticRenderables.erase(e);
+            toRemove.push_back(e);
         }
     }
 
-    auto dynamicTreeEntities = dynamicRenderablesTree.getIds();
+    for (auto &e : toRemove)
+    {
+        staticRenderablesTree.remove(e);
+        staticRenderables.erase(e);
+    }
+
+    auto &dynamicTreeEntities = dynamicRenderablesTree.getIds();
+    toRemove.clear();
+
     for (auto &e : dynamicTreeEntities)
     {
         if (!registry.has<Renderable>(e))
         {
-            dynamicRenderablesTree.remove(e);
-            dynamicRenderables.erase(e);
+            toRemove.push_back(e);
         }
+    }
+
+    for (auto &e : toRemove)
+    {
+        dynamicRenderablesTree.remove(e);
+        dynamicRenderables.erase(e);
     }
 }
 
-size_t Rendering::CullingPass::getRenderables(World::World &world, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables)
+void Rendering::CullingPass::getRenderables(World::World &world, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables)
 {
     auto &registry = world.getRegistry();
     auto &sceneGraph = world.getSceneGraph();
@@ -103,6 +138,9 @@ size_t Rendering::CullingPass::getRenderables(World::World &world, const std::ve
     callsSinceLastTreePrune++;
     if (callsSinceLastTreePrune == treePruneFrequency)
     {
+        // std::cout << "pruning trees\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+        //           << std::endl;
+
         pruneTrees(registry);
         callsSinceLastTreePrune = 0;
     }
@@ -131,32 +169,15 @@ size_t Rendering::CullingPass::getRenderables(World::World &world, const std::ve
 
         includeInQuery.emplace(e);
 
-        if (isStatic && !renderable.isStatic)
+        if (isStatic && dynamicRenderables.contains(e))
         {
-            // check if entity was previously static
-            if (staticRenderables.contains(e))
-            {
-                staticRenderablesTree.remove(e);
-                staticRenderables.erase(e);
-            }
-
-            otherCount++;
-
-            continue;
+            dynamicRenderablesTree.remove(e);
+            dynamicRenderables.erase(e);
         }
-
-        if (!isStatic && renderable.isStatic)
+        if (!isStatic && staticRenderables.contains(e))
         {
-            // check if entity was previously dynamic
-            if (dynamicRenderables.contains(e))
-            {
-                dynamicRenderablesTree.remove(e);
-                dynamicRenderables.erase(e);
-            }
-
-            otherCount++;
-
-            continue;
+            staticRenderablesTree.remove(e);
+            staticRenderables.erase(e);
         }
 
         // skip if already in tree and is static
@@ -200,8 +221,6 @@ size_t Rendering::CullingPass::getRenderables(World::World &world, const std::ve
     {
         dynamicRenderablesTree.query(viewAabb, renderables, includeInQuery);
     }
-
-    return otherCount;
 }
 
 void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tree, World::World &world, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const

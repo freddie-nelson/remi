@@ -118,6 +118,8 @@ namespace Rendering
          *
          * Also prunes the AABB trees, every `treePruneFrequency` calls.
          *
+         * The entities provided must have a `renderable.isStatic` that matches the `isStatic` parameter.
+         *
          * @param world The world to use.
          * @param entities The entities to check.
          * @param viewAabb The aabb to check against.
@@ -126,7 +128,7 @@ namespace Rendering
          *
          * @returns The number of entities of the other renderable type, i.e. returns number of static entities when isStatic is false, and vice versa.
          */
-        size_t getRenderables(World::World &world, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
+        void getRenderables(World::World &world, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
 
         /**
          * Draws the AABB tree.
