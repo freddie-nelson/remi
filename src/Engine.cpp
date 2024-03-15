@@ -6,6 +6,7 @@
 #include "../include/Rendering/Passes/DrawPass.h"
 #include "../include/Rendering/Passes/OutputPass.h"
 #include "../include/Rendering/Passes/PhysicsDebugPass.h"
+#include "../include/Rendering/Passes/DebugRenderTreePass.h"
 
 #include <iostream>
 
@@ -21,9 +22,11 @@ remi::Engine::Engine(EngineConfig config)
     window = new Core::Window(config.windowTitle, config.windowWidth, config.windowHeight, config.windowFullscreen);
     renderer = new Rendering::Renderer(window, config.windowWidth, config.windowHeight, config.pixelsPerMeter);
 
+    auto cullingPass = new Rendering::CullingPass();
+
     pipeline = new Rendering::RenderPipeline();
     pipeline->add(new Rendering::RenderablesPass(), 1000);
-    pipeline->add(new Rendering::CullingPass(), 2000);
+    pipeline->add(cullingPass, 2000);
     pipeline->add(new Rendering::BatchPass(), 3000);
     pipeline->add(new Rendering::DrawPass(), 4000);
     pipeline->add(new Rendering::OutputPass(), 5000);
@@ -40,6 +43,11 @@ remi::Engine::Engine(EngineConfig config)
     if (config.drawDebugPhysics)
     {
         pipeline->add(new Rendering::PhysicsDebugPass(physicsWorld), 4050);
+    }
+
+    if (config.drawDebugRenderTree)
+    {
+        pipeline->add(new Rendering::DebugRenderTreePass(cullingPass), 4100);
     }
 
     renderManager = new Rendering::RenderManager(renderer, pipeline, spaceTransformer);

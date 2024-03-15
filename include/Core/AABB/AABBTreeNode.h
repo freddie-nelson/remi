@@ -2,6 +2,7 @@
 
 #include "AABB.h"
 #include <stdexcept>
+#include <unordered_map>
 
 namespace Core
 {
@@ -15,9 +16,9 @@ namespace Core
         AABBTreeNode *left = nullptr;
         AABBTreeNode *right = nullptr;
 
-        T id;
-        const AABB *aabb;
         AABB fatAabb;
+
+        std::unordered_map<T, const AABB *> aabbs;
 
         /**
          * Gets whether or not this node is the root of the tree.

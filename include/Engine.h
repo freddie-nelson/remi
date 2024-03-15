@@ -112,6 +112,11 @@ namespace remi
         bool drawDebugPhysics = false;
 
         /**
+         * Whether to draw the debug render aabb tree.
+         */
+        bool drawDebugRenderTree = false;
+
+        /**
          * The maximum number of entities that can be created.
          *
          * Reducing this will reduce memory usage.

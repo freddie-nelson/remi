@@ -145,6 +145,7 @@ rendering_src += [
     'src/Rendering/Passes/PosterizePass.cpp',
     'src/Rendering/Passes/PostProcessingPass.cpp', 
     'src/Rendering/Passes/RenderablesPass.cpp', 
+    'src/Rendering/Passes/DebugRenderTreePass.cpp'
 ]
 rendering_src += ['src/Rendering/Shader/Shader.cpp', 'src/Rendering/Shader/VertexIndices.cpp']
 rendering_src += ['src/Rendering/Texture/AnimatedTexture.cpp', 'src/Rendering/Texture/AnimationSystem.cpp', 'src/Rendering/Texture/Texture.cpp', 'src/Rendering/Texture/TextureAtlas.cpp', 'src/Rendering/Texture/TextureManager.cpp']

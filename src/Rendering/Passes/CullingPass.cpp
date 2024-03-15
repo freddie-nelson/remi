@@ -57,10 +57,7 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
 
     delete inputTyped;
 
-    // drawAABBTree(staticRenderablesTree, world, *inputTyped->renderer, *inputTyped->renderTarget, *inputTyped->textureManager);
-    // drawAABBTree(dynamicRenderablesTree, world, *inputTyped->renderer, *inputTyped->renderTarget, *inputTyped->textureManager);
-
-    // std::cout << staticRenderablesTree.height() << std::endl;
+    std::cout << staticRenderablesTree.height() << std::endl;
 
     return output;
 }
@@ -225,16 +222,11 @@ void Rendering::CullingPass::getRenderables(World::World &world, const std::vect
     }
 }
 
-void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tree, World::World &world, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const
+void Rendering::CullingPass::drawAABBTree(bool isStatic, World::World &world, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const
 {
+    auto &tree = isStatic ? staticRenderablesTree : dynamicRenderablesTree;
+
     auto &registry = world.getRegistry();
-
-    auto entity = registry.create();
-    auto &transform = registry.add(entity, Core::Transform());
-    auto &material = registry.add(entity, Rendering::Material());
-    auto &mesh = registry.add(entity, Rendering::Mesh2D(1.0f, 1.0f));
-
-    transform.setZIndex(Config::MAX_Z_INDEX);
 
     auto root = tree.getRoot();
 
@@ -250,7 +242,7 @@ void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tre
         bool isFat;
     };
 
-    float opacity = 1.0f;
+    float opacity = 0.4f;
 
     std::vector<AABBData> aabbs;
 
@@ -273,8 +265,12 @@ void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tre
 
         if (node->isLeaf())
         {
-            aabbs.push_back({node->aabb, true, false});
             aabbs.push_back({&node->fatAabb, true, true});
+
+            for (auto &[entity, aabb] : node->aabbs)
+            {
+                // aabbs.push_back({aabb, true, false});
+            }
         }
         else
         {
@@ -283,6 +279,11 @@ void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tre
     }
 
     renderTarget.bind(textureManager);
+
+    auto entity = registry.create();
+    auto &transform = registry.add(entity, Core::Transform());
+    auto &material = registry.add(entity, Rendering::Material());
+    auto &mesh = registry.add(entity, Rendering::Mesh2D(1.0f, 1.0f));
 
     for (auto &[aabb, isLeaf, isFat] : aabbs)
     {
@@ -299,22 +300,25 @@ void Rendering::CullingPass::drawAABBTree(const Core::AABBTree<ECS::Entity> &tre
             if (isFat)
             {
                 material.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, opacity));
-                continue;
+                transform.setZIndex(Config::MAX_Z_INDEX - 1);
             }
             else
             {
                 material.setColor(Rendering::Color(0.0f, 1.0f, 0.0f, opacity));
+                transform.setZIndex(Config::MAX_Z_INDEX);
             }
         }
         else
         {
             material.setColor(Rendering::Color(0.0f, 0.0f, 1.0f, opacity));
-            continue;
+            transform.setZIndex(Config::MAX_Z_INDEX - 2);
         }
 
         renderer.entity(world, renderer.getActiveCamera(registry), entity);
     }
 
+    // renderer.batch(world, renderer.getActiveCamera(registry), entities);
     renderTarget.unbind(textureManager);
+
     registry.destroy(entity);
 }

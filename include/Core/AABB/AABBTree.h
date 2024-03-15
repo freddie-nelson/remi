@@ -59,8 +59,7 @@ namespace Core
             if (root == nullptr)
             {
                 root = new AABBTreeNode<T>();
-                root->id = id;
-                root->aabb = &aabb;
+                root->aabbs[id] = &aabb;
                 root->fatAabb = AABB(aabb.getMin() - margin, aabb.getMax() + margin);
 
                 leaves[id] = root;
@@ -71,8 +70,7 @@ namespace Core
 
             // find the best node to insert the AABB into.
             AABBTreeNode<T> *leaf = new AABBTreeNode<T>();
-            leaf->id = id;
-            leaf->aabb = &aabb;
+            leaf->aabbs[id] = &aabb;
             leaf->fatAabb = AABB(aabb.getMin() - margin, aabb.getMax() + margin);
 
             leaves[id] = leaf;
@@ -138,11 +136,35 @@ namespace Core
             // parent node and attach the leaf and this item
             AABBTreeNode<T> *sibling = node;
 
+            auto newFatAabb = leaf->fatAabb.merge(sibling->fatAabb);
+            if (sibling->isLeaf() && newFatAabb.getSurfaceArea() < fatAabbLeafSurfaceAreaThreshold)
+            {
+                // std::cout << "newFatAabb.getSurfaceArea() < fatAabbLeafSurfaceAreaThreshold" << std::endl;
+                // std::cout << newFatAabb.getSurfaceArea() << std::endl;
+                // if the new node will have a surface area smaller than the threshold then we skip creating
+                // a new node and instead just add this aabb to the sibling
+
+                sibling->aabbs[id] = &aabb;
+                delete leaf;
+
+                // update the fat aabb of the sibling
+                sibling->fatAabb = std::move(newFatAabb);
+
+                // finally we need to walk back up the tree fixing heights and areas
+                fixUpwardsTree(sibling);
+
+                return;
+            }
+            else
+            {
+                // std::cout << "splitting" << std::endl;
+            }
+
             AABBTreeNode<T> *oldParent = sibling->parent;
             AABBTreeNode<T> *newParent = new AABBTreeNode<T>();
 
             newParent->parent = oldParent;
-            newParent->fatAabb = leaf->fatAabb.merge(sibling->fatAabb);
+            newParent->fatAabb = newFatAabb;
             newParent->left = sibling;
             newParent->right = leaf;
 
@@ -191,12 +213,22 @@ namespace Core
             leaves.erase(id);
             ids.erase(id);
 
+            node->aabbs.erase(id);
+
+            // if node isn't empty yet then we don't need to delete
+            // so just recalculate fat aabb and return
+            if (!node->aabbs.empty())
+            {
+                node->fatAabb = calculateFatAABB(node->aabbs);
+                return;
+            }
+
             // if the node is the root then we can just clear the root and return
             if (node == root)
             {
                 delete node;
-
                 root = nullptr;
+
                 return;
             }
 
@@ -254,9 +286,10 @@ namespace Core
 
             AABBTreeNode<T> *node = leaves[id];
 
-            node->aabb = &aabb;
+            node->aabbs[id] = &aabb;
 
-            if (node->fatAabb.contains(*node->aabb))
+            auto newFatAabb = node->fatAabb.merge(AABB(aabb.getMin() - margin, aabb.getMax() + margin));
+            if (node->fatAabb.contains(newFatAabb))
             {
                 return false;
             }
@@ -283,7 +316,7 @@ namespace Core
                 throw std::invalid_argument("AABBTree (get): AABB is not in the tree.");
             }
 
-            return leaves[id]->aabb;
+            return leaves[id]->aabbs[id];
         }
 
         /**
@@ -318,7 +351,10 @@ namespace Core
 
                 if (node->isLeaf())
                 {
-                    leaves.erase(node->id);
+                    for (auto &[id, aabb] : node->aabbs)
+                    {
+                        leaves.erase(id);
+                    }
                 }
                 else
                 {
@@ -393,30 +429,14 @@ namespace Core
          * @param aabb The AABB to query for.
          * @param overlapping The vector to store the IDs of the overlapping AABBs in.
          * @param includeInQuery The set of IDs to include in the query.
+         * @param fastQuery Setting to true will skip querying individual aabbs in a leaf node and instead just return all of the contained aabbs in the leaf.
          */
-        void query(const AABB &aabb, std::vector<T> &overlapping, const std::unordered_set<T> &includeInQuery) const
+        void query(const AABB &aabb, std::vector<T> &overlapping, const std::unordered_set<T> &includeInQuery, bool fastQuery = true) const
         {
             if (root == nullptr)
             {
                 return;
             }
-
-            // if aabb contains the root fat aabb then just skip the query and add all the ids to the overlapping vector
-            // not completely accurate testing but good enough and fast optimisation
-            // if (aabb.contains(root->fatAabb))
-            // {
-            //     std::cout << "aabb contains root fat aabb" << std::endl;
-
-            //     for (auto &id : ids)
-            //     {
-            //         if (includeInQuery.contains(id))
-            //         {
-            //             overlapping.push_back(id);
-            //         }
-            //     }
-
-            //     return;
-            // }
 
             std::stack<AABBTreeNode<T> *> nodes;
             nodes.push(root);
@@ -428,9 +448,17 @@ namespace Core
 
                 if (node->isLeaf())
                 {
-                    if (includeInQuery.contains(node->id) && node->aabb->overlaps(aabb))
+                    for (auto &[id, nodeAabb] : node->aabbs)
                     {
-                        overlapping.push_back(node->id);
+                        if (!includeInQuery.contains(id))
+                        {
+                            continue;
+                        }
+
+                        if (fastQuery || nodeAabb->overlaps(aabb))
+                        {
+                            overlapping.push_back(id);
+                        }
                     }
                 }
 
@@ -474,6 +502,13 @@ namespace Core
         float margin;
 
         /**
+         * The threshold for the surface area of the fat AABB of leaf nodes.
+         *
+         * If the surface area of the fat AABB of a leaf node is less than this threshold then the leaf node is not split.
+         */
+        float fatAabbLeafSurfaceAreaThreshold = 100.0f;
+
+        /**
          * The leaves of the tree.
          */
         std::unordered_map<T, AABBTreeNode<T> *> leaves;
@@ -505,6 +540,18 @@ namespace Core
 
                 currentNode = currentNode->parent;
             }
+        }
+
+        AABB calculateFatAABB(const std::unordered_map<T, const AABB *> &aabbs)
+        {
+            AABB fatAabb;
+
+            for (auto &[id, aabb] : aabbs)
+            {
+                fatAabb = fatAabb.merge(AABB(aabb->getMin() - margin, aabb->getMax() + margin));
+            }
+
+            return fatAabb;
         }
     };
 }

@@ -73,6 +73,7 @@ void Application::init()
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
     config.drawDebugPhysics = true;
+    config.drawDebugRenderTree = true;
 
     engine = new remi::Engine(config);
 
@@ -241,7 +242,7 @@ void Application::init()
     auto &fm = registry.add(floor, Rendering::Mesh2D(100.0f, 1.0f));
     auto &ft = registry.add(floor, Core::Transform());
     auto &fMat = registry.add(floor, Rendering::Material());
-    auto &fRenderable = registry.add(floor, Rendering::Renderable(true, true));
+    // auto &fRenderable = registry.add(floor, Rendering::Renderable(true, true));
 
     ft.translate(glm::vec2(0.0f, -5.0f));
 

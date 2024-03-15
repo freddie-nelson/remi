@@ -131,7 +131,9 @@ void Rendering::Renderer::entity(const World::World &world, const ECS::Entity ca
     Uniform uColor("uColor", color);
     Uniform uTextures("uTextures", texturesUniform, true, texturesUniform.size(), GL_SAMPLER_2D);
 
-    Uniform uTextureUnit("uTextureUnit", static_cast<unsigned int>(boundTexture.textureUnit));
+    unsigned int textureUnit = boundTexture.textureUnit;
+
+    Uniform uTextureUnit("uTextureUnit", textureUnit);
     Uniform uTextureSize("uTextureSize", boundTexture.textureSize);
     Uniform uTextureAtlasPos("uTextureAtlasPos", boundTexture.posInAtlas);
     Uniform uTextureAtlasSize("uTextureAtlasSize", boundTexture.atlasSize);

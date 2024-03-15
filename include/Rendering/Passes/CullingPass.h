@@ -56,6 +56,17 @@ namespace Rendering
             return "CullingPass";
         };
 
+        /**
+         * Draws the AABB tree.
+         *
+         * @param isStatic true to draw static tree, false to draw dynamic tree
+         * @param world The world to use.
+         * @param renderer The renderer to use.
+         * @param renderTarget The render target to use.
+         * @param textureManager The texture manager to use.
+         */
+        void drawAABBTree(bool isStatic, World::World &world, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const;
+
     private:
         /**
          * Gets the AABB sufficient for culling entities outside the camera's view.
@@ -129,16 +140,5 @@ namespace Rendering
          * @returns The number of entities of the other renderable type, i.e. returns number of static entities when isStatic is false, and vice versa.
          */
         void getRenderables(World::World &world, const std::vector<ECS::Entity> &entities, const Core::AABB &viewAabb, bool isStatic, std::vector<ECS::Entity> &renderables);
-
-        /**
-         * Draws the AABB tree.
-         *
-         * @param tree The tree to draw.
-         * @param world The world to use.
-         * @param renderer The renderer to use.
-         * @param renderTarget The render target to use.
-         * @param textureManager The texture manager to use.
-         */
-        void drawAABBTree(const Core::AABBTree<ECS::Entity> &tree, World::World &world, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const;
     };
 }
