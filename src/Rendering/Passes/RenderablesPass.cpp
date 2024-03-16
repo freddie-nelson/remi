@@ -18,11 +18,35 @@ Rendering::RenderPassInput *Rendering::RenderablesPass::execute(RenderPassInput 
     auto &entities = registry.view<Mesh2D, Core::Transform, Renderable>();
     auto cacheTime = registry.viewCachedTime<Mesh2D, Core::Transform, Renderable>();
 
+    // cached data exists
     if (cacheTime == lastViewCacheTime)
     {
         auto data = new RenderablesPassData();
         data->staticRenderables = oldData.staticRenderables;
         data->dynamicRenderables = oldData.dynamicRenderables;
+
+        auto &added = registry.viewAddedSinceTimestamp<Mesh2D, Core::Transform, Renderable>();
+
+        // we need to make sure the newly added renderables are included in future passes
+        // NOTE: not the most optimal solution but couldn't find a better way to do this right now
+        // should maybe look at in future if becomes a performance issue
+        if (!added.empty())
+        {
+            std::cout << "added: " << added.size() << std::endl;
+            for (auto e : added)
+            {
+                auto &renderable = registry.get<Renderable>(e);
+
+                if (renderable.isStatic)
+                {
+                    data->newStaticRenderables.push_back(e);
+                }
+                else
+                {
+                    data->newDynamicRenderables.push_back(e);
+                }
+            }
+        }
 
         return new RenderPassInputTyped(input, data);
     }

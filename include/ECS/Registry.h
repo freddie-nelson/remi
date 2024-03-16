@@ -134,6 +134,29 @@ namespace ECS
         }
 
         /**
+         * Gets the entities that have been added since the view of the given components was last cached.
+         *
+         * This is useful for systems that need to know which entities have been added since the last time the view was cached.
+         * i.e. for caching and performance reasons.
+         *
+         * @tparam Types The types of components.
+         *
+         * @returns The entities that have been added since the view of the given components was last cached.
+         */
+        template <typename... Types>
+        const std::vector<Entity> &viewAddedSinceTimestamp() const
+        {
+            std::set<ComponentId> cacheKey = {ComponentIdGenerator::id<Types>...};
+
+            if (cachedViews.contains(cacheKey))
+            {
+                return cachedViews[cacheKey].addedSinceTimestamp;
+            }
+
+            return std::vector<Entity>();
+        }
+
+        /**
          * Adds a component to the given entity.
          *
          * If the component pool does not exist, it will be created.
@@ -166,14 +189,15 @@ namespace ECS
             }
 
             auto &componentPool = getComponentPool<T>();
-
-            // only invalidate cached views if the entity doesn't already have the component
-            if (!componentPool.has(entity))
-            {
-                invalidateCachedViews<T>();
-            }
+            bool hasEntity = componentPool.has(entity);
 
             componentPool.add(entity, component);
+
+            // only update cached views if the entity didn't already have the component
+            if (!hasEntity)
+            {
+                updateCachedViews<T>(entity);
+            }
 
             return componentPool.get(entity);
         }
@@ -291,6 +315,11 @@ namespace ECS
         std::unordered_set<Entity> entitiesSet;
 
         /**
+         * The threshold for when to invalidate the cached entity views instead of adding to `addedSinceTimestamp`.
+         */
+        size_t cacheUpdateInvalidationThreshold = 2500;
+
+        /**
          * The component pools.
          *
          * These store sparse sets of components for each component type.
@@ -302,11 +331,13 @@ namespace ECS
          *
          * @param timestamp The timestamp of the cache.
          * @param entities The entities in the cache.
+         * @param addedSinceTimestamp The entities that have been added since the timestamp. These are entities added by `updateCachedViews`.
          */
         struct CachedView
         {
             uint64_t timestamp;
             std::vector<Entity> entities;
+            std::vector<Entity> addedSinceTimestamp;
         };
 
         /**
@@ -353,6 +384,68 @@ namespace ECS
                 {
                     // increment iterator
                     it++;
+                }
+            }
+        }
+
+        /**
+         * Adds the given entity to the cached views for the given component.
+         *
+         * @tparam T The type of component.
+         *
+         * @param e The entity to add to the cached views.
+         */
+        template <typename T>
+        void updateCachedViews(Entity e)
+        {
+            auto componentId = ComponentIdGenerator::id<T>;
+
+            updateCachedViews(componentId, e);
+        }
+
+        /**
+         * Adds the given entity to the cached views for the given component.
+         *
+         * @param componentId The ID of the component.
+         * @param e The entity to add to the cached views.
+         */
+        void updateCachedViews(ComponentId componentId, ECS::Entity e)
+        {
+            for (auto &[components, view] : cachedViews)
+            {
+                if (!components.contains(componentId))
+                {
+                    continue;
+                }
+
+                bool hasAllComponents = true;
+
+                for (auto &componentId : components)
+                {
+                    if (!componentPools.contains(componentId))
+                    {
+                        hasAllComponents = false;
+                        break;
+                    }
+
+                    auto componentPool = getComponentPool(componentId);
+                    if (!componentPool->has(e))
+                    {
+                        hasAllComponents = false;
+                        break;
+                    }
+                }
+
+                if (hasAllComponents)
+                {
+                    view.entities.push_back(e);
+                    view.addedSinceTimestamp.push_back(e);
+
+                    if (view.addedSinceTimestamp.size() > cacheUpdateInvalidationThreshold)
+                    {
+                        view.addedSinceTimestamp.clear();
+                        view.timestamp = Core::timeSinceEpochMicrosec();
+                    }
                 }
             }
         }
@@ -509,6 +602,16 @@ namespace ECS
             }
 
             return *reinterpret_cast<SparseSet<T> *>(componentPools[componentId]);
+        }
+
+        SparseSetBase *getComponentPool(ComponentId componentId) const
+        {
+            if (!componentPools.contains(componentId))
+            {
+                throw std::runtime_error("Registry (getComponentPool): Component pool does not exist.");
+            }
+
+            return componentPools[componentId];
         }
 
         /**

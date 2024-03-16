@@ -74,7 +74,7 @@ void Application::init()
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
     config.drawDebugPhysics = true;
-    config.maxEntities = std::pow(2, 18);
+    config.maxEntities = std::pow(2, 19);
     // config.drawDebugRenderTree = true;
 
     engine = new remi::Engine(config);
@@ -121,7 +121,7 @@ void Application::init()
     // create entities
     float pixelsPerMeter = config.pixelsPerMeter;
 
-    int entityCount = 250000;
+    int entityCount = 100000;
     int xRange = std::sqrt(entityCount) / 1;
     int yRange = std::sqrt(entityCount) / 1;
     int zRange = 10;
@@ -371,6 +371,14 @@ void Application::update(World::World &world, const Core::Timestep &timestep)
 
     averageFps = totalFps / frames;
     timeSinceStart = static_cast<float>(frames) / static_cast<float>(averageFps);
+
+    // create random square
+    // auto square = registry.create();
+    // registry.add<Core::Transform>(square, Core::Transform(glm::vec2(rand() % 10000 - 5000, rand() % 10000 - 5000) / 100.0f));
+    // registry.add<Rendering::Mesh2D>(square, Rendering::Mesh2D(0.5f, 0.5f));
+    // registry.add<Rendering::Material>(square, Rendering::Material());
+    // registry.add<Rendering::Renderable>(square, Rendering::Renderable(true, true));
+    // std::cout << "square: " << square << std::endl;
 
     // std::cout << "\rdt: " << timestep.getSeconds() << ", fps: " << fps << ", average fps: " << averageFps << "        " << std::endl;
 
