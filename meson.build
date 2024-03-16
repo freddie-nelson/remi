@@ -131,7 +131,7 @@ physics_src += [
 rendering_src = ['src/Rendering/Renderer.cpp', 'src/Rendering/RenderTarget.cpp', 'src/Rendering/RenderPipeline.cpp', 'src/Rendering/RenderManager.cpp', 'src/Rendering/Renderable.cpp'] 
 rendering_src += ['src/Rendering/Camera/Camera.cpp']
 rendering_src += ['src/Rendering/Font/Font.cpp', 'src/Rendering/Font/Text.cpp', 'src/Rendering/Font/MemoizedText.cpp']
-rendering_src += ['src/Rendering/Material/Color.cpp', 'src/Rendering/Material/Material.cpp', 'src/Rendering/Material/ShaderMaterial.cpp', 'src/Rendering/Material/MaterialHelpers.cpp']
+rendering_src += ['src/Rendering/Material/Color.cpp', 'src/Rendering/Material/Material.cpp', 'src/Rendering/Material/ShaderMaterial.cpp', 'src/Rendering/Material/AnimatedMaterial.cpp', 'src/Rendering/Material/MaterialHelpers.cpp']
 rendering_src += ['src/Rendering/Mesh/Mesh.cpp', 'src/Rendering/Mesh/Polygons.cpp', 'src/Rendering/Mesh/Triangulate.cpp']
 rendering_src += [
     'src/Rendering/Passes/BatchPass.cpp', 

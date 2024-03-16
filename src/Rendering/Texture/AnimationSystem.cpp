@@ -1,7 +1,5 @@
 #include "../../../include/Rendering/Texture/AnimationSystem.h"
-#include "../../../include/Rendering/Material/Material.h"
-#include "../../../include/Rendering/Material/ShaderMaterial.h"
-#include "../../../include/Rendering/Texture/AnimatedTexture.h"
+#include "../../../include/Rendering/Material/AnimatedMaterial.h"
 
 Rendering::AnimationSystem::AnimationSystem()
 {
@@ -15,29 +13,14 @@ void Rendering::AnimationSystem::update(World::World &world, const Core::Timeste
 {
     auto &registry = world.getRegistry();
 
-    auto &materialEntities = registry.view<Material>();
-    auto &shaderMaterialEntities = registry.view<ShaderMaterial>();
+    auto &entities = registry.view<AnimatedMaterial>();
 
     // step all animated textures
-    auto dt = timestep.getMilliseconds();
+    auto dt = timestep.getSeconds();
 
-    for (auto &entity : materialEntities)
+    for (auto &entity : entities)
     {
-        auto &material = registry.get<Material>(entity);
-
-        if (material.isAnimated())
-        {
-            material.getAnimatedTexture()->step(dt);
-        }
-    }
-
-    for (auto &entity : shaderMaterialEntities)
-    {
-        auto &material = registry.get<ShaderMaterial>(entity);
-
-        if (material.isAnimated())
-        {
-            material.getAnimatedTexture()->step(dt);
-        }
+        auto &animatedMaterial = registry.get<AnimatedMaterial>(entity);
+        animatedMaterial.step(dt);
     }
 }

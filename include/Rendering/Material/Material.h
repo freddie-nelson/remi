@@ -2,7 +2,6 @@
 
 #include "./Color.h"
 #include "../Texture/Texture.h"
-#include "../Texture/AnimatedTexture.h"
 
 namespace Rendering
 {
@@ -16,8 +15,6 @@ namespace Rendering
      * The color is multiplied by the texture color to get the final color of the material.
      *
      * If the texture is not set it will be set to a 64x64 white texture.
-     *
-     * The material can also be animated by setting the texture to an animated texture. The material cannot have a texture and an animated texture at the same time.
      *
      * If the color is not set it will be set to (1.0, 1.0, 1.0, 1.0) or fully opaque white.
      *
@@ -56,14 +53,7 @@ namespace Rendering
          *
          * @param texture The texture of the material.
          */
-        Material(Texture *texture);
-
-        /**
-         * Constructs a material.
-         *
-         * @param texture The animated texture of the material.
-         */
-        Material(AnimatedTexture *texture);
+        Material(const Texture *texture);
 
         /**
          * Constructs a material.
@@ -71,15 +61,7 @@ namespace Rendering
          * @param color The color of the material.
          * @param texture The texture of the material.
          */
-        Material(Color color, Texture *texture);
-
-        /**
-         * Constructs a material.
-         *
-         * @param color The color of the material.
-         * @param texture The animated texture of the material.
-         */
-        Material(Color color, AnimatedTexture *texture);
+        Material(Color color, const Texture *texture);
 
         /**
          * Destroys the material.
@@ -110,40 +92,13 @@ namespace Rendering
         const Texture *getTexture() const;
 
         /**
-         * Gets the animated texture of the material.
-         *
-         * If the material is not animated this will return nullptr.
-         *
-         * @returns The animated texture of the material.
-         */
-        AnimatedTexture *getAnimatedTexture() const;
-
-        /**
-         * Gets whether the material is animated or not.
-         *
-         * This is true if the material has an animated texture.
-         *
-         * @returns Whether the material is animated or not.
-         */
-        bool isAnimated() const;
-
-        /**
          * Sets the texture of the material.
          *
          * If the texture is nullptr it will be set to a 1x1 white texture.
          *
          * @param texture The texture of the material.
          */
-        void setTexture(Texture *texture);
-
-        /**
-         * Sets the animated texture of the material.
-         *
-         * If the texture is nullptr it will be set to a 1x1 white non animated texture.
-         *
-         * @param texture The animated texture of the material.
-         */
-        void setTexture(AnimatedTexture *texture);
+        void setTexture(const Texture *texture);
 
         /**
          * Gets whether the material is transparent or not.
@@ -165,8 +120,7 @@ namespace Rendering
 
     protected:
         Color color;
-        Texture *texture = nullptr;
-        AnimatedTexture *animatedTexture = nullptr;
+        const Texture *texture = nullptr;
 
     private:
         static MaterialId nextId;

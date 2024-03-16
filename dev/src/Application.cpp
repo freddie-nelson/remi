@@ -5,6 +5,7 @@
 #include <remi/Rendering/Mesh/Mesh.h>
 #include <remi/Rendering/Mesh/Polygons.h>
 #include <remi/Rendering/Material/Material.h>
+#include <remi/Rendering/Material/AnimatedMaterial.h>
 #include <remi/Core/Timestep.h>
 #include <remi/Core/Transform.h>
 #include <remi/Core/BoundingCircle.h>
@@ -197,7 +198,6 @@ void Application::init()
 
     auto &cm = registry.add(character, Rendering::Mesh2D(1.0f, 1.0f));
     auto &ct = registry.add(character, Core::Transform());
-    auto &cMat = registry.add(character, Rendering::Material());
     registry.add(character, Rendering::Renderable(true, false));
 
     ct.scale(3);
@@ -214,8 +214,8 @@ void Application::init()
         "assets/character/run7.png",
     };
 
-    auto *animTexture = new Rendering::AnimatedTexture(frames, 1000.0f, Rendering::AnimatedTexture::AnimationMode::LOOP);
-    cMat.setTexture(animTexture);
+    auto *animTexture = new Rendering::AnimatedTexture(frames);
+    auto &cMat = registry.add(character, Rendering::AnimatedMaterial(animTexture));
 
     // create player
     player = registry.create();

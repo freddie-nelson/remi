@@ -4,6 +4,7 @@
 #include "../../ECS/Entity.h"
 #include "Material.h"
 #include "ShaderMaterial.h"
+#include "AnimatedMaterial.h"
 
 namespace Rendering
 {

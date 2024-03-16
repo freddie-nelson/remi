@@ -670,22 +670,8 @@ std::unordered_map<Rendering::TextureId, Rendering::TextureManager::BoundTexture
             // std::cout << "width: " << texture->getWidth() << ", height: " << texture->getHeight() << std::endl;
             // std::cout << "channels: " << texture->getChannels() << std::endl;
 
-            if (material->isAnimated())
-            {
-                auto animatedTexture = material->getAnimatedTexture();
-                auto &frames = animatedTexture->getFrames();
-
-                for (auto &frame : frames)
-                {
-                    texturesToBind.emplace(frame->getId());
-                    texturesToBindVec.emplace_back(frame);
-                }
-            }
-            else
-            {
-                texturesToBind.emplace(texture->getId());
-                texturesToBindVec.emplace_back(texture);
-            }
+            texturesToBind.emplace(texture->getId());
+            texturesToBindVec.emplace_back(texture);
         }
     }
 
