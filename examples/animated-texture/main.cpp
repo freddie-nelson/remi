@@ -2,7 +2,7 @@
 #include <remi/Rendering/Camera/Camera.h>
 #include <remi/Rendering/Camera/ActiveCamera.h>
 #include <remi/Rendering/Mesh/Mesh.h>
-#include <remi/Rendering/Material/Material.h>
+#include <remi/Rendering/Material/AnimatedMaterial.h>
 #include <remi/Rendering/Renderable.h>
 #include <remi/Core/Transform.h>
 
@@ -37,11 +37,10 @@ int main()
         frames.push_back("assets/1_" + std::to_string(i) + ".png");
     }
 
-    Rendering::AnimatedTexture texture(frames, 1000, Rendering::AnimatedTexture::AnimationMode::LOOP);
+    Rendering::AnimatedTexture texture(frames);
 
-    // create material
-    auto &material = registry.add(square, Rendering::Material());
-    material.setTexture(&texture);
+    // create animated material
+    auto &material = registry.add(square, Rendering::AnimatedMaterial(&texture));
 
     // we need to proivde a renderable component so the renderer knows
     // the entity should be rendered
