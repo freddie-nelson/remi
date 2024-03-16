@@ -178,7 +178,7 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
     // run fixed updates
     if (timeSinceLastFixedUpdate >= timeBetweenFixedUpdates)
     {
-        auto start = Core::timeSinceEpochMicrosec();
+        // auto start = Core::timeSinceEpochMicrosec();
 
         Core::Timestep fixedTimestep(0);
         fixedTimestep.update(timeBetweenFixedUpdates);
@@ -189,14 +189,14 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
 
         timeSinceLastFixedUpdate = 0;
 
-        auto end = Core::timeSinceEpochMicrosec();
-        std::cout << "Fixed update time: " << (end - start) << std::endl;
+        // auto end = Core::timeSinceEpochMicrosec();
+        // std::cout << "Fixed update time: " << (end - start) << std::endl;
     }
 
     // run updates
     if (timeSinceLastUpdate >= timeBetweenUpdates)
     {
-        auto start = Core::timeSinceEpochMicrosec();
+        // auto start = Core::timeSinceEpochMicrosec();
 
         Core::Timestep timestep(0);
         timestep.update(timeSinceLastUpdate);
@@ -244,8 +244,8 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
 
         timeSinceLastUpdate = 0;
 
-        auto end = Core::timeSinceEpochMicrosec();
-        std::cout << "Update time: " << (end - start) << std::endl;
+        // auto end = Core::timeSinceEpochMicrosec();
+        // std::cout << "Update time: " << (end - start) << std::endl;
     }
 
     // update ticker

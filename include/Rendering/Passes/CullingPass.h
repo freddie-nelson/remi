@@ -92,6 +92,16 @@ namespace Rendering
         unsigned int callsSinceLastTreePrune = 0;
 
         /**
+         * The threshold of entities in the tree to perform a merge.
+         */
+        size_t treeMergeThreshold = 1000;
+
+        /**
+         * The threshold of percantage of entities inserted into the tree that will trigger a merge.
+         */
+        size_t treeMergeModifiedThreshold = 0.1;
+
+        /**
          * Prunes the AABB trees.
          *
          * This involves removing entities no longer have a Renderable component, or are no longer in the registry.
@@ -110,7 +120,7 @@ namespace Rendering
          *
          * The tree has no margin.
          */
-        Core::AABBTree<ECS::Entity> staticRenderablesTree = Core::AABBTree<ECS::Entity>(0.0f);
+        Core::AABBTree<ECS::Entity> staticRenderablesTree = Core::AABBTree<ECS::Entity>(0.0f, 100.0f);
 
         /**
          * Dynamic renderables and their previously computed aabbs.

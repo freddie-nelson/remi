@@ -17,18 +17,54 @@ Rendering::RenderPassInput *Rendering::RenderablesPass::execute(RenderPassInput 
     // get entities
     auto &entities = registry.view<Mesh2D, Core::Transform, Renderable>();
 
+    RenderablesPassData *data = new RenderablesPassData();
+    std::vector<ECS::Entity> &staticRenderables = data->staticRenderables;
+    std::vector<ECS::Entity> &newStaticRenderables = data->newStaticRenderables;
+
+    std::vector<ECS::Entity> &dynamicRenderables = data->dynamicRenderables;
+    std::vector<ECS::Entity> &newDynamicRenderables = data->newDynamicRenderables;
+
+    staticRenderables.reserve(entities.size());
+
+    bool sameEntities = entities.size() == oldEntities.size();
+
     // check if entities have materials
-    for (auto e : entities)
+    // auto start = Core::timeSinceEpochMicrosec();
+
+    for (size_t i = 0; i < entities.size(); i++)
     {
-        if (!registry.has<Material>(e) && !registry.has<ShaderMaterial>(e))
+        auto e = entities[i];
+
+        if (sameEntities && e != oldEntities[i])
         {
-            throw std::invalid_argument("Entity " + std::to_string(e) + " does not have a material or a shader material.");
+            sameEntities = false;
+        }
+
+        auto &renderable = registry.get<Renderable>(e);
+        if (renderable.isStatic)
+        {
+            staticRenderables.push_back(e);
+        }
+        else
+        {
+            dynamicRenderables.push_back(e);
         }
     }
 
+    if (!sameEntities)
+    {
+        newStaticRenderables = staticRenderables;
+        newDynamicRenderables = dynamicRenderables;
+    }
+
+    // auto end = Core::timeSinceEpochMicrosec();
+    // std::cout << "find renderables: " << (end - start) << " microseconds" << std::endl;
+
     // create output
-    RenderablesPassData *data = new std::vector<ECS::Entity>(entities.begin(), entities.end());
     auto *output = new RenderPassInputTyped(input, data);
+
+    // update old entities
+    oldEntities = entities;
 
     delete inputTyped;
 

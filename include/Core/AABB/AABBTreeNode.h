@@ -3,6 +3,7 @@
 #include "AABB.h"
 #include <stdexcept>
 #include <unordered_map>
+#include <vector>
 
 namespace Core
 {
@@ -18,6 +19,7 @@ namespace Core
 
         AABB fatAabb;
 
+        std::vector<T> ids;
         std::unordered_map<T, const AABB *> aabbs;
 
         /**
@@ -25,7 +27,7 @@ namespace Core
          *
          * @returns Whether or not this node is the root of the tree.
          */
-        bool isRoot()
+        bool isRoot() const
         {
             return parent == nullptr;
         }
@@ -35,7 +37,7 @@ namespace Core
          *
          * @returns Whether or not this node is a leaf node.
          */
-        bool isLeaf()
+        bool isLeaf() const
         {
             return left == nullptr && right == nullptr;
         }
@@ -45,7 +47,7 @@ namespace Core
          *
          * @returns Whether or not this node is the left child of its parent.
          */
-        bool isLeftChild()
+        bool isLeftChild() const
         {
             return !isRoot() && parent->left == this;
         }
@@ -55,7 +57,7 @@ namespace Core
          *
          * @returns Whether or not this node is the right child of its parent.
          */
-        bool isRightChild()
+        bool isRightChild() const
         {
             return !isRoot() && parent->right == this;
         }
@@ -82,7 +84,7 @@ namespace Core
          *
          * @returns Whether or not this node has a sibling.
          */
-        bool hasSibling()
+        bool hasSibling() const
         {
             return getSibling() != nullptr;
         }
@@ -92,7 +94,7 @@ namespace Core
          *
          * @returns The height of the node.
          */
-        size_t height()
+        size_t height() const
         {
             if (isLeaf())
             {

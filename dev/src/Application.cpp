@@ -73,7 +73,8 @@ void Application::init()
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
     config.drawDebugPhysics = true;
-    config.drawDebugRenderTree = true;
+    config.maxEntities = std::pow(2, 17);
+    // config.drawDebugRenderTree = true;
 
     engine = new remi::Engine(config);
 
@@ -119,10 +120,12 @@ void Application::init()
     // create entities
     float pixelsPerMeter = config.pixelsPerMeter;
 
-    int entityCount = 10000;
+    int entityCount = 100000;
     int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
     int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
     int zRange = 10;
+
+    srand(10);
 
     for (int i = 0; i < entityCount; i++)
     {
@@ -152,7 +155,6 @@ void Application::init()
     ECS::Entity textEntity = registry.create();
     registry.add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
     registry.add(textEntity, Core::Transform());
-    registry.add(textEntity, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f), gradient));
     registry.add(textEntity, Rendering::Renderable(true, true));
 
     const std::string textShader =

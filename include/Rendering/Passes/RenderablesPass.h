@@ -2,9 +2,19 @@
 
 #include "RenderPass.h"
 
+#include <vector>
+#include <unordered_set>
+
 namespace Rendering
 {
-    using RenderablesPassData = std::vector<ECS::Entity>;
+    struct RenderablesPassData
+    {
+        std::vector<ECS::Entity> staticRenderables;
+        std::vector<ECS::Entity> newStaticRenderables;
+
+        std::vector<ECS::Entity> dynamicRenderables;
+        std::vector<ECS::Entity> newDynamicRenderables;
+    };
 
     /**
      * Represents a renderables pass.
@@ -50,5 +60,8 @@ namespace Rendering
         {
             return "RenderablesPass";
         };
+
+    private:
+        std::vector<ECS::Entity> oldEntities;
     };
 }

@@ -25,10 +25,10 @@ namespace Core
          * Creates an empty tree.
          *
          * @param margin The margin to add to each fat AABB.
+         * @param addToLeafSurfaceAreaThreshold The threshold for the surface area of the fat AABB of leaf nodes to determine whether or not to split the leaf node.
          */
-        AABBTree(float margin = 0.0f)
+        AABBTree(float margin = 0.0f, float addToLeafSurfaceAreaThreshold = 100.0f) : margin(margin), addToLeafSurfaceAreaThreshold(addToLeafSurfaceAreaThreshold)
         {
-            this->margin = margin;
             this->root = nullptr;
         }
 
@@ -60,6 +60,7 @@ namespace Core
             {
                 root = new AABBTreeNode<T>();
                 root->aabbs[id] = &aabb;
+                root->ids.push_back(id);
                 root->fatAabb = AABB(aabb.getMin() - margin, aabb.getMax() + margin);
 
                 leaves[id] = root;
@@ -71,12 +72,14 @@ namespace Core
             // find the best node to insert the AABB into.
             AABBTreeNode<T> *leaf = new AABBTreeNode<T>();
             leaf->aabbs[id] = &aabb;
+            leaf->ids.push_back(id);
             leaf->fatAabb = AABB(aabb.getMin() - margin, aabb.getMax() + margin);
 
             leaves[id] = leaf;
             ids.emplace(id);
 
             AABBTreeNode<T> *node = root;
+            unsigned int depth = 0;
 
             while (!node->isLeaf())
             {
@@ -94,23 +97,23 @@ namespace Core
                 float costLeft;
                 float costRight;
 
+                auto newLeftAabb = leaf->fatAabb.merge(left->fatAabb);
                 if (left->isLeaf())
                 {
-                    costLeft = leaf->fatAabb.merge(left->fatAabb).getSurfaceArea() + minimumPushDownCost;
+                    costLeft = newLeftAabb.getSurfaceArea() + minimumPushDownCost;
                 }
                 else
                 {
-                    AABB newLeftAabb = leaf->fatAabb.merge(left->fatAabb);
                     costLeft = (newLeftAabb.getSurfaceArea() - left->fatAabb.getSurfaceArea()) + minimumPushDownCost;
                 }
 
+                auto newRightAabb = leaf->fatAabb.merge(right->fatAabb);
                 if (right->isLeaf())
                 {
-                    costRight = leaf->fatAabb.merge(right->fatAabb).getSurfaceArea() + minimumPushDownCost;
+                    costRight = newRightAabb.getSurfaceArea() + minimumPushDownCost;
                 }
                 else
                 {
-                    AABB newRightAabb = leaf->fatAabb.merge(right->fatAabb);
                     costRight = (newRightAabb.getSurfaceArea() - right->fatAabb.getSurfaceArea()) + minimumPushDownCost;
                 }
 
@@ -118,6 +121,7 @@ namespace Core
                 // we know we need to create a new parent node here and attach the leaf to that.
                 if (newParentNodeCost < costLeft && newParentNodeCost < costRight)
                 {
+                    // std::cout << "Creating new parent node" << std::endl;
                     break;
                 }
 
@@ -130,41 +134,19 @@ namespace Core
                 {
                     node = right;
                 }
+
+                depth++;
             }
 
             // the leafs sibling is going to be the node we found above and we are going to create a new
             // parent node and attach the leaf and this item
             AABBTreeNode<T> *sibling = node;
 
-            auto newFatAabb = leaf->fatAabb.merge(sibling->fatAabb);
-            if (sibling->isLeaf() && newFatAabb.getSurfaceArea() < fatAabbLeafSurfaceAreaThreshold)
-            {
-                // std::cout << "newFatAabb.getSurfaceArea() < fatAabbLeafSurfaceAreaThreshold" << std::endl;
-                // std::cout << newFatAabb.getSurfaceArea() << std::endl;
-                // if the new node will have a surface area smaller than the threshold then we skip creating
-                // a new node and instead just add this aabb to the sibling
-
-                sibling->aabbs[id] = &aabb;
-                delete leaf;
-
-                // update the fat aabb of the sibling
-                sibling->fatAabb = std::move(newFatAabb);
-
-                // finally we need to walk back up the tree fixing heights and areas
-                fixUpwardsTree(sibling);
-
-                return;
-            }
-            else
-            {
-                // std::cout << "splitting" << std::endl;
-            }
-
             AABBTreeNode<T> *oldParent = sibling->parent;
             AABBTreeNode<T> *newParent = new AABBTreeNode<T>();
 
             newParent->parent = oldParent;
-            newParent->fatAabb = newFatAabb;
+            newParent->fatAabb = sibling->fatAabb.merge(leaf->fatAabb);
             newParent->left = sibling;
             newParent->right = leaf;
 
@@ -214,6 +196,15 @@ namespace Core
             ids.erase(id);
 
             node->aabbs.erase(id);
+
+            for (auto it = node->ids.begin(); it != node->ids.end(); it++)
+            {
+                if (*it == id)
+                {
+                    node->ids.erase(it);
+                    break;
+                }
+            }
 
             // if node isn't empty yet then we don't need to delete
             // so just recalculate fat aabb and return
@@ -380,13 +371,137 @@ namespace Core
         }
 
         /**
-         * Gets the number of AABBs/leaves in the tree.
+         * Gets the number of leaves in the tree.
          *
-         * @returns The number of AABBs/leaves in the tree.
+         * @warning This is an expensive operation.
+         *
+         * @returns The number of leaves in the tree.
          */
-        size_t size()
+        size_t leafCount() const
         {
-            return leaves.size();
+            if (root == nullptr)
+            {
+                return 0;
+            }
+
+            std::stack<AABBTreeNode<T> *> nodes;
+            nodes.push(root);
+
+            size_t count = 0;
+
+            while (!nodes.empty())
+            {
+                auto node = nodes.top();
+                nodes.pop();
+
+                if (node->left != nullptr)
+                {
+                    nodes.push(node->left);
+                }
+
+                if (node->right != nullptr)
+                {
+                    nodes.push(node->right);
+                }
+
+                if (node->isLeaf())
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        /**
+         * Gets the number of nodes in the tree.
+         *
+         * @warning This is an expensive operation.
+         *
+         * @returns The number of nodes in the tree.
+         */
+        size_t size() const
+        {
+            if (root == nullptr)
+            {
+                return 0;
+            }
+
+            std::stack<AABBTreeNode<T> *> nodes;
+            nodes.push(root);
+
+            size_t count = 0;
+
+            while (!nodes.empty())
+            {
+                auto node = nodes.top();
+                nodes.pop();
+
+                count++;
+
+                if (node->left != nullptr)
+                {
+                    nodes.push(node->left);
+                }
+
+                if (node->right != nullptr)
+                {
+                    nodes.push(node->right);
+                }
+            }
+
+            return count;
+        }
+
+        /**
+         * Gets the number of nodes in the tree that are left children of their parent.
+         *
+         * @warning This is an expensive operation.
+         *
+         * @returns The number of nodes in the tree that are left children of their parent.
+         */
+        size_t leftNodeCount()
+        {
+            if (root == nullptr)
+            {
+                return 0;
+            }
+
+            std::stack<AABBTreeNode<T> *> nodes;
+            nodes.push(root);
+
+            size_t count = 0;
+
+            while (!nodes.empty())
+            {
+                auto node = nodes.top();
+                nodes.pop();
+
+                if (node->left != nullptr)
+                {
+                    nodes.push(node->left);
+                    count++;
+                }
+
+                if (node->right != nullptr)
+                {
+                    nodes.push(node->right);
+                }
+            }
+
+            return count;
+        }
+
+        /**
+         * Gets the number of nodes in the tree that are right children of their parent.
+         *
+         * @warning This is an expensive operation.
+         *
+         * @returns The number of nodes in the tree that are right children of their parent.
+         */
+        size_t rightNodeCount()
+        {
+            return size() - leftNodeCount();
         }
 
         /**
@@ -398,7 +513,7 @@ namespace Core
          *
          * @returns The height of the tree.
          */
-        size_t height()
+        size_t height() const
         {
             if (root == nullptr)
             {
@@ -428,36 +543,46 @@ namespace Core
          *
          * @param aabb The AABB to query for.
          * @param overlapping The vector to store the IDs of the overlapping AABBs in.
-         * @param includeInQuery The set of IDs to include in the query.
          * @param fastQuery Setting to true will skip querying individual aabbs in a leaf node and instead just return all of the contained aabbs in the leaf.
+         *
+         * @returns The number of nodes visited during the query.
          */
-        void query(const AABB &aabb, std::vector<T> &overlapping, const std::unordered_set<T> &includeInQuery, bool fastQuery = true) const
+        size_t query(const AABB &aabb, std::vector<T> &overlapping, bool fastQuery = true) const
         {
             if (root == nullptr)
             {
-                return;
+                return 0;
             }
 
             std::stack<AABBTreeNode<T> *> nodes;
             nodes.push(root);
+
+            size_t visited = 0;
 
             while (!nodes.empty())
             {
                 auto node = nodes.top();
                 nodes.pop();
 
+                visited++;
+
                 if (node->isLeaf())
                 {
-                    for (auto &[id, nodeAabb] : node->aabbs)
+                    if (fastQuery)
                     {
-                        if (!includeInQuery.contains(id))
-                        {
-                            continue;
-                        }
-
-                        if (fastQuery || nodeAabb->overlaps(aabb))
+                        for (auto &id : node->ids)
                         {
                             overlapping.push_back(id);
+                        }
+                    }
+                    else
+                    {
+                        for (auto &[id, nodeAabb] : node->aabbs)
+                        {
+                            if (nodeAabb->overlaps(aabb))
+                            {
+                                overlapping.push_back(id);
+                            }
                         }
                     }
                 }
@@ -478,6 +603,20 @@ namespace Core
                     }
                 }
             }
+
+            return visited;
+        }
+
+        /**
+         * Gets the number of AABBs in the tree.
+         *
+         * @note This is an O(1) operation.
+         *
+         * @returns The number of AABBs in the tree.
+         */
+        size_t aabbCount()
+        {
+            return ids.size();
         }
 
         /**
@@ -488,6 +627,157 @@ namespace Core
         AABBTreeNode<T> *getRoot() const
         {
             return root;
+        }
+
+        /**
+         * Outputs the tree as a string.
+         *
+         * This string can be used to visualize the tree using graphviz.
+         *
+         * The string is a valid dot file.
+         *
+         * @returns The tree as a string.
+         */
+        std::string toDebugString() const
+        {
+            if (root == nullptr)
+            {
+                return "";
+            }
+
+            // generate node indices
+            std::unordered_map<AABBTreeNode<T> *, int> nodeIndices;
+
+            std::string nodeString;
+            std::string edgeString;
+
+            std::stack<AABBTreeNode<T> *> nodes;
+            nodes.push(root);
+
+            int nodeIndex = 0;
+
+            while (!nodes.empty())
+            {
+                auto node = nodes.top();
+                nodes.pop();
+
+                nodeIndices[node] = nodeIndex++;
+
+                if (node->right != nullptr)
+                {
+                    nodes.push(node->right);
+                }
+
+                if (node->left != nullptr)
+                {
+                    nodes.push(node->left);
+                }
+            }
+
+            // generate node string
+            for (auto &[node, index] : nodeIndices)
+            {
+                nodeString += std::to_string(index) + (node->isLeaf() ? "[tooltip=\"" + std::to_string(node->aabbs.size()) + "\"]" : "") + ";\n";
+            }
+
+            // generate edge string
+            for (auto &[node, index] : nodeIndices)
+            {
+                if (node->left != nullptr)
+                {
+                    edgeString += std::to_string(index) + " -- " + std::to_string(nodeIndices[node->left]) + ";\n";
+                }
+
+                if (node->right != nullptr)
+                {
+                    edgeString += std::to_string(index) + " -- " + std::to_string(nodeIndices[node->right]) + ";\n";
+                }
+            }
+
+            return "graph aabbtree {\n" + nodeString + edgeString + "}";
+        }
+
+        /**
+         * Merges the leaves of the tree until the height of the tree is minimized as much as possible.
+         *
+         * @returns Whether or not any leaves were merged.
+         */
+        bool mergeLeavesTillMin()
+        {
+            bool merged = false;
+
+            while (mergeLeaves())
+            {
+                merged = true;
+            }
+
+            return merged;
+        }
+
+        /**
+         * Merges the leaves of the tree.
+         *
+         * This will perform one pass of merging leaves together to reduce the height of the tree.
+         *
+         * This will attempt to merge small leaves together to reduce the height of the tree.
+         *
+         * @returns Whether or not any leaves were merged.
+         */
+        bool mergeLeaves()
+        {
+            std::unordered_set<AABBTreeNode<T> *> checkedLeaves;
+            std::vector<AABBTreeNode<T> *> toDelete;
+
+            for (auto &[id, leaf] : leaves)
+            {
+                if (checkedLeaves.contains(leaf))
+                {
+                    continue;
+                }
+
+                checkedLeaves.insert(leaf);
+
+                auto parent = leaf->parent;
+                if (parent == nullptr)
+                {
+                    continue;
+                }
+
+                auto left = parent->left;
+                auto right = parent->right;
+
+                if (left->isLeaf() && right->isLeaf() && parent->fatAabb.getSurfaceArea() < addToLeafSurfaceAreaThreshold)
+                {
+                    // merge the two leafs into one
+                    for (auto &[id, aabb] : left->aabbs)
+                    {
+                        parent->aabbs[id] = aabb;
+                        parent->ids.push_back(id);
+                        leaves[id] = parent;
+                    }
+
+                    for (auto &[id, aabb] : right->aabbs)
+                    {
+                        parent->aabbs[id] = aabb;
+                        parent->ids.push_back(id);
+                        leaves[id] = parent;
+                    }
+
+                    // remove the leaves
+                    parent->left = nullptr;
+                    parent->right = nullptr;
+
+                    toDelete.push_back(left);
+                    toDelete.push_back(right);
+                }
+            }
+
+            for (auto node : toDelete)
+            {
+                delete node;
+            }
+
+            return !toDelete.empty();
         }
 
     private:
@@ -506,7 +796,7 @@ namespace Core
          *
          * If the surface area of the fat AABB of a leaf node is less than this threshold then the leaf node is not split.
          */
-        float fatAabbLeafSurfaceAreaThreshold = 100.0f;
+        float addToLeafSurfaceAreaThreshold = 100.0f;
 
         /**
          * The leaves of the tree.
@@ -530,14 +820,10 @@ namespace Core
             while (currentNode != nullptr)
             {
                 // check for leaf may be unnecessary but leaving it in for now
-                if (!currentNode->isLeaf())
-                {
-                    AABBTreeNode<T> *left = currentNode->left;
-                    AABBTreeNode<T> *right = currentNode->right;
+                AABBTreeNode<T> *left = currentNode->left;
+                AABBTreeNode<T> *right = currentNode->right;
 
-                    currentNode->fatAabb = left->fatAabb.merge(right->fatAabb);
-                }
-
+                currentNode->fatAabb = left->fatAabb.merge(right->fatAabb);
                 currentNode = currentNode->parent;
             }
         }

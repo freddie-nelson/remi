@@ -14,9 +14,8 @@ namespace Rendering
          *
          * @param isVisible Whether or not the entity is visible.
          * @param isStatic Whether or not the entity is static.
-         * @param noCulling Whether or not the entity should be culled.
          */
-        Renderable(bool isVisible, bool isStatic, bool noCulling = false);
+        Renderable(bool isVisible, bool isStatic);
 
         /**
          * Whether or not the entity is visible.
@@ -38,18 +37,11 @@ namespace Rendering
          *
          * The mesh should not be changed either. The texture/material can be changed safely.
          *
-         * It's okay for entities to be changed from static to non-static and vice versa.
+         * Once an entity has been created as static, it should not be changed to dynamic, and vice versa.
          *
          * This should be based on the world transform of the entity, not the local transform. i.e. If the parent of the entity is static but the entity can move, then the entity should **not** be marked as static.
          * Or if the entity is does not move but the parent does, then the entity should **not** be marked as static.
          */
         bool isStatic = false;
-
-        /**
-         * Whether or not the entity should be culled.
-         *
-         * If this is set to true, the entity will never be culled during the culling pass.
-         */
-        bool noCulling = false;
     };
 }

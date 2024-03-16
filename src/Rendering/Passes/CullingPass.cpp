@@ -6,6 +6,8 @@
 #include "../../../include/Rendering/Passes/RenderablesPass.h"
 
 #include <stack>
+#include <iostream>
+#include <fstream>
 
 Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *input)
 {
@@ -17,47 +19,48 @@ Rendering::RenderPassInput *Rendering::CullingPass::execute(RenderPassInput *inp
     auto &registry = world.getRegistry();
 
     auto camera = inputTyped->camera;
-    auto &entities = *inputTyped->data;
+    auto &data = *inputTyped->data;
 
     // get camera aabb
     auto viewAabb = getCullingAABB(world, *inputTyped->spaceTransformer, camera);
 
     // get renderables
     std::vector<ECS::Entity> *renderables = new std::vector<ECS::Entity>;
-    renderables->reserve(entities.size());
-
-    std::vector<ECS::Entity> staticEntities;
-    staticEntities.reserve(entities.size());
-
-    std::vector<ECS::Entity> dynamicEntities;
-    dynamicEntities.reserve(entities.size());
-
-    for (auto &e : entities)
-    {
-        auto &renderable = registry.get<Renderable>(e);
-
-        if (renderable.isStatic)
-        {
-            staticEntities.push_back(e);
-        }
-        else
-        {
-            dynamicEntities.push_back(e);
-        }
-    }
+    renderables->reserve(data.staticRenderables.size() + data.dynamicRenderables.size());
 
     // get static renderables
-    getRenderables(world, staticEntities, viewAabb, true, *renderables);
+    getRenderables(world, data.newStaticRenderables, viewAabb, true, *renderables);
 
     // get dynamic renderables
-    getRenderables(world, dynamicEntities, viewAabb, false, *renderables);
+    getRenderables(world, data.dynamicRenderables, viewAabb, false, *renderables);
 
     // create output
     RenderPassInputTyped<CullingPassData> *output = new RenderPassInputTyped<CullingPassData>(input, renderables);
 
     delete inputTyped;
 
-    std::cout << staticRenderablesTree.height() << std::endl;
+    // check for duplicates in renderables
+    // std::unordered_set<ECS::Entity> uniqueRenderables;
+
+    // for (auto &e : *renderables)
+    // {
+    //     if (uniqueRenderables.contains(e))
+    //     {
+    //         throw std::invalid_argument("Duplicate entity in renderables: " + std::to_string(e));
+    //     }
+
+    //     uniqueRenderables.insert(e);
+    // }
+
+    // std::cout << "static height: " << staticRenderablesTree.height() << std::endl;
+    // std::cout << "node count: " << staticRenderablesTree.size() << std::endl;
+    // std::cout << "leaf count: " << staticRenderablesTree.leafCount() << std::endl;
+    // std::cout << "left count: " << staticRenderablesTree.leftNodeCount() << std::endl;
+    // std::cout << "right count: " << staticRenderablesTree.rightNodeCount() << std::endl;
+
+    // std::ofstream graphFile("graph.gv");
+    // graphFile << staticRenderablesTree.toDebugString();
+    // graphFile.close();
 
     return output;
 }
@@ -133,6 +136,9 @@ void Rendering::CullingPass::getRenderables(World::World &world, const std::vect
     auto &registry = world.getRegistry();
     auto &sceneGraph = world.getSceneGraph();
 
+    auto &tree = isStatic ? staticRenderablesTree : dynamicRenderablesTree;
+    auto &map = isStatic ? staticRenderables : dynamicRenderables;
+
     // prune trees
     callsSinceLastTreePrune++;
     if (callsSinceLastTreePrune == treePruneFrequency)
@@ -144,43 +150,16 @@ void Rendering::CullingPass::getRenderables(World::World &world, const std::vect
         callsSinceLastTreePrune = 0;
     }
 
-    size_t otherCount = 0;
+    size_t insertionCount = 0;
 
-    std::unordered_set<ECS::Entity> includeInQuery;
+    // auto start = Core::timeSinceEpochMicrosec();
 
     for (auto &e : entities)
     {
         auto &renderable = registry.get<Renderable>(e);
-        if (!renderable.isVisible)
-        {
-            continue;
-        }
-
-        if (renderable.noCulling)
-        {
-            if ((isStatic && renderable.isStatic) || (!isStatic && !renderable.isStatic))
-            {
-                renderables.push_back(e);
-            }
-
-            continue;
-        }
-
-        includeInQuery.emplace(e);
-
-        if (isStatic && dynamicRenderables.contains(e))
-        {
-            dynamicRenderablesTree.remove(e);
-            dynamicRenderables.erase(e);
-        }
-        if (!isStatic && staticRenderables.contains(e))
-        {
-            staticRenderablesTree.remove(e);
-            staticRenderables.erase(e);
-        }
 
         // skip if already in tree and is static
-        if (isStatic && staticRenderables.contains(e))
+        if (isStatic && map.contains(e))
         {
             continue;
         }
@@ -191,35 +170,41 @@ void Rendering::CullingPass::getRenderables(World::World &world, const std::vect
         auto boundingCircle = Core::BoundingCircle(mesh.getAABB(), transform);
         auto aabb = Core::AABB(boundingCircle.getCentre(), boundingCircle.getRadius());
 
-        if (dynamicRenderablesTree.has(e))
+        // update dyanmic renderables aabb
+        if (!isStatic && tree.has(e))
         {
-            dynamicRenderables.insert_or_assign(e, std::move(aabb));
-            bool updated = dynamicRenderablesTree.update(e, dynamicRenderables[e]);
+            map.insert_or_assign(e, std::move(aabb));
+            bool updated = tree.update(e, map[e]);
+
+            if (updated)
+            {
+                insertionCount++;
+            }
 
             continue;
         }
 
-        if (isStatic)
-        {
-            staticRenderables.insert_or_assign(e, std::move(aabb));
-            staticRenderablesTree.insert(e, staticRenderables[e]);
-        }
-        else
-        {
-            dynamicRenderables.insert_or_assign(e, std::move(aabb));
-            dynamicRenderablesTree.insert(e, dynamicRenderables[e]);
-        }
+        map.insert_or_assign(e, std::move(aabb));
+        tree.insert(e, map[e]);
+        insertionCount++;
     }
 
+    // auto end = Core::timeSinceEpochMicrosec();
+    // std::cout << "insert time: " << (end - start) << std::endl;
+
     // get entities in view
-    if (isStatic)
+    // start = Core::timeSinceEpochMicrosec();
+    auto visisted = tree.query(viewAabb, renderables);
+    // std::cout << "visited: " << visited << std::endl;
+
+    auto aabbCount = tree.aabbCount();
+    if (isStatic && aabbCount > treeMergeThreshold && insertionCount > treeMergeModifiedThreshold * aabbCount)
     {
-        staticRenderablesTree.query(viewAabb, renderables, includeInQuery);
+        tree.mergeLeavesTillMin();
     }
-    else
-    {
-        dynamicRenderablesTree.query(viewAabb, renderables, includeInQuery);
-    }
+
+    // end = Core::timeSinceEpochMicrosec();
+    // std::cout << "query time: " << (end - start) << std::endl;
 }
 
 void Rendering::CullingPass::drawAABBTree(bool isStatic, World::World &world, const Rendering::Renderer &renderer, const Rendering::RenderTarget &renderTarget, Rendering::TextureManager &textureManager) const
@@ -240,6 +225,7 @@ void Rendering::CullingPass::drawAABBTree(bool isStatic, World::World &world, co
         const Core::AABB *aabb;
         bool isLeaf;
         bool isFat;
+        bool isLeftChild;
     };
 
     float opacity = 0.4f;
@@ -265,7 +251,7 @@ void Rendering::CullingPass::drawAABBTree(bool isStatic, World::World &world, co
 
         if (node->isLeaf())
         {
-            aabbs.push_back({&node->fatAabb, true, true});
+            aabbs.push_back({&node->fatAabb, true, true, node->isLeftChild()});
 
             for (auto &[entity, aabb] : node->aabbs)
             {
@@ -274,7 +260,7 @@ void Rendering::CullingPass::drawAABBTree(bool isStatic, World::World &world, co
         }
         else
         {
-            aabbs.push_back({&node->fatAabb, false, true});
+            aabbs.push_back({&node->fatAabb, false, true, node->isLeftChild()});
         }
     }
 
@@ -285,7 +271,7 @@ void Rendering::CullingPass::drawAABBTree(bool isStatic, World::World &world, co
     auto &material = registry.add(entity, Rendering::Material());
     auto &mesh = registry.add(entity, Rendering::Mesh2D(1.0f, 1.0f));
 
-    for (auto &[aabb, isLeaf, isFat] : aabbs)
+    for (auto &[aabb, isLeaf, isFat, isLeftChild] : aabbs)
     {
         auto &centre = aabb->getCentre();
 
@@ -299,7 +285,7 @@ void Rendering::CullingPass::drawAABBTree(bool isStatic, World::World &world, co
         {
             if (isFat)
             {
-                material.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, opacity));
+                material.setColor(Rendering::Color(1.0f, isLeftChild ? 1.0f : 0.0f, 0.0f, opacity));
                 transform.setZIndex(Config::MAX_Z_INDEX - 1);
             }
             else
@@ -310,7 +296,7 @@ void Rendering::CullingPass::drawAABBTree(bool isStatic, World::World &world, co
         }
         else
         {
-            material.setColor(Rendering::Color(0.0f, 0.0f, 1.0f, opacity));
+            material.setColor(Rendering::Color(0.0f, isLeftChild ? 1.0f : 0.0f, 1.0f, opacity));
             transform.setZIndex(Config::MAX_Z_INDEX - 2);
         }
 

@@ -16,22 +16,22 @@ void Rendering::RenderPipeline::execute(RenderPassInput *input)
 {
     RenderPassInput *output = input;
 
-    auto start = Core::timeSinceEpochMicrosec();
+    // auto start = Core::timeSinceEpochMicrosec();
 
     for (auto pass : passes)
     {
-        auto startPass = Core::timeSinceEpochMicrosec();
+        // auto startPass = Core::timeSinceEpochMicrosec();
 
         // std::cout << "executing " << pass.second->getName() << std::endl;
         output = pass.second->execute(output);
         // std::cout << "executed " << pass.second->getName() << std::endl;
 
-        auto endPass = Core::timeSinceEpochMicrosec();
-        std::cout << "Pass " << pass.second->getName() << " execution time: " << (endPass - startPass) << " microseconds" << std::endl;
+        // auto endPass = Core::timeSinceEpochMicrosec();
+        // std::cout << "Pass " << pass.second->getName() << " execution time: " << (endPass - startPass) << " microseconds" << std::endl;
     }
 
-    auto end = Core::timeSinceEpochMicrosec();
-    std::cout << "Pipeline execution time: " << (end - start) << " microseconds" << std::endl;
+    // auto end = Core::timeSinceEpochMicrosec();
+    // std::cout << "Pipeline execution time: " << (end - start) << " microseconds" << std::endl;
 
     auto *outputTyped = static_cast<RenderPassInputTyped<int> *>(output);
     delete outputTyped;
