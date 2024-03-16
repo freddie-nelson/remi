@@ -4,6 +4,7 @@
 #include "Component.h"
 #include "SparseSet.h"
 #include "../TypeList.h"
+#include "../Core/Timestep.h"
 
 #include <boost/unordered_map.hpp>
 #include <string>
@@ -93,13 +94,13 @@ namespace ECS
             if (cachedViews.contains(cacheKey))
             {
                 // std::cout << "cached" << std::endl;
-                return cachedViews[cacheKey];
+                return cachedViews[cacheKey].entities;
             }
 
             std::unordered_set<Entity> entitySet;
             viewHelper<Types...>(TypeList<Types...>{}, entitySet);
 
-            auto cached = cachedViews.insert_or_assign(std::move(cacheKey), std::vector<Entity>(entitySet.begin(), entitySet.end()));
+            auto cached = cachedViews.insert_or_assign(std::move(cacheKey), CachedView{Core::timeSinceEpochMicrosec(), std::vector<Entity>(entitySet.begin(), entitySet.end())});
 
             // for (Entity entity : cached.first->second)
             // {
@@ -109,7 +110,27 @@ namespace ECS
             //     }
             // }
 
-            return cached.first->second;
+            return cached.first->second.entities;
+        }
+
+        /**
+         * Gets the time the view of the given components was last cached.
+         *
+         * @tparam Types The types of components.
+         *
+         * @returns The time the view of the given components was last cached. If the components are not cached, 0 will be returned.
+         */
+        template <typename... Types>
+        uint64_t viewCachedTime() const
+        {
+            std::set<ComponentId> cacheKey = {ComponentIdGenerator::id<Types>...};
+
+            if (cachedViews.contains(cacheKey))
+            {
+                return cachedViews[cacheKey].timestamp;
+            }
+
+            return 0;
         }
 
         /**
@@ -277,13 +298,25 @@ namespace ECS
         mutable std::unordered_map<ComponentId, SparseSetBase *> componentPools;
 
         /**
+         * A cached view of entities with a set of components.
+         *
+         * @param timestamp The timestamp of the cache.
+         * @param entities The entities in the cache.
+         */
+        struct CachedView
+        {
+            uint64_t timestamp;
+            std::vector<Entity> entities;
+        };
+
+        /**
          * The cached entity views.
          *
          * The key is a set of component IDs.
          *
          * The value is a vector of entities that have all the components in the key.
          */
-        mutable boost::unordered_map<std::set<ComponentId>, std::vector<Entity>> cachedViews;
+        mutable boost::unordered_map<std::set<ComponentId>, CachedView> cachedViews;
 
         /**
          * Invalidates the cached entity views for the given component.

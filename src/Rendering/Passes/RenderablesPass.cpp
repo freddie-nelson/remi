@@ -16,6 +16,19 @@ Rendering::RenderPassInput *Rendering::RenderablesPass::execute(RenderPassInput 
 
     // get entities
     auto &entities = registry.view<Mesh2D, Core::Transform, Renderable>();
+    auto cacheTime = registry.viewCachedTime<Mesh2D, Core::Transform, Renderable>();
+
+    if (cacheTime == lastViewCacheTime)
+    {
+        auto data = new RenderablesPassData();
+        data->staticRenderables = oldData.staticRenderables;
+        data->dynamicRenderables = oldData.dynamicRenderables;
+
+        return new RenderPassInputTyped(input, data);
+    }
+
+    // update cache time
+    lastViewCacheTime = cacheTime;
 
     RenderablesPassData *data = new RenderablesPassData();
     std::vector<ECS::Entity> &staticRenderables = data->staticRenderables;
@@ -65,6 +78,9 @@ Rendering::RenderPassInput *Rendering::RenderablesPass::execute(RenderPassInput 
 
     // update old entities
     oldEntities = entities;
+
+    // update old data
+    oldData = *data;
 
     delete inputTyped;
 

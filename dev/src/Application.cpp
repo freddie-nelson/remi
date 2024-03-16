@@ -73,7 +73,7 @@ void Application::init()
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
     config.drawDebugPhysics = true;
-    config.maxEntities = std::pow(2, 17);
+    config.maxEntities = std::pow(2, 18);
     // config.drawDebugRenderTree = true;
 
     engine = new remi::Engine(config);
@@ -120,9 +120,9 @@ void Application::init()
     // create entities
     float pixelsPerMeter = config.pixelsPerMeter;
 
-    int entityCount = 100000;
-    int xRange = (config.windowWidth * std::sqrt(entityCount) / 10);
-    int yRange = (config.windowHeight * std::sqrt(entityCount) / 10);
+    int entityCount = 250000;
+    int xRange = std::sqrt(entityCount) / 1;
+    int yRange = std::sqrt(entityCount) / 1;
     int zRange = 10;
 
     srand(10);
@@ -131,20 +131,20 @@ void Application::init()
     {
         auto e = registry.create();
 
-        auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>((rand() % 50) / 100.0f + 0.2f), static_cast<unsigned int>(rand() % 13 + 3)));
+        auto &m = registry.add(e, Rendering::Mesh2D(static_cast<float>((rand() % 50) / 100.0f + 0.2f), static_cast<unsigned int>(4)));
         auto &t = registry.add(e, Core::Transform());
         auto &material = registry.add(e, Rendering::Material());
         auto &renderable = registry.add(e, Rendering::Renderable(true, true));
 
         t.setZIndex(rand() % zRange);
-        t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2} / pixelsPerMeter);
+        t.translate(glm::vec2{rand() % xRange - xRange / 2, rand() % yRange - yRange / 2});
 
         auto r = (rand() % 255) / 255.0f;
         auto g = (rand() % 255) / 255.0f;
         auto b = (rand() % 255) / 255.0f;
         // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, (t.getZIndex() + 1) / 10.0f));
-        material.setColor(Rendering::Color(r, g, b, (rand() % zRange) / static_cast<float>(zRange)));
-        // material.setColor(Rendering::Color((t.getZIndex() + 1) / 10.0f, 0.0f, 0.0f, 1.0f));
+        // material.setColor(Rendering::Color(r, g, b, (rand() % zRange) / static_cast<float>(zRange)));
+        material.setColor(Rendering::Color(1.0f, 0.0f, 0.0f, 1.0f));
 
         material.setTexture(texture);
     }

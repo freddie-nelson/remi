@@ -62,6 +62,8 @@ namespace Rendering
         };
 
     private:
+        uint64_t lastViewCacheTime = 0;
         std::vector<ECS::Entity> oldEntities;
+        RenderablesPassData oldData;
     };
 }
