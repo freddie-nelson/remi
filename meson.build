@@ -124,7 +124,8 @@ input_src = ['src/Input/Mouse.cpp', 'src/Input/Keyboard.cpp']
 physics_src = ['src/Physics/PhysicsWorld.cpp', 'src/Physics/RigidBody2D.cpp', 'src/Physics/Collider2D.cpp', 'src/Physics/ColliderShape.cpp', 'src/Physics/Ray.cpp', 'src/Physics/QueryCallback.cpp', 'src/Physics/ContactListener.cpp']
 physics_src += [
     'src/Physics/Joints/Joint.cpp',
-    'src/Physics/Joints/DistanceJoint.cpp'
+    'src/Physics/Joints/DistanceJoint.cpp',
+    'src/Physics/Joints/RevoluteJoint.cpp'
 ]
 
 # rendering

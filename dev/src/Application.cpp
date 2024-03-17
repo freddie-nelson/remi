@@ -27,6 +27,7 @@
 #include <remi/Physics/Collider2D.h>
 #include <remi/Physics/Ray.h>
 #include <remi/Physics/Joints/DistanceJoint.h>
+#include <remi/Physics/Joints/RevoluteJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -74,7 +75,7 @@ void Application::init()
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
     config.drawDebugPhysics = true;
-    config.maxEntities = std::pow(2, 19);
+    config.maxEntities = std::pow(2, 18);
     // config.drawDebugRenderTree = true;
 
     engine = new remi::Engine(config);
@@ -121,7 +122,7 @@ void Application::init()
     // create entities
     float pixelsPerMeter = config.pixelsPerMeter;
 
-    int entityCount = 100000;
+    int entityCount = 10000;
     int xRange = std::sqrt(entityCount) / 1;
     int yRange = std::sqrt(entityCount) / 1;
     int zRange = 10;
@@ -221,16 +222,16 @@ void Application::init()
     player = registry.create();
     registry.add(player, Core::Transform());
 
-    // auto &body = registry.add(player, Physics::RigidBody2D());
-    // body.setFixedRotation(true);
+    auto &body = registry.add(player, Physics::RigidBody2D());
+    body.setFixedRotation(true);
 
-    // body.setBeginContactCallback([&](Physics::ContactInfo contactInfo)
-    //                              { std::cout << "player contact: " << contactInfo.entityA << ", " << contactInfo.entityB << std::endl; });
+    body.setBeginContactCallback([&](Physics::ContactInfo contactInfo)
+                                 { std::cout << "player contact: " << contactInfo.entityA << ", " << contactInfo.entityB << std::endl; });
 
-    // auto shape = Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
-    // auto &collider = registry.add(player, Physics::Collider2D(&shape));
+    auto shape = Physics::PolygonColliderShape2D(Rendering::Mesh2D(0.8f, 1.45f));
+    auto &collider = registry.add(player, Physics::Collider2D(&shape));
 
-    // collider.setFriction(0.5f);
+    collider.setFriction(0.5f);
 
     sceneGraph.relate(player, camera);
     sceneGraph.relate(player, character);
@@ -244,16 +245,16 @@ void Application::init()
     auto &fm = registry.add(floor, Rendering::Mesh2D(100.0f, 1.0f));
     auto &ft = registry.add(floor, Core::Transform());
     auto &fMat = registry.add(floor, Rendering::Material());
-    // auto &fRenderable = registry.add(floor, Rendering::Renderable(true, true));
+    auto &fRenderable = registry.add(floor, Rendering::Renderable(true, true));
 
     ft.translate(glm::vec2(0.0f, -5.0f));
 
-    // auto &fBody = registry.add(floor, Physics::RigidBody2D());
-    // auto &fCollider = registry.add(floor, Physics::Collider2D(new Physics::PolygonColliderShape2D(fm)));
+    auto &fBody = registry.add(floor, Physics::RigidBody2D());
+    auto &fCollider = registry.add(floor, Physics::Collider2D(new Physics::PolygonColliderShape2D(fm)));
 
-    // fBody.setType(Physics::RigidBodyType::STATIC);
-    // fCollider.setDensity(0.0f);
-    // fCollider.setFriction(1.0f);
+    fBody.setType(Physics::RigidBodyType::STATIC);
+    fCollider.setDensity(0.0f);
+    fCollider.setFriction(1.0f);
 
     // fps text
     auto fpsText = Rendering::MemoizedText::text("FPS: 0", font);
@@ -277,7 +278,7 @@ void Application::init()
     fpsTransform.setTranslation(localPos);
 
     // create physics bodies
-    size_t count = 0;
+    size_t count = 100;
     float width = 0.5f;
     float height = 0.5f;
     int areaX = std::sqrt(count);
@@ -299,50 +300,74 @@ void Application::init()
     }
 
     // create concave collider
-    // auto concave = registry.create();
-    // registry.add(concave, Core::Transform());
-    // auto &concaveMesh = registry.add(concave, Rendering::Mesh2D({{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}, {0.5f, 0.5f}}));
-    // registry.add(concave, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
-    // registry.add(concave, Rendering::Renderable(true, false));
-    // registry.add(concave, Physics::RigidBody2D());
-    // registry.add(concave, Physics::Collider2D(new Physics::ConcavePolygonColliderShape2D(concaveMesh)));
+    auto concave = registry.create();
+    registry.add(concave, Core::Transform());
+    auto &concaveMesh = registry.add(concave, Rendering::Mesh2D({{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}, {0.5f, 0.5f}}));
+    registry.add(concave, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
+    registry.add(concave, Rendering::Renderable(true, false));
+    registry.add(concave, Physics::RigidBody2D());
+    registry.add(concave, Physics::Collider2D(new Physics::ConcavePolygonColliderShape2D(concaveMesh)));
 
-    // // create bodies joined by distance joint
-    // auto b1 = registry.create();
-    // registry.add(b1, Core::Transform());
-    // registry.add(b1, Rendering::Mesh2D(0.5f, 32u));
-    // registry.add(b1, Rendering::Material());
-    // registry.add(b1, Rendering::Renderable(true, false));
-    // registry.add(b1, Physics::RigidBody2D());
-    // registry.add(b1, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+    // create bodies joined by distance joint
+    auto b1 = registry.create();
+    registry.add(b1, Core::Transform());
+    registry.add(b1, Rendering::Mesh2D(0.5f, 32u));
+    registry.add(b1, Rendering::Material());
+    registry.add(b1, Rendering::Renderable(true, false));
+    registry.add(b1, Physics::RigidBody2D());
+    registry.add(b1, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
 
-    // auto b2 = registry.create();
-    // registry.add(b2, Core::Transform(glm::vec2(1.5f, 0.0f)));
-    // registry.add(b2, Rendering::Mesh2D(0.5f, 32u));
-    // registry.add(b2, Rendering::Material());
-    // registry.add(b2, Rendering::Renderable(true, false));
-    // registry.add(b2, Physics::RigidBody2D());
-    // registry.add(b2, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+    auto b2 = registry.create();
+    registry.add(b2, Core::Transform(glm::vec2(1.5f, 0.0f)));
+    registry.add(b2, Rendering::Mesh2D(0.5f, 32u));
+    registry.add(b2, Rendering::Material());
+    registry.add(b2, Rendering::Renderable(true, false));
+    registry.add(b2, Physics::RigidBody2D());
+    registry.add(b2, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
 
-    // // add joint
-    // registry.add(b1, Physics::DistanceJoint(b2));
+    // add joint
+    registry.add(b1, Physics::DistanceJoint(b2));
 
-    // deletable
-    // deletable = registry.create();
-    // registry.add(deletable, Core::Transform());
-    // registry.add(deletable, Rendering::Mesh2D(2.0f, 32u));
-    // registry.add(deletable, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
-    // registry.add(deletable, Rendering::Renderable(true, false));
-    // registry.add(deletable, Physics::RigidBody2D());
-    // registry.add(deletable, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
+    deletable = registry.create();
+    registry.add(deletable, Core::Transform());
+    registry.add(deletable, Rendering::Mesh2D(2.0f, 32u));
+    registry.add(deletable, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
+    registry.add(deletable, Rendering::Renderable(true, false));
+    registry.add(deletable, Physics::RigidBody2D());
+    registry.add(deletable, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
 
-    // auto test = registry.create();
-    // registry.add(test, Core::Transform());
-    // registry.add(test, Rendering::Mesh2D(2.0f, 32u));
-    // registry.add(test, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
-    // registry.add(test, Rendering::Renderable(true, false));
-    // registry.add(test, Physics::RigidBody2D());
-    // registry.add(test, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
+    auto test = registry.create();
+    registry.add(test, Core::Transform());
+    registry.add(test, Rendering::Mesh2D(2.0f, 32u));
+    registry.add(test, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
+    registry.add(test, Rendering::Renderable(true, false));
+    registry.add(test, Physics::RigidBody2D());
+    registry.add(test, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
+
+    // revolute joint
+    auto b3 = registry.create();
+    registry.add(b3, Core::Transform(glm::vec2(3.0f, 3.0f)));
+    registry.add(b3, Rendering::Mesh2D(0.2f, 32u));
+    registry.add(b3, Rendering::Material());
+    registry.add(b3, Rendering::Renderable(true, false));
+
+    auto &b3Body = registry.add(b3, Physics::RigidBody2D());
+    registry.add(b3, Physics::Collider2D(new Physics::CircleColliderShape2D(0.2f)));
+
+    b3Body.setType(Physics::RigidBodyType::STATIC);
+
+    auto b4 = registry.create();
+    registry.add(b4, Core::Transform(glm::vec2(3.0f, 3.0f)));
+    registry.add(b4, Rendering::Mesh2D(2.5f, 1.0f));
+    registry.add(b4, Rendering::Material());
+    registry.add(b4, Rendering::Renderable(true, false));
+    registry.add(b4, Physics::RigidBody2D());
+    registry.add(b4, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b4))));
+
+    auto &revoluteJoint = registry.add(b3, Physics::RevoluteJoint(b4, glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f)));
+    revoluteJoint.enableMotor(true);
+    revoluteJoint.setMotorSpeed(1.0f);
+    revoluteJoint.setMaxMotorTorque(100.0f);
 }
 
 void Application::destroy()
@@ -503,8 +528,6 @@ bool deleted = false;
 
 void Application::fixedUpdate(World::World &world, const Core::Timestep &timestep)
 {
-    return;
-
     auto &registry = world.getRegistry();
     auto &sceneGraph = world.getSceneGraph();
     auto &physicsWorld = *engine->getPhysicsWorld();
@@ -517,9 +540,9 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     auto &playerTransform = registry.get<Core::Transform>(player);
     auto &characterTransform = registry.get<Core::Transform>(character);
 
-    std::cout << "player mass: " << playerBody.getMass() << std::endl;
+    // std::cout << "player mass: " << playerBody.getMass() << std::endl;
 
-    playerBody.applyLinearImpulse(glm::vec2(1.0f, 0.0f));
+    // playerBody.applyLinearImpulse(glm::vec2(1.0f, 0.0f));
 
     float speed = 2.5f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
     float jumpSpeed = 5.0f;

@@ -16,6 +16,7 @@ namespace Physics
     enum JointType
     {
         DISTANCE,
+        REVOLUTE,
     };
 
     /**

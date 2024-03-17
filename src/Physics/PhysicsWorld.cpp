@@ -6,6 +6,7 @@
 #include "../../include/Physics/ColliderShape.h"
 #include "../../include/Physics/BodyUserData.h"
 #include "../../include/Physics/Joints/DistanceJoint.h"
+#include "../../include/Physics/Joints/RevoluteJoint.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
@@ -680,6 +681,9 @@ void Physics::PhysicsWorld::removeJointComponent(World::World &world, ECS::Entit
     case JointType::DISTANCE:
         registry.remove<Physics::DistanceJoint>(e);
         break;
+    case JointType::REVOLUTE:
+        registry.remove<Physics::RevoluteJoint>(e);
+        break;
 
     default:
         throw std::runtime_error("PhysicsWorld (removeJointComponent): JointType not implemented.");
@@ -697,6 +701,11 @@ std::unordered_map<Physics::JointType, Physics::Joint *> Physics::PhysicsWorld::
         joints.emplace(JointType::DISTANCE, &registry.get<DistanceJoint>(e));
     }
 
+    if (registry.has<RevoluteJoint>(e))
+    {
+        joints.emplace(JointType::REVOLUTE, &registry.get<RevoluteJoint>(e));
+    }
+
     return joints;
 }
 
@@ -708,6 +717,8 @@ bool Physics::PhysicsWorld::hasJoint(World::World &world, ECS::Entity e, JointTy
     {
     case JointType::DISTANCE:
         return registry.has<Physics::DistanceJoint>(e);
+    case JointType::REVOLUTE:
+        return registry.has<Physics::RevoluteJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (hasJoint): JointType not implemented.");
     }
@@ -723,6 +734,8 @@ Physics::Joint *Physics::PhysicsWorld::getJoint(World::World &world, ECS::Entity
     {
     case JointType::DISTANCE:
         return &registry.get<Physics::DistanceJoint>(e);
+    case JointType::REVOLUTE:
+        return &registry.get<Physics::RevoluteJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (getJoint): JointType not implemented.");
     }
