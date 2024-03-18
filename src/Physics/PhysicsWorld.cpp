@@ -567,6 +567,7 @@ void Physics::PhysicsWorld::destroyInvalidJoints(World::World &world, const Core
             // need to destroy joint as connected body no longer exists
             else if (!bodies.contains(entityJoint->getConnected()))
             {
+                std::cout << "connected entity: " << entityJoint->getConnected() << std::endl;
                 jointsToDestroy.push_back({e, type, true});
             }
             // joint is past breaking force and so must be destroyed
@@ -650,11 +651,14 @@ void Physics::PhysicsWorld::destroyJoint(World::World &world, ECS::Entity e, Joi
         removeJointComponent(world, e, type);
     }
 
+    // destroy joint if bodies still exist (otherwise it has already been destroyed by box2d since the body was destroyed first)
+    if (bodies.contains(e) && bodies.contains(userData->connected))
+    {
+        this->world.DestroyJoint(joint);
+    }
+
     // delete user data
     delete userData;
-
-    // destroy joint
-    this->world.DestroyJoint(joint);
 
     // remove from joints map
     joints[e].erase(type);

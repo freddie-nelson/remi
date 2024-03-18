@@ -117,7 +117,8 @@ void Physics::RevoluteJoint::setJoint(b2Joint *joint)
 {
     if (joint == nullptr)
     {
-        throw std::invalid_argument("RevoluteJoint (setJoint): joint cannot be null");
+        this->joint = nullptr;
+        return;
     }
 
     if (joint->GetType() != b2JointType::e_revoluteJoint)

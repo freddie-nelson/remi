@@ -159,7 +159,8 @@ void Physics::DistanceJoint::setJoint(b2Joint *joint)
 {
     if (joint == nullptr)
     {
-        throw std::invalid_argument("DistanceJoint (setJoint): Joint cannot be null.");
+        this->joint = nullptr;
+        return;
     }
 
     if (joint->GetType() != b2JointType::e_distanceJoint)

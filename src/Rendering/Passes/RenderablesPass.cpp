@@ -32,7 +32,6 @@ Rendering::RenderPassInput *Rendering::RenderablesPass::execute(RenderPassInput 
         // should maybe look at in future if becomes a performance issue
         if (!added.empty())
         {
-            std::cout << "added: " << added.size() << std::endl;
             for (auto e : added)
             {
                 auto &renderable = registry.get<Renderable>(e);

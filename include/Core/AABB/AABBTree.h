@@ -544,10 +544,11 @@ namespace Core
          * @param aabb The AABB to query for.
          * @param overlapping The vector to store the IDs of the overlapping AABBs in.
          * @param fastQuery Setting to true will skip querying individual aabbs in a leaf node and instead just return all of the contained aabbs in the leaf.
+         * @param includeInQuery A function to determine whether or not to include an AABB in the query.
          *
          * @returns The number of nodes visited during the query.
          */
-        size_t query(const AABB &aabb, std::vector<T> &overlapping, bool fastQuery = true) const
+        size_t query(const AABB &aabb, std::vector<T> &overlapping, bool fastQuery = true, std::function<bool(T)> includeInQuery = nullptr) const
         {
             if (root == nullptr)
             {
@@ -572,6 +573,11 @@ namespace Core
                     {
                         for (auto &id : node->ids)
                         {
+                            if (includeInQuery != nullptr && !includeInQuery(id))
+                            {
+                                continue;
+                            }
+
                             overlapping.push_back(id);
                         }
                     }
@@ -579,6 +585,11 @@ namespace Core
                     {
                         for (auto &[id, nodeAabb] : node->aabbs)
                         {
+                            if (includeInQuery != nullptr && !includeInQuery(id))
+                            {
+                                continue;
+                            }
+
                             if (nodeAabb->overlaps(aabb))
                             {
                                 overlapping.push_back(id);

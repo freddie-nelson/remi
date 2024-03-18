@@ -329,6 +329,15 @@ void Application::init()
     // add joint
     registry.add(b1, Physics::DistanceJoint(b2));
 
+    // deleting joint
+    auto deletableJoint = registry.create();
+    registry.add(deletableJoint, Core::Transform(glm::vec2(0.0f, 0.0f)));
+    registry.add(deletableJoint, Rendering::Mesh2D(0.5f, 32u));
+    registry.add(deletableJoint, Rendering::Material());
+    registry.add(deletableJoint, Rendering::Renderable(true, false));
+    registry.add(deletableJoint, Physics::RigidBody2D());
+    registry.add(deletableJoint, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
     deletable = registry.create();
     registry.add(deletable, Core::Transform());
     registry.add(deletable, Rendering::Mesh2D(2.0f, 32u));
@@ -336,6 +345,8 @@ void Application::init()
     registry.add(deletable, Rendering::Renderable(true, false));
     registry.add(deletable, Physics::RigidBody2D());
     registry.add(deletable, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
+
+    registry.add(deletableJoint, Physics::DistanceJoint(deletable));
 
     auto test = registry.create();
     registry.add(test, Core::Transform());
@@ -685,7 +696,7 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     {
         std::cout << "deleting entity: " << deletable << std::endl;
         deleted = true;
-        // registry.destroy(deletable);
+        registry.destroy(deletable);
         std::cout << "deleted entity: " << deletable << std::endl;
     }
 }

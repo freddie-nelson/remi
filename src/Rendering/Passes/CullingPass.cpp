@@ -194,7 +194,9 @@ void Rendering::CullingPass::getRenderables(World::World &world, const std::vect
 
     // get entities in view
     // start = Core::timeSinceEpochMicrosec();
-    auto visisted = tree.query(viewAabb, renderables);
+    auto visited = tree.query(viewAabb, renderables, true,
+                              [&](const ECS::Entity &e)
+                              { return registry.has<Renderable>(e); });
     // std::cout << "visited: " << visited << std::endl;
 
     auto aabbCount = tree.aabbCount();
