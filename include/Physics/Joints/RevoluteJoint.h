@@ -6,6 +6,11 @@
 
 namespace Physics
 {
+    /**
+     * A revolute joint.
+     *
+     * This joint connects the bodies at the anchor points and allows them to rotate around the anchor points.
+     */
     class RevoluteJoint : public Joint
     {
     public:

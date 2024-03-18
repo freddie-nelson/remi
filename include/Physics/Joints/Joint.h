@@ -17,6 +17,7 @@ namespace Physics
     {
         DISTANCE,
         REVOLUTE,
+        PRISMATIC,
     };
 
     /**
@@ -82,7 +83,7 @@ namespace Physics
          *
          * @param anchor The anchor point.
          */
-        void setAnchorA(glm::vec2 anchor);
+        virtual void setAnchorA(glm::vec2 anchor);
 
         /**
          * Gets the anchor point on the first body (the one owning the joint component).
@@ -91,7 +92,7 @@ namespace Physics
          *
          * @returns The anchor point.
          */
-        const glm::vec2 &getAnchorA() const;
+        virtual const glm::vec2 &getAnchorA() const;
 
         /**
          * Sets the anchor point on the second body (the connected body).
@@ -100,7 +101,7 @@ namespace Physics
          *
          * @param anchor The anchor point.
          */
-        void setAnchorB(glm::vec2 anchor);
+        virtual void setAnchorB(glm::vec2 anchor);
 
         /**
          * Gets the anchor point on the second body (the connected body).
@@ -109,7 +110,7 @@ namespace Physics
          *
          * @returns The anchor point.
          */
-        const glm::vec2 &getAnchorB() const;
+        virtual const glm::vec2 &getAnchorB() const;
 
         /**
          * Sets the maximum reaction force the joint can withstand before breaking.
@@ -224,8 +225,9 @@ namespace Physics
          * Only needs to know about connected body as the joint is added as a component to the first body.
          *
          * @param connected The entity to connect to (must have a rigidbody).
+         * @param type The type of the joint.
          */
-        Joint(ECS::Entity connected);
+        Joint(ECS::Entity connected, JointType type);
 
         /**
          * The type of the joint.

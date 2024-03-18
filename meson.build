@@ -125,7 +125,8 @@ physics_src = ['src/Physics/PhysicsWorld.cpp', 'src/Physics/RigidBody2D.cpp', 's
 physics_src += [
     'src/Physics/Joints/Joint.cpp',
     'src/Physics/Joints/DistanceJoint.cpp',
-    'src/Physics/Joints/RevoluteJoint.cpp'
+    'src/Physics/Joints/RevoluteJoint.cpp',
+    'src/Physics/Joints/PrismaticJoint.cpp'
 ]
 
 # rendering

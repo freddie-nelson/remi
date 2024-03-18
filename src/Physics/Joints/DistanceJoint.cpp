@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <iostream>
 
-Physics::DistanceJoint::DistanceJoint(ECS::Entity connected, glm::vec2 anchorA, glm::vec2 anchorB) : Joint(connected)
+Physics::DistanceJoint::DistanceJoint(ECS::Entity connected, glm::vec2 anchorA, glm::vec2 anchorB) : Joint(connected, JointType::DISTANCE)
 {
     this->anchorA = anchorA;
     this->anchorB = anchorB;
@@ -157,6 +157,11 @@ b2DistanceJoint *Physics::DistanceJoint::createBox2DJoint(World::World &world, E
 
 void Physics::DistanceJoint::setJoint(b2Joint *joint)
 {
+    if (joint == nullptr)
+    {
+        throw std::invalid_argument("DistanceJoint (setJoint): Joint cannot be null.");
+    }
+
     if (joint->GetType() != b2JointType::e_distanceJoint)
     {
         throw std::invalid_argument("DistanceJoint (setJoint): Joint must be a distance joint.");

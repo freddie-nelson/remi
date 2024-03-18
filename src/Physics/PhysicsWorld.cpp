@@ -7,6 +7,7 @@
 #include "../../include/Physics/BodyUserData.h"
 #include "../../include/Physics/Joints/DistanceJoint.h"
 #include "../../include/Physics/Joints/RevoluteJoint.h"
+#include "../../include/Physics/Joints/PrismaticJoint.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
@@ -684,6 +685,9 @@ void Physics::PhysicsWorld::removeJointComponent(World::World &world, ECS::Entit
     case JointType::REVOLUTE:
         registry.remove<Physics::RevoluteJoint>(e);
         break;
+    case JointType::PRISMATIC:
+        registry.remove<Physics::PrismaticJoint>(e);
+        break;
 
     default:
         throw std::runtime_error("PhysicsWorld (removeJointComponent): JointType not implemented.");
@@ -706,6 +710,11 @@ std::unordered_map<Physics::JointType, Physics::Joint *> Physics::PhysicsWorld::
         joints.emplace(JointType::REVOLUTE, &registry.get<RevoluteJoint>(e));
     }
 
+    if (registry.has<PrismaticJoint>(e))
+    {
+        joints.emplace(JointType::PRISMATIC, &registry.get<PrismaticJoint>(e));
+    }
+
     return joints;
 }
 
@@ -719,6 +728,8 @@ bool Physics::PhysicsWorld::hasJoint(World::World &world, ECS::Entity e, JointTy
         return registry.has<Physics::DistanceJoint>(e);
     case JointType::REVOLUTE:
         return registry.has<Physics::RevoluteJoint>(e);
+    case JointType::PRISMATIC:
+        return registry.has<Physics::PrismaticJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (hasJoint): JointType not implemented.");
     }
@@ -736,6 +747,8 @@ Physics::Joint *Physics::PhysicsWorld::getJoint(World::World &world, ECS::Entity
         return &registry.get<Physics::DistanceJoint>(e);
     case JointType::REVOLUTE:
         return &registry.get<Physics::RevoluteJoint>(e);
+    case JointType::PRISMATIC:
+        return &registry.get<Physics::PrismaticJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (getJoint): JointType not implemented.");
     }

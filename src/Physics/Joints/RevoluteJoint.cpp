@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-Physics::RevoluteJoint::RevoluteJoint(ECS::Entity connected, glm::vec2 anchorA, glm::vec2 anchorB) : Joint(connected)
+Physics::RevoluteJoint::RevoluteJoint(ECS::Entity connected, glm::vec2 anchorA, glm::vec2 anchorB) : Joint(connected, JointType::REVOLUTE)
 {
     this->anchorA = anchorA;
     this->anchorB = anchorB;
@@ -115,6 +115,11 @@ float Physics::RevoluteJoint::getMaxMotorTorque() const
 
 void Physics::RevoluteJoint::setJoint(b2Joint *joint)
 {
+    if (joint == nullptr)
+    {
+        throw std::invalid_argument("RevoluteJoint (setJoint): joint cannot be null");
+    }
+
     if (joint->GetType() != b2JointType::e_revoluteJoint)
     {
         throw std::invalid_argument("RevoluteJoint (setJoint): joint must be a revolute joint");

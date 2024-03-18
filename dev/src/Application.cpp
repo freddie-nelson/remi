@@ -28,6 +28,7 @@
 #include <remi/Physics/Ray.h>
 #include <remi/Physics/Joints/DistanceJoint.h>
 #include <remi/Physics/Joints/RevoluteJoint.h>
+#include <remi/Physics/Joints/PrismaticJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -74,7 +75,7 @@ void Application::init()
     // config.maxEntities = 1000;
     // config.windowFullscreen = true;
     config.updatesPerSecond = 10000;
-    config.drawDebugPhysics = true;
+    config.drawDebugPhysics = false;
     config.maxEntities = std::pow(2, 18);
     // config.drawDebugRenderTree = true;
 
@@ -368,6 +369,34 @@ void Application::init()
     revoluteJoint.enableMotor(true);
     revoluteJoint.setMotorSpeed(1.0f);
     revoluteJoint.setMaxMotorTorque(100.0f);
+
+    // prismatic joint
+    auto b5 = registry.create();
+    registry.add(b5, Core::Transform(glm::vec2(-7.0f, 4.0f)));
+    registry.add(b5, Rendering::Mesh2D(2.0f, 2.0f));
+    registry.add(b5, Rendering::Material());
+    registry.add(b5, Rendering::Renderable(true, false));
+
+    auto &b5Body = registry.add(b5, Physics::RigidBody2D());
+    registry.add(b5, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b5))));
+
+    b5Body.setType(Physics::RigidBodyType::STATIC);
+
+    auto b6 = registry.create();
+    registry.add(b6, Core::Transform(glm::vec2(-5.0f, 1.0f)));
+    registry.add(b6, Rendering::Mesh2D(0.5f, 0.5f));
+    registry.add(b6, Rendering::Material());
+    registry.add(b6, Rendering::Renderable(true, false));
+    registry.add(b6, Physics::RigidBody2D());
+    registry.add(b6, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b6))));
+
+    auto &prismaticJoint = registry.add(b5, Physics::PrismaticJoint(b6, glm::vec2(-2.5f, 0.0f), glm::vec2(0.0f, 1.0f)));
+    prismaticJoint.enableLimit(true);
+    prismaticJoint.setLowerTranslation(-3.0f);
+    prismaticJoint.setUpperTranslation(3.0f);
+    prismaticJoint.enableMotor(true);
+    prismaticJoint.setMotorSpeed(2.0f);
+    prismaticJoint.setMaxMotorForce(30.0f);
 }
 
 void Application::destroy()

@@ -89,4 +89,4 @@ float Physics::Joint::getReactionTorque(const Core::Timestep &timestep) const
     return getJoint()->GetReactionTorque(1 / timestep.getSeconds());
 }
 
-Physics::Joint::Joint(ECS::Entity connected) : connected(connected) {}
+Physics::Joint::Joint(ECS::Entity connected, JointType type) : connected(connected), type(type) {}

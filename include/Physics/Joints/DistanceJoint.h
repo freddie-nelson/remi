@@ -6,6 +6,13 @@
 
 namespace Physics
 {
+    /**
+     * A distance joint.
+     *
+     * This joint connects the bodies at the anchor points and tries to maintain the distance between the two bodies.
+     *
+     * You may also set a stiffness and damping to the joint to make it act like a spring.
+     */
     class DistanceJoint : public Joint
     {
     public:
