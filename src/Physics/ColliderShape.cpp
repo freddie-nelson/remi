@@ -21,6 +21,11 @@ Physics::ColliderShapeType Physics::ColliderShape2D::getType() const
 
 Physics::PolygonColliderShape2D::PolygonColliderShape2D(std::vector<glm::vec2> vertices)
 {
+    if (vertices.size() < 3)
+        throw std::invalid_argument("PolygonColliderShape2D: A polygon must have at least 3 vertices.");
+    if (vertices.size() > 8)
+        throw std::invalid_argument("PolygonColliderShape2D: A polygon must have at most 8 vertices.");
+
     type = ColliderShapeType::POLYGON;
     this->vertices = vertices;
 }
@@ -29,12 +34,22 @@ Physics::PolygonColliderShape2D::PolygonColliderShape2D(const Rendering::Mesh2D 
 {
     type = ColliderShapeType::POLYGON;
     vertices = mesh.getVertices();
+
+    if (vertices.size() < 3)
+        throw std::invalid_argument("PolygonColliderShape2D: A polygon must have at least 3 vertices.");
+    if (vertices.size() > 8)
+        throw std::invalid_argument("PolygonColliderShape2D: A polygon must have at most 8 vertices.");
 }
 
 Physics::PolygonColliderShape2D::PolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform)
 {
     type = ColliderShapeType::POLYGON;
     vertices = mesh.transform(transform).getVertices();
+
+    if (vertices.size() < 3)
+        throw std::invalid_argument("PolygonColliderShape2D: A polygon must have at least 3 vertices.");
+    if (vertices.size() > 8)
+        throw std::invalid_argument("PolygonColliderShape2D: A polygon must have at most 8 vertices.");
 }
 
 Physics::PolygonColliderShape2D::PolygonColliderShape2D(const PolygonColliderShape2D &other)

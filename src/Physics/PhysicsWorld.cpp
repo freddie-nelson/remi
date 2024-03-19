@@ -8,6 +8,7 @@
 #include "../../include/Physics/Joints/DistanceJoint.h"
 #include "../../include/Physics/Joints/RevoluteJoint.h"
 #include "../../include/Physics/Joints/PrismaticJoint.h"
+#include "../../include/Physics/Joints/PulleyJoint.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
@@ -567,7 +568,6 @@ void Physics::PhysicsWorld::destroyInvalidJoints(World::World &world, const Core
             // need to destroy joint as connected body no longer exists
             else if (!bodies.contains(entityJoint->getConnected()))
             {
-                std::cout << "connected entity: " << entityJoint->getConnected() << std::endl;
                 jointsToDestroy.push_back({e, type, true});
             }
             // joint is past breaking force and so must be destroyed
@@ -692,6 +692,9 @@ void Physics::PhysicsWorld::removeJointComponent(World::World &world, ECS::Entit
     case JointType::PRISMATIC:
         registry.remove<Physics::PrismaticJoint>(e);
         break;
+    case JointType::PULLEY:
+        registry.remove<Physics::PulleyJoint>(e);
+        break;
 
     default:
         throw std::runtime_error("PhysicsWorld (removeJointComponent): JointType not implemented.");
@@ -719,6 +722,11 @@ std::unordered_map<Physics::JointType, Physics::Joint *> Physics::PhysicsWorld::
         joints.emplace(JointType::PRISMATIC, &registry.get<PrismaticJoint>(e));
     }
 
+    if (registry.has<PulleyJoint>(e))
+    {
+        joints.emplace(JointType::PULLEY, &registry.get<PulleyJoint>(e));
+    }
+
     return joints;
 }
 
@@ -734,6 +742,8 @@ bool Physics::PhysicsWorld::hasJoint(World::World &world, ECS::Entity e, JointTy
         return registry.has<Physics::RevoluteJoint>(e);
     case JointType::PRISMATIC:
         return registry.has<Physics::PrismaticJoint>(e);
+    case JointType::PULLEY:
+        return registry.has<Physics::PulleyJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (hasJoint): JointType not implemented.");
     }
@@ -753,6 +763,8 @@ Physics::Joint *Physics::PhysicsWorld::getJoint(World::World &world, ECS::Entity
         return &registry.get<Physics::RevoluteJoint>(e);
     case JointType::PRISMATIC:
         return &registry.get<Physics::PrismaticJoint>(e);
+    case JointType::PULLEY:
+        return &registry.get<Physics::PulleyJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (getJoint): JointType not implemented.");
     }

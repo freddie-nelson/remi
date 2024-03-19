@@ -18,6 +18,7 @@ namespace Physics
         DISTANCE,
         REVOLUTE,
         PRISMATIC,
+        PULLEY,
     };
 
     /**

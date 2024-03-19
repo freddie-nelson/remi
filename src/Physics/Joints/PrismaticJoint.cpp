@@ -7,6 +7,12 @@ Physics::PrismaticJoint::PrismaticJoint(ECS::Entity connected, glm::vec2 worldAn
     setWorldAxis(worldAxis);
 }
 
+Physics::PrismaticJoint::PrismaticJoint(ECS::Entity connected, glm::vec2 worldAxis)
+    : Joint(connected, JointType::PRISMATIC)
+{
+    setWorldAxis(worldAxis);
+}
+
 void Physics::PrismaticJoint::setWorldAnchor(glm::vec2 worldAnchor)
 {
     this->worldAnchor = worldAnchor;

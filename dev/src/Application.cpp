@@ -29,6 +29,7 @@
 #include <remi/Physics/Joints/DistanceJoint.h>
 #include <remi/Physics/Joints/RevoluteJoint.h>
 #include <remi/Physics/Joints/PrismaticJoint.h>
+#include <remi/Physics/Joints/PulleyJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -408,6 +409,55 @@ void Application::init()
     prismaticJoint.enableMotor(true);
     prismaticJoint.setMotorSpeed(2.0f);
     prismaticJoint.setMaxMotorForce(30.0f);
+
+    // pulley joint
+    auto b7 = registry.create();
+    registry.add(b7, Core::Transform(glm::vec2(13.0f, 6.0f)));
+    registry.add(b7, Rendering::Mesh2D(1.0f, 1.0f));
+    registry.add(b7, Rendering::Material());
+    registry.add(b7, Rendering::Renderable(true, false));
+
+    auto &b7Body = registry.add(b7, Physics::RigidBody2D());
+    registry.add(b7, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b7))));
+
+    auto b8 = registry.create();
+    registry.add(b8, Core::Transform(glm::vec2(16.0f, 5.0f)));
+    registry.add(b8, Rendering::Mesh2D(0.7f, 5u));
+    registry.add(b8, Rendering::Material());
+    registry.add(b8, Rendering::Renderable(true, false));
+
+    auto &b8Body = registry.add(b8, Physics::RigidBody2D());
+    registry.add(b8, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b8))));
+
+    auto &pulleyJoint = registry.add(b7, Physics::PulleyJoint(b8, glm::vec2(13.0f, 8.0f), glm::vec2(16.0f, 8.0f)));
+
+    auto holder = registry.create();
+    registry.add(holder, Core::Transform(glm::vec2(13.0f, 8.0f)));
+    registry.add(holder, Rendering::Mesh2D(0.5f, 32u));
+    registry.add(holder, Rendering::Material(Rendering::Color(0.0f, 0.0f, 1.0f, 1.0f)));
+    registry.add(holder, Rendering::Renderable(true, false));
+
+    auto &holderBody = registry.add(holder, Physics::RigidBody2D());
+    holderBody.setType(Physics::RigidBodyType::STATIC);
+
+    registry.add(holder, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
+    auto &holderJoint = registry.add(holder, Physics::PrismaticJoint(b7, glm::vec2(0.0f, 1.0f)));
+    holderJoint.setCollideConnected(true);
+
+    auto holder2 = registry.create();
+    registry.add(holder2, Core::Transform(glm::vec2(16.0f, 8.0f)));
+    registry.add(holder2, Rendering::Mesh2D(0.5f, 32u));
+    registry.add(holder2, Rendering::Material(Rendering::Color(0.0f, 0.0f, 1.0f, 1.0f)));
+    registry.add(holder2, Rendering::Renderable(true, false));
+
+    auto &holder2Body = registry.add(holder2, Physics::RigidBody2D());
+    holder2Body.setType(Physics::RigidBodyType::STATIC);
+
+    registry.add(holder2, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
+    auto &holder2Joint = registry.add(holder2, Physics::PrismaticJoint(b8, glm::vec2(0.0f, 1.0f)));
+    holder2Joint.setCollideConnected(true);
 }
 
 void Application::destroy()
@@ -698,5 +748,13 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
         deleted = true;
         registry.destroy(deletable);
         std::cout << "deleted entity: " << deletable << std::endl;
+    }
+
+    auto pulley = registry.view<Physics::PulleyJoint>();
+    if (pulley.size() > 0)
+    {
+        auto e = *pulley.begin();
+        auto &pulleyJoint = registry.get<Physics::PulleyJoint>(e);
+        std::cout << "pulley length a: " << pulleyJoint.getLengthA() << ", length b: " << pulleyJoint.getLengthB() << std::endl;
     }
 }

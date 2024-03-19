@@ -21,7 +21,15 @@ namespace Physics
          * @param worldAnchor The anchor point on the connected entity in world space.
          * @param worldAxis The axis the bodies are allowed to move along in world space.
          */
-        PrismaticJoint(ECS::Entity connected, glm::vec2 worldAnchor, glm::vec2 worldAxis = glm::vec2(1, 0));
+        PrismaticJoint(ECS::Entity connected, glm::vec2 worldAnchor, glm::vec2 worldAxis);
+
+        /**
+         * Creates a new prismatic joint.
+         *
+         * @param connected The entity the joint is connected to.
+         * @param worldAxis The axis the bodies are allowed to move along in world space.
+         */
+        PrismaticJoint(ECS::Entity connected, glm::vec2 worldAxis);
 
         /**
          * Sets the world anchor point of the prismatic joint.
