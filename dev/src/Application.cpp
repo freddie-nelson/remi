@@ -30,6 +30,7 @@
 #include <remi/Physics/Joints/RevoluteJoint.h>
 #include <remi/Physics/Joints/PrismaticJoint.h>
 #include <remi/Physics/Joints/PulleyJoint.h>
+#include <remi/Physics/Joints/GearJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -226,6 +227,7 @@ void Application::init()
 
     auto &body = registry.add(player, Physics::RigidBody2D());
     body.setFixedRotation(true);
+    body.setLinearDamping(0.5f);
 
     body.setBeginContactCallback([&](Physics::ContactInfo contactInfo)
                                  { std::cout << "player contact: " << contactInfo.entityA << ", " << contactInfo.entityB << std::endl; });
@@ -458,6 +460,49 @@ void Application::init()
 
     auto &holder2Joint = registry.add(holder2, Physics::PrismaticJoint(b8, glm::vec2(0.0f, 1.0f)));
     holder2Joint.setCollideConnected(true);
+
+    // gear joint
+    auto b9 = registry.create();
+    registry.add(b9, Core::Transform(glm::vec2(20.0f, 6.0f)));
+
+    auto &b9Body = registry.add(b9, Physics::RigidBody2D());
+    b9Body.setType(Physics::RigidBodyType::STATIC);
+
+    auto b10 = registry.create();
+    registry.add(b10, Core::Transform(glm::vec2(20.0f, 6.0f)));
+    registry.add(b10, Rendering::Mesh2D(0.75f, 12u));
+    registry.add(b10, Rendering::Material());
+    registry.add(b10, Rendering::Renderable(true, false));
+    registry.add(b10, Physics::RigidBody2D());
+    registry.add(b10, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b10))));
+
+    registry.add(b9, Physics::RevoluteJoint(b10, glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f)));
+
+    auto b11 = registry.create();
+    registry.add(b11, Core::Transform(glm::vec2(21.5f, 6.0f)));
+
+    auto &b11Body = registry.add(b11, Physics::RigidBody2D());
+    b11Body.setType(Physics::RigidBodyType::STATIC);
+
+    auto b12 = registry.create();
+    registry.add(b12, Core::Transform(glm::vec2(21.5f, 6.0f)));
+    registry.add(b12, Rendering::Mesh2D(1.0f, 3.0f));
+    registry.add(b12, Rendering::Material());
+    registry.add(b12, Rendering::Renderable(true, false));
+
+    auto &b12Body = registry.add(b12, Physics::RigidBody2D());
+    registry.add(b12, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b12))));
+
+    b12Body.setGravityScale(0.0f);
+
+    registry.add(b11, Physics::PrismaticJoint(b12, glm::vec2(0.0f, 1.0f)));
+
+    auto &distanceJoint = registry.add(b11, Physics::DistanceJoint(b12));
+    distanceJoint.setStiffness(0.0f);
+    distanceJoint.setMinLength(0.0f);
+    distanceJoint.setMaxLength(3.0f);
+
+    registry.add(b9, Physics::GearJoint(b11, &registry.get<Physics::RevoluteJoint>(b9), &registry.get<Physics::PrismaticJoint>(b11), -1.0f));
 }
 
 void Application::destroy()

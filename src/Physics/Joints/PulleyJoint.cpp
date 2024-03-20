@@ -42,6 +42,11 @@ const glm::vec2 &Physics::PulleyJoint::getGroundAnchorB() const
 
 void Physics::PulleyJoint::setRatio(float ratio)
 {
+    if (ratio <= 0)
+    {
+        throw std::invalid_argument("PulleyJoint (setRatio): ratio must be greater than 0");
+    }
+
     this->ratio = ratio;
 
     if (joint != nullptr)
@@ -147,6 +152,9 @@ b2PulleyJoint *Physics::PulleyJoint::createBox2DJoint(World::World &world, ECS::
     {
         jointDef.lengthB = lengthB;
     }
+
+    auto userData = new JointUserData{entity, this->connected};
+    jointDef.userData.pointer = reinterpret_cast<uintptr_t>(userData);
 
     auto joint = box2dWorld->CreateJoint(&jointDef);
     if (joint->GetType() != b2JointType::e_pulleyJoint)

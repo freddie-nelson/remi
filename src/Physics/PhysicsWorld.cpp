@@ -9,6 +9,7 @@
 #include "../../include/Physics/Joints/RevoluteJoint.h"
 #include "../../include/Physics/Joints/PrismaticJoint.h"
 #include "../../include/Physics/Joints/PulleyJoint.h"
+#include "../../include/Physics/Joints/GearJoint.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
@@ -575,7 +576,7 @@ void Physics::PhysicsWorld::destroyInvalidJoints(World::World &world, const Core
             {
                 jointsToDestroy.push_back({e, type, true});
             }
-            // joitn is past breaking torque so must be destroyed
+            // joint is past breaking torque so must be destroyed
             else if (entityJoint->getBreakTorque() && entityJoint->getReactionTorque(timestep) > entityJoint->getBreakTorque())
             {
                 jointsToDestroy.push_back({e, type, true});
@@ -588,6 +589,10 @@ void Physics::PhysicsWorld::destroyInvalidJoints(World::World &world, const Core
 
 void Physics::PhysicsWorld::createJoints(World::World &world)
 {
+    auto &registry = world.getRegistry();
+
+    std::vector<ECS::Entity> gearJointEntities;
+
     for (auto &[e, body] : bodies)
     {
         auto entityJoints = getJoints(world, e);
@@ -615,16 +620,38 @@ void Physics::PhysicsWorld::createJoints(World::World &world)
                 throw std::runtime_error("PhysicsWorld (createJoints): Connected entity on joint for entity '" + std::to_string(e) + "' is not a valid body. Should never call `createJoints` before `destroyInvalidJoints`.");
             }
 
+            // check if connected entity is the same as the owning entity
+            if (connected == e)
+            {
+                throw std::runtime_error("PhysicsWorld (createJoints): Connected entity on joint for entity '" + std::to_string(e) + "' is the same as the owning entity.");
+            }
+
             // create joints map entry if needed
             if (!joints.contains(e))
             {
                 joints.emplace(e, std::unordered_map<JointType, b2Joint *>());
             }
 
+            if (type == JointType::GEAR)
+            {
+                gearJointEntities.push_back(e);
+                continue;
+            }
+
             // create joint
             joints[e][type] = entityJoint->createBox2DJoint(world, e, &this->world, body, bodies[connected]);
             entityJoint->setJoint(joints[e][type]);
         }
+    }
+
+    // create gear joints
+    // gear joints must be created last to ensure the connected joints exist
+    for (auto &e : gearJointEntities)
+    {
+        std::cout << "creating gear joint" << std::endl;
+        auto &gearJoint = registry.get<Physics::GearJoint>(e);
+        joints[e][JointType::GEAR] = gearJoint.createBox2DJoint(world, e, &this->world, bodies[e], bodies[gearJoint.getConnected()]);
+        gearJoint.setJoint(joints[e][JointType::GEAR]);
     }
 }
 
@@ -695,6 +722,9 @@ void Physics::PhysicsWorld::removeJointComponent(World::World &world, ECS::Entit
     case JointType::PULLEY:
         registry.remove<Physics::PulleyJoint>(e);
         break;
+    case JointType::GEAR:
+        registry.remove<Physics::GearJoint>(e);
+        break;
 
     default:
         throw std::runtime_error("PhysicsWorld (removeJointComponent): JointType not implemented.");
@@ -727,6 +757,11 @@ std::unordered_map<Physics::JointType, Physics::Joint *> Physics::PhysicsWorld::
         joints.emplace(JointType::PULLEY, &registry.get<PulleyJoint>(e));
     }
 
+    if (registry.has<GearJoint>(e))
+    {
+        joints.emplace(JointType::GEAR, &registry.get<GearJoint>(e));
+    }
+
     return joints;
 }
 
@@ -744,6 +779,8 @@ bool Physics::PhysicsWorld::hasJoint(World::World &world, ECS::Entity e, JointTy
         return registry.has<Physics::PrismaticJoint>(e);
     case JointType::PULLEY:
         return registry.has<Physics::PulleyJoint>(e);
+    case JointType::GEAR:
+        return registry.has<Physics::GearJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (hasJoint): JointType not implemented.");
     }
@@ -765,6 +802,8 @@ Physics::Joint *Physics::PhysicsWorld::getJoint(World::World &world, ECS::Entity
         return &registry.get<Physics::PrismaticJoint>(e);
     case JointType::PULLEY:
         return &registry.get<Physics::PulleyJoint>(e);
+    case JointType::GEAR:
+        return &registry.get<Physics::GearJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (getJoint): JointType not implemented.");
     }

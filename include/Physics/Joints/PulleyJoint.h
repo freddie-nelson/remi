@@ -57,6 +57,8 @@ namespace Physics
         /**
          * Sets the ratio of the pulley.
          *
+         * The ratio must be greater than 0.
+         *
          * @param ratio The ratio of the pulley.
          */
         void setRatio(float ratio);

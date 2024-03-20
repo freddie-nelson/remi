@@ -19,6 +19,7 @@ namespace Physics
         REVOLUTE,
         PRISMATIC,
         PULLEY,
+        GEAR,
     };
 
     /**

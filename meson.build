@@ -127,7 +127,8 @@ physics_src += [
     'src/Physics/Joints/DistanceJoint.cpp',
     'src/Physics/Joints/RevoluteJoint.cpp',
     'src/Physics/Joints/PrismaticJoint.cpp',
-    'src/Physics/Joints/PulleyJoint.cpp'
+    'src/Physics/Joints/PulleyJoint.cpp',
+    'src/Physics/Joints/GearJoint.cpp',
 ]
 
 # rendering
