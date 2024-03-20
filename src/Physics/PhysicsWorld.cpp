@@ -412,9 +412,9 @@ void Physics::PhysicsWorld::createBox2DCollider(const World::World &world, ECS::
     std::vector<b2Fixture *> fixtures;
 
     // create fixture
-    if (colliderShape->getType() == Physics::ColliderShapeType::CONCAVE_POLYGON)
+    if (colliderShape->getType() == Physics::ColliderShapeType::COMPOUND_POLYGON)
     {
-        auto concaveShape = reinterpret_cast<const Physics::ConcavePolygonColliderShape2D *>(colliderShape);
+        auto concaveShape = reinterpret_cast<const Physics::CompoundPolygonColliderShape2D *>(colliderShape);
         auto shapeCount = concaveShape->getShapeCount();
         auto shapes = concaveShape->createBox2DShape();
 

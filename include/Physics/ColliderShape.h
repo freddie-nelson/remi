@@ -17,7 +17,7 @@ namespace Physics
     enum ColliderShapeType
     {
         POLYGON = 0,
-        CONCAVE_POLYGON,
+        COMPOUND_POLYGON,
         CIRCLE,
         EDGE,
         CHAIN,
@@ -128,47 +128,49 @@ namespace Physics
     /**
      * Represents a 2D concave polygon collider.
      *
-     * This is a collider that is a concave polygon. [[info]](https://en.wikipedia.org/wiki/Concave_polygon)
+     * This is a collider that is a compound polygon. This can be used to represent concave polygons [[info]](https://en.wikipedia.org/wiki/Concave_polygon)
      *
-     * This class will split the concave polygon into triangles and add all of them as fixtures to the box2d body.
+     * Use this when your polygon has more than 8 vertices or is concave.
+     *
+     * This class will split the polygon into triangles and add all of them as fixtures to the box2d body.
      */
-    class ConcavePolygonColliderShape2D : public ColliderShape2D
+    class CompoundPolygonColliderShape2D : public ColliderShape2D
     {
     public:
         /**
-         * Creates a new 2D concave polygon collider.
+         * Creates a new 2D compound polygon collider.
          *
-         * The vertices should be in counter-clockwise order and represent a concave polygon.
+         * The vertices should be in counter-clockwise order and represent a compound polygon.
          *
          * @param vertices The vertices of the polygon.
          */
-        ConcavePolygonColliderShape2D(std::vector<glm::vec2> vertices);
+        CompoundPolygonColliderShape2D(std::vector<glm::vec2> vertices);
 
         /**
          * Creates a new 2D polygon collider.
          *
-         * The mesh should be a concave polygon.
+         * The mesh should be a compound polygon.
          *
          * @param mesh The mesh to create the collider from.
          */
-        ConcavePolygonColliderShape2D(const Rendering::Mesh2D &mesh);
+        CompoundPolygonColliderShape2D(const Rendering::Mesh2D &mesh);
 
         /**
          * Creates a new 2D polygon collider.
          *
-         * The mesh should be a concave polygon.
+         * The mesh should be a compound polygon.
          *
          * @param mesh The mesh to create the collider from.
          * @param transform The transform of the mesh.
          */
-        ConcavePolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform);
+        CompoundPolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform);
 
         /**
-         * Creates a new 2D concave polygon collider.
+         * Creates a new 2D compound polygon collider.
          *
-         * @param other The 2D concave polygon collider to copy.
+         * @param other The 2D compound polygon collider to copy.
          */
-        ConcavePolygonColliderShape2D(const ConcavePolygonColliderShape2D &other);
+        CompoundPolygonColliderShape2D(const CompoundPolygonColliderShape2D &other);
 
         /**
          * Creates a Box2D shape from the collider shape.

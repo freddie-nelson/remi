@@ -308,7 +308,7 @@ void Application::init()
     registry.add(concave, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
     registry.add(concave, Rendering::Renderable(true, false));
     registry.add(concave, Physics::RigidBody2D());
-    registry.add(concave, Physics::Collider2D(new Physics::ConcavePolygonColliderShape2D(concaveMesh)));
+    registry.add(concave, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(concaveMesh)));
 
     // create bodies joined by distance joint
     auto b1 = registry.create();
@@ -755,6 +755,6 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
     {
         auto e = *pulley.begin();
         auto &pulleyJoint = registry.get<Physics::PulleyJoint>(e);
-        std::cout << "pulley length a: " << pulleyJoint.getLengthA() << ", length b: " << pulleyJoint.getLengthB() << std::endl;
+        // std::cout << "pulley length a: " << pulleyJoint.getLengthA() << ", length b: " << pulleyJoint.getLengthB() << std::endl;
     }
 }

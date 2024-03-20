@@ -79,12 +79,12 @@ Physics::ColliderShape2D *Physics::PolygonColliderShape2D::clone() const
 }
 
 //
-// ConcavePolygonColliderShape2D
+// CompoundPolygonColliderShape2D
 //
 
-Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(std::vector<glm::vec2> vertices)
+Physics::CompoundPolygonColliderShape2D::CompoundPolygonColliderShape2D(std::vector<glm::vec2> vertices)
 {
-    type = ColliderShapeType::CONCAVE_POLYGON;
+    type = ColliderShapeType::COMPOUND_POLYGON;
 
     auto iv = Rendering::triangulate(vertices);
 
@@ -92,17 +92,17 @@ Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(std::vecto
     indices = std::move(iv.indices);
 }
 
-Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(const Rendering::Mesh2D &mesh)
+Physics::CompoundPolygonColliderShape2D::CompoundPolygonColliderShape2D(const Rendering::Mesh2D &mesh)
 {
-    type = ColliderShapeType::CONCAVE_POLYGON;
+    type = ColliderShapeType::COMPOUND_POLYGON;
 
     vertices = mesh.getVertices();
     indices = mesh.getIndices();
 }
 
-Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform)
+Physics::CompoundPolygonColliderShape2D::CompoundPolygonColliderShape2D(const Rendering::Mesh2D &mesh, const Core::Transform &transform)
 {
-    type = ColliderShapeType::CONCAVE_POLYGON;
+    type = ColliderShapeType::COMPOUND_POLYGON;
 
     auto transformedMesh = mesh.transform(transform);
 
@@ -110,14 +110,19 @@ Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(const Rend
     indices = transformedMesh.getIndices();
 }
 
-Physics::ConcavePolygonColliderShape2D::ConcavePolygonColliderShape2D(const ConcavePolygonColliderShape2D &other)
+Physics::CompoundPolygonColliderShape2D::CompoundPolygonColliderShape2D(const CompoundPolygonColliderShape2D &other)
 {
+    if (other.type != ColliderShapeType::COMPOUND_POLYGON)
+    {
+        throw std::invalid_argument("CompoundPolygonColliderShape2D (copy constructor): Invalid type.");
+    }
+
     type = other.type;
     vertices = other.vertices;
     indices = other.indices;
 }
 
-b2PolygonShape *Physics::ConcavePolygonColliderShape2D::createBox2DShape() const
+b2PolygonShape *Physics::CompoundPolygonColliderShape2D::createBox2DShape() const
 {
     auto triCount = getShapeCount();
     b2PolygonShape *shapes = new b2PolygonShape[triCount];
@@ -140,12 +145,12 @@ b2PolygonShape *Physics::ConcavePolygonColliderShape2D::createBox2DShape() const
     return shapes;
 }
 
-Physics::ColliderShape2D *Physics::ConcavePolygonColliderShape2D::clone() const
+Physics::ColliderShape2D *Physics::CompoundPolygonColliderShape2D::clone() const
 {
-    return new ConcavePolygonColliderShape2D(*this);
+    return new CompoundPolygonColliderShape2D(*this);
 }
 
-size_t Physics::ConcavePolygonColliderShape2D::getShapeCount() const
+size_t Physics::CompoundPolygonColliderShape2D::getShapeCount() const
 {
     return indices.size() / 3;
 }
