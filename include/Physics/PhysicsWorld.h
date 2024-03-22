@@ -220,6 +220,11 @@ namespace Physics
         ContactListener contactListener;
 
         /**
+         * The body that is used as the static bodies for mouse joints.
+         */
+        b2Body *mouseJointStaticBody = nullptr;
+
+        /**
          * Updates the bodies map.
          *
          * Will add or remove bodies from the map if they are added or removed from the registry.

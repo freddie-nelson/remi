@@ -20,6 +20,7 @@ namespace Physics
         PRISMATIC,
         PULLEY,
         GEAR,
+        MOUSE,
     };
 
     /**
@@ -55,28 +56,28 @@ namespace Physics
          *
          * @param connected The entity the joint is connected to.
          */
-        void setConnected(ECS::Entity connected);
+        virtual void setConnected(ECS::Entity connected);
 
         /**
          * Gets the entity the joint is connected to.
          *
          * @returns The entity the joint is connected to.
          */
-        ECS::Entity getConnected() const;
+        virtual ECS::Entity getConnected() const;
 
         /**
          * Sets wether or not the connected bodies should collide with eachother.
          *
          * @param collideConnected Wether or not the connected bodies should collide with eachother.
          */
-        void setCollideConnected(bool collideConnected);
+        virtual void setCollideConnected(bool collideConnected);
 
         /**
          * Gets wether or not the connected bodies should collide with eachother.
          *
          * @returns Wether or not the connected bodies should collide with eachother.
          */
-        bool getCollideConnected() const;
+        virtual bool getCollideConnected() const;
 
         /**
          * Sets the anchor point on the first body (the one owning the joint component).

@@ -57,6 +57,9 @@ remi::Engine::Engine(EngineConfig config)
 
     mouse = new Input::Mouse(window->getGLFWWindow());
     keyboard = new Input::Keyboard(window->getGLFWWindow());
+
+    mouseJointUpdateSystem = new Physics::MouseJointUpdateSystem(mouse, spaceTransformer);
+    world->addSystem(mouseJointUpdateSystem);
 }
 
 remi::Engine::~Engine()
@@ -166,6 +169,11 @@ Input::Keyboard *const remi::Engine::getKeyboard()
 Core::SpaceTransformer *const remi::Engine::getSpaceTransformer()
 {
     return spaceTransformer;
+}
+
+Physics::MouseJointUpdateSystem *const remi::Engine::getMouseJointUpdateSystem()
+{
+    return mouseJointUpdateSystem;
 }
 
 void remi::Engine::mainLoop(MainLoopArgs *args)

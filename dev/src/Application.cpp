@@ -31,6 +31,7 @@
 #include <remi/Physics/Joints/PrismaticJoint.h>
 #include <remi/Physics/Joints/PulleyJoint.h>
 #include <remi/Physics/Joints/GearJoint.h>
+#include <remi/Physics/Joints/MouseJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -661,6 +662,9 @@ ECS::Entity queryEntity;
 
 bool deleted = false;
 
+bool holding = false;
+ECS::Entity mouseEntity;
+
 void Application::fixedUpdate(World::World &world, const Core::Timestep &timestep)
 {
     auto &registry = world.getRegistry();
@@ -801,5 +805,36 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
         auto e = *pulley.begin();
         auto &pulleyJoint = registry.get<Physics::PulleyJoint>(e);
         // std::cout << "pulley length a: " << pulleyJoint.getLengthA() << ", length b: " << pulleyJoint.getLengthB() << std::endl;
+    }
+
+    auto isMouseDown = engine->getMouse()->isPressed(Input::MouseButton::LEFT);
+
+    if (isMouseDown)
+    {
+        auto mouse = engine->getMouse()->getPosition(true);
+        auto worldMouse = spaceTransformer.transform(mouse, Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD);
+
+        if (!holding)
+        {
+
+            auto entities = physicsWorld.query(Core::BoundingCircle(worldMouse, 0.05f));
+            if (!entities.empty())
+            {
+                std::cout << "mouse entity: " << *entities.begin() << std::endl;
+                mouseEntity = *entities.begin();
+                registry.add(mouseEntity, Physics::MouseJoint(worldMouse));
+
+                holding = true;
+            }
+        }
+    }
+    else
+    {
+        if (holding)
+        {
+            std::cout << "removing mouse joint" << std::endl;
+            registry.remove<Physics::MouseJoint>(mouseEntity);
+            holding = false;
+        }
     }
 }

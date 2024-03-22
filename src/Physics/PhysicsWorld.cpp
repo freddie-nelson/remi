@@ -10,6 +10,7 @@
 #include "../../include/Physics/Joints/PrismaticJoint.h"
 #include "../../include/Physics/Joints/PulleyJoint.h"
 #include "../../include/Physics/Joints/GearJoint.h"
+#include "../../include/Physics/Joints/MouseJoint.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
@@ -26,6 +27,11 @@ Physics::PhysicsWorld::PhysicsWorld(PhysicsWorldConfig config, const World::Worl
     setConfig(config);
 
     world.SetContactListener(&contactListener);
+
+    b2BodyDef mouseJointStaticBodyDef;
+    mouseJointStaticBodyDef.type = b2_staticBody;
+
+    mouseJointStaticBody = world.CreateBody(&mouseJointStaticBodyDef);
 }
 
 Physics::PhysicsWorld::~PhysicsWorld()
@@ -566,8 +572,8 @@ void Physics::PhysicsWorld::destroyInvalidJoints(World::World &world, const Core
             {
                 jointsToDestroy.push_back({e, type, false});
             }
-            // need to destroy joint as connected body no longer exists
-            else if (!bodies.contains(entityJoint->getConnected()))
+            // need to destroy joint as connected body no longer exists (mouse joints do not have a connected entity)
+            else if (entityJoint->getType() != JointType::MOUSE && !bodies.contains(entityJoint->getConnected()))
             {
                 jointsToDestroy.push_back({e, type, true});
             }
@@ -613,17 +619,22 @@ void Physics::PhysicsWorld::createJoints(World::World &world)
                 throw std::runtime_error("PhysicsWorld: (createJoints): Joint already exists for entity '" + std::to_string(e) + "'. Should never call `createJoints` before `destroyInvalidJoints`.");
             }
 
-            // check if connected entity is a valid body
-            auto connected = entityJoint->getConnected();
-            if (!bodies.contains(connected))
+            // mouse joints do not have a connected entity
+            if (entityJoint->getType() != JointType::MOUSE)
             {
-                throw std::runtime_error("PhysicsWorld (createJoints): Connected entity on joint for entity '" + std::to_string(e) + "' is not a valid body. Should never call `createJoints` before `destroyInvalidJoints`.");
-            }
+                auto connected = entityJoint->getConnected();
 
-            // check if connected entity is the same as the owning entity
-            if (connected == e)
-            {
-                throw std::runtime_error("PhysicsWorld (createJoints): Connected entity on joint for entity '" + std::to_string(e) + "' is the same as the owning entity.");
+                // check if connected entity is a valid body
+                if (entityJoint->getType() != JointType::MOUSE && !bodies.contains(connected))
+                {
+                    throw std::runtime_error("PhysicsWorld (createJoints): Connected entity on joint for entity '" + std::to_string(e) + "' is not a valid body. Should never call `createJoints` before `destroyInvalidJoints`.");
+                }
+
+                // check if connected entity is the same as the owning entity
+                if (entityJoint->getType() != JointType::MOUSE && connected == e)
+                {
+                    throw std::runtime_error("PhysicsWorld (createJoints): Connected entity on joint for entity '" + std::to_string(e) + "' is the same as the owning entity.");
+                }
             }
 
             // create joints map entry if needed
@@ -639,7 +650,9 @@ void Physics::PhysicsWorld::createJoints(World::World &world)
             }
 
             // create joint
-            joints[e][type] = entityJoint->createBox2DJoint(world, e, &this->world, body, bodies[connected]);
+            auto connectedBody = entityJoint->getType() == JointType::MOUSE ? mouseJointStaticBody : bodies[entityJoint->getConnected()];
+
+            joints[e][type] = entityJoint->createBox2DJoint(world, e, &this->world, body, connectedBody);
             entityJoint->setJoint(joints[e][type]);
         }
     }
@@ -648,7 +661,6 @@ void Physics::PhysicsWorld::createJoints(World::World &world)
     // gear joints must be created last to ensure the connected joints exist
     for (auto &e : gearJointEntities)
     {
-        std::cout << "creating gear joint" << std::endl;
         auto &gearJoint = registry.get<Physics::GearJoint>(e);
         joints[e][JointType::GEAR] = gearJoint.createBox2DJoint(world, e, &this->world, bodies[e], bodies[gearJoint.getConnected()]);
         gearJoint.setJoint(joints[e][JointType::GEAR]);
@@ -668,18 +680,21 @@ void Physics::PhysicsWorld::destroyJoint(World::World &world, ECS::Entity e, Joi
     auto &joint = joints[e][type];
     auto userData = reinterpret_cast<JointUserData *>(joint->GetUserData().pointer);
 
-    // nullify joint on component
-    getJoint(world, e, type)->setJoint(nullptr);
-
-    // connected body does not exist so joint is invalid
-    // we must remove the joint component from the ecs
-    if (removeComponent && hasJoint(world, e, type))
+    if (hasJoint(world, e, type))
     {
-        removeJointComponent(world, e, type);
+        // nullify joint on component
+        getJoint(world, e, type)->setJoint(nullptr);
+
+        // connected body does not exist so joint is invalid
+        // we must remove the joint component from the ecs
+        if (removeComponent)
+        {
+            removeJointComponent(world, e, type);
+        }
     }
 
     // destroy joint if bodies still exist (otherwise it has already been destroyed by box2d since the body was destroyed first)
-    if (bodies.contains(e) && bodies.contains(userData->connected))
+    if (bodies.contains(e) && (type == JointType::MOUSE || bodies.contains(userData->connected)))
     {
         this->world.DestroyJoint(joint);
     }
@@ -725,6 +740,8 @@ void Physics::PhysicsWorld::removeJointComponent(World::World &world, ECS::Entit
     case JointType::GEAR:
         registry.remove<Physics::GearJoint>(e);
         break;
+    case JointType::MOUSE:
+        registry.remove<Physics::MouseJoint>(e);
 
     default:
         throw std::runtime_error("PhysicsWorld (removeJointComponent): JointType not implemented.");
@@ -762,6 +779,11 @@ std::unordered_map<Physics::JointType, Physics::Joint *> Physics::PhysicsWorld::
         joints.emplace(JointType::GEAR, &registry.get<GearJoint>(e));
     }
 
+    if (registry.has<MouseJoint>(e))
+    {
+        joints.emplace(JointType::MOUSE, &registry.get<MouseJoint>(e));
+    }
+
     return joints;
 }
 
@@ -781,6 +803,8 @@ bool Physics::PhysicsWorld::hasJoint(World::World &world, ECS::Entity e, JointTy
         return registry.has<Physics::PulleyJoint>(e);
     case JointType::GEAR:
         return registry.has<Physics::GearJoint>(e);
+    case JointType::MOUSE:
+        return registry.has<Physics::MouseJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (hasJoint): JointType not implemented.");
     }
@@ -804,6 +828,8 @@ Physics::Joint *Physics::PhysicsWorld::getJoint(World::World &world, ECS::Entity
         return &registry.get<Physics::PulleyJoint>(e);
     case JointType::GEAR:
         return &registry.get<Physics::GearJoint>(e);
+    case JointType::MOUSE:
+        return &registry.get<Physics::MouseJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (getJoint): JointType not implemented.");
     }

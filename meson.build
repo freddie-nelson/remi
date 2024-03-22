@@ -121,7 +121,7 @@ ecs_src = ['src/ECS/Registry.cpp']
 input_src = ['src/Input/Mouse.cpp', 'src/Input/Keyboard.cpp']
 
 # physics
-physics_src = ['src/Physics/PhysicsWorld.cpp', 'src/Physics/RigidBody2D.cpp', 'src/Physics/Collider2D.cpp', 'src/Physics/ColliderShape.cpp', 'src/Physics/Ray.cpp', 'src/Physics/QueryCallback.cpp', 'src/Physics/ContactListener.cpp']
+physics_src = ['src/Physics/PhysicsWorld.cpp', 'src/Physics/RigidBody2D.cpp', 'src/Physics/Collider2D.cpp', 'src/Physics/ColliderShape.cpp', 'src/Physics/Ray.cpp', 'src/Physics/QueryCallback.cpp', 'src/Physics/ContactListener.cpp', 'src/Physics/MouseJointUpdateSystem.cpp']
 physics_src += [
     'src/Physics/Joints/Joint.cpp',
     'src/Physics/Joints/DistanceJoint.cpp',
@@ -129,6 +129,7 @@ physics_src += [
     'src/Physics/Joints/PrismaticJoint.cpp',
     'src/Physics/Joints/PulleyJoint.cpp',
     'src/Physics/Joints/GearJoint.cpp',
+    'src/Physics/Joints/MouseJoint.cpp',
 ]
 
 # rendering

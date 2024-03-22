@@ -11,6 +11,7 @@
 #include "Core/SpaceTransformer.h"
 #include "Physics/PhysicsWorld.h"
 #include "World/World.h"
+#include "Physics/MouseJointUpdateSystem.h"
 
 // ! TODO: give all internal components copy and move constructors and assignment operators
 
@@ -278,6 +279,15 @@ namespace remi
          */
         Core::SpaceTransformer *const getSpaceTransformer();
 
+        /**
+         * Gets the mouse joint update system of the engine.
+         *
+         * This is used to update mouse joints that have auto update enabled.
+         *
+         * @returns The mouse joint update system of the engine.
+         */
+        Physics::MouseJointUpdateSystem *const getMouseJointUpdateSystem();
+
     private:
         EngineConfig config;
 
@@ -295,6 +305,8 @@ namespace remi
         Input::Keyboard *keyboard = nullptr;
 
         Core::SpaceTransformer *spaceTransformer = nullptr;
+
+        Physics::MouseJointUpdateSystem *mouseJointUpdateSystem = nullptr;
 
         /**
          * The data that is passed to the main loop.
