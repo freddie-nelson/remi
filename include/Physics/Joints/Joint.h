@@ -21,6 +21,7 @@ namespace Physics
         PULLEY,
         GEAR,
         MOUSE,
+        WHEEL,
     };
 
     /**

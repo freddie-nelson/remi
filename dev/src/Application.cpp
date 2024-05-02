@@ -32,6 +32,7 @@
 #include <remi/Physics/Joints/PulleyJoint.h>
 #include <remi/Physics/Joints/GearJoint.h>
 #include <remi/Physics/Joints/MouseJoint.h>
+#include <remi/Physics/Joints/WheelJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -70,6 +71,7 @@ ECS::Entity character;
 ECS::Entity camera;
 ECS::Entity fpsEntity;
 ECS::Entity deletable;
+ECS::Entity wheel;
 
 void Application::init()
 {
@@ -504,6 +506,50 @@ void Application::init()
     distanceJoint.setMaxLength(3.0f);
 
     registry.add(b9, Physics::GearJoint(b11, &registry.get<Physics::RevoluteJoint>(b9), &registry.get<Physics::PrismaticJoint>(b11), -1.0f));
+
+    // wheel joint
+    auto b13 = registry.create();
+    registry.add(b13, Core::Transform(glm::vec2(-20.0f, 2.0f)));
+    registry.add(b13, Rendering::Mesh2D(3.0f, 1.0f));
+    registry.add(b13, Rendering::Material(Rendering::Color(0.0f, 1.0f, 0.0f, 1.0f)));
+    registry.add(b13, Rendering::Renderable(true, false));
+
+    auto b13Body = registry.add(b13, Physics::RigidBody2D());
+    b13Body.setFixedRotation(true);
+
+    registry.add(b13, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b13))));
+
+    auto b14 = registry.create();
+    registry.add(b14, Core::Transform(glm::vec2(-21.5f, 0.5f)));
+    registry.add(b14, Rendering::Mesh2D(0.25f, 32u));
+    registry.add(b14, Rendering::Material(Rendering::Color(0.0f, 1.0f, 0.0f, 1.0f)));
+    registry.add(b14, Rendering::Renderable(true, false));
+
+    auto &b14Body = registry.add(b14, Physics::RigidBody2D());
+    auto &b14Collider = registry.add(b14, Physics::Collider2D(new Physics::CircleColliderShape2D(0.25f)));
+    b14Collider.setFriction(0.5f);
+
+    auto &b14Wheel = registry.add(b14, Physics::WheelJoint(b13, glm::vec2(-21.0f, 0.5f), glm::vec2(0, 1)));
+    b14Wheel.setStiffness(0.5f);
+    b14Wheel.setDamping(1.0f);
+    b14Wheel.enableLimit(true);
+
+    auto b15 = registry.create();
+    registry.add(b15, Core::Transform(glm::vec2(-18.5f, 0.5f)));
+    registry.add(b15, Rendering::Mesh2D(0.25f, 32u));
+    registry.add(b15, Rendering::Material(Rendering::Color(0.0f, 1.0f, 0.0f, 1.0f)));
+    registry.add(b15, Rendering::Renderable(true, false));
+
+    auto &b15Body = registry.add(b15, Physics::RigidBody2D());
+    auto &b15Collider = registry.add(b15, Physics::Collider2D(new Physics::CircleColliderShape2D(0.25f)));
+    b15Collider.setFriction(0.5f);
+
+    auto &b15Wheel = registry.add(b15, Physics::WheelJoint(b13, glm::vec2(-19.0f, 0.5f), glm::vec2(0, 1)));
+    b15Wheel.setStiffness(0.5f);
+    b15Wheel.setDamping(1.0f);
+    b15Wheel.enableLimit(true);
+
+    wheel = b15;
 }
 
 void Application::destroy()
@@ -796,6 +842,7 @@ void Application::fixedUpdate(World::World &world, const Core::Timestep &timeste
         std::cout << "deleting entity: " << deletable << std::endl;
         deleted = true;
         registry.destroy(deletable);
+        registry.destroy(wheel);
         std::cout << "deleted entity: " << deletable << std::endl;
     }
 

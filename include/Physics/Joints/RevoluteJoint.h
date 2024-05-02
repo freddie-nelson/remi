@@ -169,7 +169,7 @@ namespace Physics
          * @param owner The box2d body of the owning entity.
          * @param connected The box2d body of the connected entity.
          *
-         * @returns The box2d distance joint.
+         * @returns The box2d revolute joint.
          */
         b2RevoluteJoint *createBox2DJoint(World::World &world, ECS::Entity entity, b2World *box2dWorld, b2Body *owner, b2Body *connected) override;
 
