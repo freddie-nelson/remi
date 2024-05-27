@@ -23,6 +23,7 @@ namespace Physics
         MOUSE,
         WHEEL,
         WELD,
+        MOTOR,
     };
 
     /**

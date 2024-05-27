@@ -143,6 +143,8 @@ b2PulleyJoint *Physics::PulleyJoint::createBox2DJoint(World::World &world, ECS::
     b2PulleyJointDef jointDef;
     jointDef.Initialize(owner, connected, b2Vec2(groundAnchorA.x, groundAnchorA.y), b2Vec2(groundAnchorB.x, groundAnchorB.y), b2Vec2(anchorA.x, anchorA.y), b2Vec2(anchorB.x, anchorB.y), ratio);
 
+    jointDef.collideConnected = getCollideConnected();
+
     if (lengthASet)
     {
         jointDef.lengthA = lengthA;

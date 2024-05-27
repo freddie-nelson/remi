@@ -34,6 +34,7 @@
 #include <remi/Physics/Joints/MouseJoint.h>
 #include <remi/Physics/Joints/WheelJoint.h>
 #include <remi/Physics/Joints/WeldJoint.h>
+#include <remi/Physics/Joints/MotorJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -568,10 +569,26 @@ void Application::init()
     registry.add(b17, Rendering::Material(Rendering::Color(0.0f, 1.0f, 1.0f, 1.0f)));
     registry.add(b17, Rendering::Renderable(true, false));
 
-    auto b17Body = registry.add(b17, Physics::RigidBody2D());
-    auto b17Collider = registry.add(b17, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b17))));
+    auto &b17Body = registry.add(b17, Physics::RigidBody2D());
+    auto &b17Collider = registry.add(b17, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b17))));
 
     auto &weldJoint = registry.add(b16, Physics::WeldJoint(b17, glm::vec2(15.0f, 2.0f)));
+
+    // motor joint
+    auto b18 = registry.create();
+    registry.add(b18, Core::Transform(glm::vec2(-15.0f, 1.0f)));
+    registry.add(b18, Rendering::Mesh2D(1.0f, 12u));
+    registry.add(b18, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
+    registry.add(b18, Rendering::Renderable(true, false));
+
+    auto &b18Body = registry.add(b18, Physics::RigidBody2D());
+    auto &b18Collider = registry.add(b18, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b18))));
+
+    auto &motorJoint = registry.add(b18, Physics::MotorJoint(floor));
+    motorJoint.setLinearOffset(glm::vec2(10.0f, 0.0f));
+    motorJoint.setAngularOffset(1.0f);
+    motorJoint.setCollideConnected(true);
+    motorJoint.setMaxForce(3.0f);
 }
 
 void Application::destroy()

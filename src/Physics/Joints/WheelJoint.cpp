@@ -169,6 +169,7 @@ b2WheelJoint *Physics::WheelJoint::createBox2DJoint(World::World &world, ECS::En
     b2WheelJointDef jointDef;
     jointDef.Initialize(connected, owner, b2Vec2(anchor.x, anchor.y), b2Vec2(axis.x, axis.y));
 
+    jointDef.collideConnected = getCollideConnected();
     jointDef.enableLimit = isEnableLimit;
     jointDef.lowerTranslation = lowerTranslation;
     jointDef.upperTranslation = upperTranslation;

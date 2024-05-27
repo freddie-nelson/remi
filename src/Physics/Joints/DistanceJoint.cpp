@@ -97,7 +97,7 @@ b2DistanceJoint *Physics::DistanceJoint::createBox2DJoint(World::World &world, E
     jointDef.bodyB = connected;
     jointDef.localAnchorA = b2Vec2(anchorA.x, anchorA.y);
     jointDef.localAnchorB = b2Vec2(anchorB.x, anchorB.y);
-    jointDef.collideConnected = collideConnected;
+    jointDef.collideConnected = getCollideConnected();
 
     if (length != -1.0f)
     {

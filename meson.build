@@ -132,6 +132,7 @@ physics_src += [
     'src/Physics/Joints/MouseJoint.cpp',
     'src/Physics/Joints/WheelJoint.cpp',
     'src/Physics/Joints/WeldJoint.cpp',
+    'src/Physics/Joints/MotorJoint.cpp',
 ]
 
 # rendering

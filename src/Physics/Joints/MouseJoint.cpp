@@ -144,6 +144,7 @@ b2MouseJoint *Physics::MouseJoint::createBox2DJoint(World::World &world, ECS::En
     jointDef.maxForce = getMaxForce();
     jointDef.stiffness = getStiffness();
     jointDef.damping = getDamping();
+    jointDef.collideConnected = false;
 
     auto userData = new JointUserData{entity, this->connected};
     jointDef.userData.pointer = reinterpret_cast<uintptr_t>(userData);

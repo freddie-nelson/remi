@@ -100,6 +100,7 @@ b2GearJoint *Physics::GearJoint::createBox2DJoint(World::World &world, ECS::Enti
     jointDef.bodyA = owner;
     jointDef.bodyB = connected;
     jointDef.ratio = ratio;
+    jointDef.collideConnected = getCollideConnected();
 
     if (jointA->getJoint() == nullptr)
     {
