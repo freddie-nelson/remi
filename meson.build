@@ -133,6 +133,7 @@ physics_src += [
     'src/Physics/Joints/WheelJoint.cpp',
     'src/Physics/Joints/WeldJoint.cpp',
     'src/Physics/Joints/MotorJoint.cpp',
+    'src/Physics/Joints/FrictionJoint.cpp',
 ]
 
 # rendering

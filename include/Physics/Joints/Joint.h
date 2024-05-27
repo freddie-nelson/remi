@@ -24,6 +24,7 @@ namespace Physics
         WHEEL,
         WELD,
         MOTOR,
+        FRICTION
     };
 
     /**

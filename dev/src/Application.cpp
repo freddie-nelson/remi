@@ -35,6 +35,7 @@
 #include <remi/Physics/Joints/WheelJoint.h>
 #include <remi/Physics/Joints/WeldJoint.h>
 #include <remi/Physics/Joints/MotorJoint.h>
+#include <remi/Physics/Joints/FrictionJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -589,6 +590,23 @@ void Application::init()
     motorJoint.setAngularOffset(1.0f);
     motorJoint.setCollideConnected(true);
     motorJoint.setMaxForce(3.0f);
+
+    // friction joint
+    auto b19 = registry.create();
+    registry.add(b19, Core::Transform(glm::vec2(0.0f, 5.0f)));
+    registry.add(b19, Rendering::Mesh2D(2.0f, 2.0f));
+    registry.add(b19, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
+    registry.add(b19, Rendering::Renderable(true, false));
+
+    auto &b19Body = registry.add(b19, Physics::RigidBody2D());
+    b19Body.setGravityScale(0.0f);
+
+    auto &b19Collider = registry.add(b19, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b19))));
+
+    auto &frictionJoint = registry.add(b19, Physics::FrictionJoint(floor));
+    frictionJoint.setMaxForce(1000.0f);
+    frictionJoint.setMaxTorque(1000.0f);
+    frictionJoint.setCollideConnected(true);
 }
 
 void Application::destroy()

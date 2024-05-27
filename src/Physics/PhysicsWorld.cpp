@@ -14,6 +14,7 @@
 #include "../../include/Physics/Joints/WheelJoint.h"
 #include "../../include/Physics/Joints/WeldJoint.h"
 #include "../../include/Physics/Joints/MotorJoint.h"
+#include "../../include/Physics/Joints/FrictionJoint.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
@@ -755,6 +756,9 @@ void Physics::PhysicsWorld::removeJointComponent(World::World &world, ECS::Entit
     case JointType::MOTOR:
         registry.remove<Physics::MotorJoint>(e);
         break;
+    case JointType::FRICTION:
+        registry.remove<Physics::FrictionJoint>(e);
+        break;
 
     default:
         throw std::runtime_error("PhysicsWorld (removeJointComponent): JointType not implemented.");
@@ -812,6 +816,11 @@ std::unordered_map<Physics::JointType, Physics::Joint *> Physics::PhysicsWorld::
         joints.emplace(JointType::MOTOR, &registry.get<MotorJoint>(e));
     }
 
+    if (registry.has<FrictionJoint>(e))
+    {
+        joints.emplace(JointType::FRICTION, &registry.get<FrictionJoint>(e));
+    }
+
     return joints;
 }
 
@@ -839,6 +848,8 @@ bool Physics::PhysicsWorld::hasJoint(World::World &world, ECS::Entity e, JointTy
         return registry.has<Physics::WeldJoint>(e);
     case JointType::MOTOR:
         return registry.has<Physics::MotorJoint>(e);
+    case JointType::FRICTION:
+        return registry.has<Physics::FrictionJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (hasJoint): JointType not implemented.");
     }
@@ -870,6 +881,8 @@ Physics::Joint *Physics::PhysicsWorld::getJoint(World::World &world, ECS::Entity
         return &registry.get<Physics::WeldJoint>(e);
     case JointType::MOTOR:
         return &registry.get<Physics::MotorJoint>(e);
+    case JointType::FRICTION:
+        return &registry.get<Physics::FrictionJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (getJoint): JointType not implemented.");
     }
