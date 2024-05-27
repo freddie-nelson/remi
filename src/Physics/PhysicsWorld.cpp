@@ -12,6 +12,7 @@
 #include "../../include/Physics/Joints/GearJoint.h"
 #include "../../include/Physics/Joints/MouseJoint.h"
 #include "../../include/Physics/Joints/WheelJoint.h"
+#include "../../include/Physics/Joints/WeldJoint.h"
 
 #include <box2d/b2_body.h>
 #include <box2d/b2_polygon_shape.h>
@@ -743,8 +744,12 @@ void Physics::PhysicsWorld::removeJointComponent(World::World &world, ECS::Entit
         break;
     case JointType::MOUSE:
         registry.remove<Physics::MouseJoint>(e);
+        break;
     case JointType::WHEEL:
         registry.remove<Physics::WheelJoint>(e);
+        break;
+    case JointType::WELD:
+        registry.remove<Physics::WeldJoint>(e);
         break;
 
     default:
@@ -793,6 +798,11 @@ std::unordered_map<Physics::JointType, Physics::Joint *> Physics::PhysicsWorld::
         joints.emplace(JointType::WHEEL, &registry.get<WheelJoint>(e));
     }
 
+    if (registry.has<WeldJoint>(e))
+    {
+        joints.emplace(JointType::WELD, &registry.get<WeldJoint>(e));
+    }
+
     return joints;
 }
 
@@ -816,6 +826,8 @@ bool Physics::PhysicsWorld::hasJoint(World::World &world, ECS::Entity e, JointTy
         return registry.has<Physics::MouseJoint>(e);
     case JointType::WHEEL:
         return registry.has<Physics::WheelJoint>(e);
+    case JointType::WELD:
+        return registry.has<Physics::WeldJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (hasJoint): JointType not implemented.");
     }
@@ -843,6 +855,8 @@ Physics::Joint *Physics::PhysicsWorld::getJoint(World::World &world, ECS::Entity
         return &registry.get<Physics::MouseJoint>(e);
     case JointType::WHEEL:
         return &registry.get<Physics::WheelJoint>(e);
+    case JointType::WELD:
+        return &registry.get<Physics::WeldJoint>(e);
     default:
         throw std::invalid_argument("PhysicsWorld (getJoint): JointType not implemented.");
     }

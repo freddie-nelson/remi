@@ -22,6 +22,7 @@ namespace Physics
         GEAR,
         MOUSE,
         WHEEL,
+        WELD,
     };
 
     /**

@@ -75,8 +75,8 @@ int main()
     registry.add(textEntity, Physics::RigidBody2D());
 
     // use text mesh to create collider
-    // note: text mesh is concave so we use concave polygon collider
-    auto textShape = Physics::ConcavePolygonColliderShape2D(textMesh);
+    // note: text mesh is concave so we use compound polygon collider
+    auto textShape = Physics::CompoundPolygonColliderShape2D(textMesh);
     auto &textCollider = registry.add(textEntity, Physics::Collider2D(&textShape));
 
     // make text non slippery

@@ -89,8 +89,8 @@ int main()
         charTransform.setTranslation(glm::vec2((i - s.size() / 2.0f) * 0.5f, 0.0f));
 
         // use char mesh to create collider
-        // note: char mesh is concave so we use concave polygon collider
-        auto charShape = Physics::ConcavePolygonColliderShape2D(charMesh);
+        // note: char mesh is concave so we use compound polygon collider
+        auto charShape = Physics::CompoundPolygonColliderShape2D(charMesh);
         auto &charCollider = registry.add(charEntity, Physics::Collider2D(&charShape));
 
         // make text non slippery

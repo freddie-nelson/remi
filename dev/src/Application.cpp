@@ -33,6 +33,7 @@
 #include <remi/Physics/Joints/GearJoint.h>
 #include <remi/Physics/Joints/MouseJoint.h>
 #include <remi/Physics/Joints/WheelJoint.h>
+#include <remi/Physics/Joints/WeldJoint.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -285,7 +286,7 @@ void Application::init()
     fpsTransform.setTranslation(localPos);
 
     // create physics bodies
-    size_t count = 100;
+    size_t count = 10;
     float width = 0.5f;
     float height = 0.5f;
     int areaX = std::sqrt(count);
@@ -550,6 +551,27 @@ void Application::init()
     b15Wheel.enableLimit(true);
 
     wheel = b15;
+
+    // weld joint
+    auto b16 = registry.create();
+    registry.add(b16, Core::Transform(glm::vec2(14.0f, 2.0f)));
+    registry.add(b16, Rendering::Mesh2D(2.0f, 2.0f));
+    registry.add(b16, Rendering::Material(Rendering::Color(0.0f, 1.0f, 1.0f, 1.0f)));
+    registry.add(b16, Rendering::Renderable(true, false));
+
+    auto b16Body = registry.add(b16, Physics::RigidBody2D());
+    auto b16Collider = registry.add(b16, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b16))));
+
+    auto b17 = registry.create();
+    registry.add(b17, Core::Transform(glm::vec2(16.0f, 2.0f)));
+    registry.add(b17, Rendering::Mesh2D(2.0f, 12u));
+    registry.add(b17, Rendering::Material(Rendering::Color(0.0f, 1.0f, 1.0f, 1.0f)));
+    registry.add(b17, Rendering::Renderable(true, false));
+
+    auto b17Body = registry.add(b17, Physics::RigidBody2D());
+    auto b17Collider = registry.add(b17, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b17))));
+
+    auto &weldJoint = registry.add(b16, Physics::WeldJoint(b17, glm::vec2(15.0f, 2.0f)));
 }
 
 void Application::destroy()
