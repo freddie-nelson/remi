@@ -26,7 +26,7 @@
 #include <string>
 #include <stdexcept>
 
-Physics::PhysicsWorld::PhysicsWorld(PhysicsWorldConfig config, const World::World *entityWorld, const Core::SpaceTransformer *spaceTransformer) : entityWorld(entityWorld), spaceTransformer(spaceTransformer), world(b2Vec2(config.gravity.x, config.gravity.y))
+Physics::PhysicsWorld::PhysicsWorld(PhysicsWorldConfig config, const World::World *entityWorld, const Core::SpaceTransformer *spaceTransformer) : entityWorld(entityWorld), spaceTransformer(spaceTransformer), world(b2Vec2(config.gravity.x, config.gravity.y)), contactFilter(*entityWorld, bodyToEntity)
 {
     setConfig(config);
 
@@ -170,6 +170,18 @@ std::vector<ECS::Entity> Physics::PhysicsWorld::query(const Core::BoundingCircle
     delete userData;
 
     return circleResults;
+}
+
+void Physics::PhysicsWorld::setGlobalCollisionFilter(ContactFilterCallback callback)
+{
+    contactFilter.setCallback(callback);
+    world.SetContactFilter(&contactFilter);
+}
+
+void Physics::PhysicsWorld::removeGlobalCollisionFilter()
+{
+    contactFilter.setCallback(nullptr);
+    world.SetContactFilter(nullptr);
 }
 
 void Physics::PhysicsWorld::setConfig(PhysicsWorldConfig config)

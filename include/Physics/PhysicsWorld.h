@@ -5,6 +5,7 @@
 #include "Ray.h"
 #include "ContactListener.h"
 #include "BodyUserData.h"
+#include "ContactFilter.h"
 #include "./Joints/Joint.h"
 
 #include <unordered_map>
@@ -108,6 +109,22 @@ namespace Physics
         std::vector<ECS::Entity> query(const Core::BoundingCircle &circle);
 
         /**
+         * Sets the callback to used in the world's contact filter.
+         *
+         * This will be called when two colliders begin contact, to decide if they should collide.
+         *
+         * @param callback The callback to use.
+         */
+        void setGlobalCollisionFilter(ContactFilterCallback callback);
+
+        /**
+         * Removes the global collision filter.
+         *
+         * This will stop using the {@link ContactFilterCallback} to determine collisions.
+         */
+        void removeGlobalCollisionFilter();
+
+        /**
          * Sets the physics world's config.
          *
          * @param config The config object.
@@ -182,6 +199,8 @@ namespace Physics
 
         const Core::SpaceTransformer *spaceTransformer;
         const World::World *entityWorld;
+
+        ContactFilter contactFilter;
 
         /**
          * The box2d world.

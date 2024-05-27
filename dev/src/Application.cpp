@@ -630,6 +630,13 @@ void Application::init()
     auto &b21Collider = registry.add(b21, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b21))));
     b21Collider.setCollisionCategory(0x0002);
     b21Collider.setCollisionMask(0x0001);
+
+    auto &physicsWorld = *engine->getPhysicsWorld();
+    physicsWorld.setGlobalCollisionFilter([&](const World::World &world, ECS::Entity a, ECS::Entity b) -> bool
+                                          {
+                                    // std::cout << "global collision filter: " << a << ", " << b << std::endl;
+                                      return true; });
+    // physicsWorld.removeGlobalCollisionFilter();
 }
 
 void Application::destroy()
