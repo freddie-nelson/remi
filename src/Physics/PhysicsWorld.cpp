@@ -59,6 +59,27 @@ void Physics::PhysicsWorld::fixedUpdate(World::World &world, const Core::Timeste
 
     // update ECS values with box2d values
     updateECSWithBox2DValues(world);
+
+    // auto body = this->world.GetBodyList();
+    // while (body != nullptr)
+    // {
+    //     auto fixture = body->GetFixtureList();
+    //     while (fixture != nullptr)
+    //     {
+    //         auto &filter = fixture->GetFilterData();
+
+    //         if (filter.categoryBits != 1)
+    //         {
+    //             std::cout << "category bits: " << filter.categoryBits << std::endl;
+    //             std::cout << "mask bits: " << filter.maskBits << std::endl;
+    //             std::cout << "group index: " << filter.groupIndex << std::endl;
+    //         }
+
+    //         fixture = fixture->GetNext();
+    //     }
+
+    //     body = body->GetNext();
+    // }
 }
 
 std::vector<Physics::RaycastHit> Physics::PhysicsWorld::raycast(const Ray &ray, RaycastType type)
@@ -463,6 +484,8 @@ void Physics::PhysicsWorld::createBox2DCollider(const World::World &world, ECS::
 
     colliders.insert_or_assign(e, std::move(fixtures));
     collider.setFixtures(&colliders[e]);
+
+    collider.updateCollisionFilter();
 }
 
 void Physics::PhysicsWorld::destroyBox2DCollider(ECS::Entity e)

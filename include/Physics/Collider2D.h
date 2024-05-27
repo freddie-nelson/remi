@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ColliderShape.h"
+#include "CollisionFilter.h"
 #include "../Rendering/Mesh/Mesh.h"
 #include "../Core/Transform.h"
 
@@ -160,7 +161,106 @@ namespace Physics
          */
         void setIsSensor(bool isSensor);
 
-        // TODO: add categories and masks
+        /**
+         * Sets the collision category of the collider.
+         *
+         * @see {@link CollisionFilter} for more information.
+         *
+         * @param category The collision category bits.
+         */
+        void setCollisionCategory(uint16_t category);
+
+        /**
+         * Gets the collision category of the collider.
+         *
+         * @see {@link CollisionFilter} for more information.
+         *
+         * @returns The collision category bits.
+         */
+        uint16_t getCollisionCategory() const;
+
+        /**
+         * Sets the collision mask of the collider.
+         *
+         * @see {@link CollisionFilter} for more information.
+         *
+         * @param mask The collision mask bits.
+         */
+        void setCollisionMask(uint16_t mask);
+
+        /**
+         * Gets the collision mask of the collider.
+         *
+         * @see {@link CollisionFilter} for more information.
+         *
+         * @returns The collision mask bits.
+         */
+        uint16_t getCollisionMask() const;
+
+        /**
+         * Sets the collision group of the collider.
+         *
+         * @see {@link CollisionFilter} for more information.
+         *
+         * @param group The collision group.
+         */
+        void setCollisionGroup(int16_t group);
+
+        /**
+         * Gets the collision group of the collider.
+         *
+         * @returns The collision group.
+         */
+        int16_t getCollisionGroup() const;
+
+        /**
+         * Sets the collision filter of the collider.
+         *
+         * @see {@link CollisionFilter} for more information.
+         *
+         * @param category The collision category bits.
+         * @param mask The collision mask bits.
+         * @param group The collision group.
+         */
+        void setCollisionFilter(uint16_t category, uint16_t mask, int16_t group);
+
+        /**
+         * Sets the collision filter of the collider.
+         *
+         * @see {@link CollisionFilter} for more information.
+         *
+         * @param filter The collision filter.
+         */
+        void setCollisionFilter(CollisionFilter filter);
+
+        /**
+         * Gets the collision filter of the collider.
+         *
+         * @see {@link CollisionFilter} for more information.
+         *
+         * @warning If you modify the returned filter you will need to call `updateCollisionFilter` to apply the changes.
+         *
+         * @returns The collision filter of the collider.
+         */
+        CollisionFilter &getCollisionFilter();
+
+        /**
+         * Gets the collision filter of the collider.
+         *
+         * @see {@link CollisionFilter} for more information.
+         *
+         * @returns The collision filter of the collider.
+         */
+        const CollisionFilter &getCollisionFilter() const;
+
+        /**
+         * Updates the collision filter of the collider.
+         *
+         * This will update the filter of all fixtures.
+         *
+         * @note You will need to call this if you directly modify the collision filter from `getCollisionFilter`.
+         */
+        void updateCollisionFilter();
 
         /**
          * Gets the underlying Box2D fixture.
@@ -193,7 +293,7 @@ namespace Physics
         /**
          * The shape of the collider.
          */
-        ColliderShape2D *shape;
+        ColliderShape2D *shape = nullptr;
 
         /**
          * The density of the collider.
@@ -227,5 +327,10 @@ namespace Physics
          * A sensor will not cause collisions but will still report them.
          */
         bool isSensor = false;
+
+        /**
+         * The collision filter of the collider.
+         */
+        CollisionFilter filter = CollisionFilter();
     };
 }

@@ -607,6 +607,29 @@ void Application::init()
     frictionJoint.setMaxForce(1000.0f);
     frictionJoint.setMaxTorque(1000.0f);
     frictionJoint.setCollideConnected(true);
+
+    // collision filter
+    auto b20 = registry.create();
+    registry.add(b20, Core::Transform(glm::vec2(-18.0f, 5.0f)));
+    registry.add(b20, Rendering::Mesh2D(1.0f, 3u));
+    registry.add(b20, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
+    registry.add(b20, Rendering::Renderable(true, false));
+
+    auto &b20Body = registry.add(b20, Physics::RigidBody2D());
+    auto &b20Collider = registry.add(b20, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b20))));
+    b20Collider.setCollisionCategory(0x0002);
+    b20Collider.setCollisionMask(0x0001);
+
+    auto b21 = registry.create();
+    registry.add(b21, Core::Transform(glm::vec2(-20.0f, 5.0f)));
+    registry.add(b21, Rendering::Mesh2D(1.0f, 3u));
+    registry.add(b21, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
+    registry.add(b21, Rendering::Renderable(true, false));
+
+    auto &b21Body = registry.add(b21, Physics::RigidBody2D());
+    auto &b21Collider = registry.add(b21, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b21))));
+    b21Collider.setCollisionCategory(0x0002);
+    b21Collider.setCollisionMask(0x0001);
 }
 
 void Application::destroy()

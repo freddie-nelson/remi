@@ -22,6 +22,7 @@ Physics::Collider2D::Collider2D(const Collider2D &other)
     restitutionThreshold = other.restitutionThreshold;
     isSensor = other.isSensor;
     fixtures = nullptr;
+    filter = other.filter;
     // fixtures = other.fixtures;
 }
 
@@ -39,6 +40,7 @@ Physics::Collider2D::Collider2D(const Collider2D &&other)
     restitutionThreshold = other.restitutionThreshold;
     isSensor = other.isSensor;
     fixtures = nullptr;
+    filter = other.filter;
     // fixtures = other.fixtures;
 }
 
@@ -61,6 +63,7 @@ Physics::Collider2D &Physics::Collider2D::operator=(const Physics::Collider2D &o
     restitutionThreshold = other.restitutionThreshold;
     isSensor = other.isSensor;
     fixtures = nullptr;
+    filter = other.filter;
     // fixtures = other.fixtures;
 
     return *this;
@@ -85,6 +88,7 @@ Physics::Collider2D &Physics::Collider2D::operator=(const Physics::Collider2D &&
     restitutionThreshold = other.restitutionThreshold;
     isSensor = other.isSensor;
     fixtures = nullptr;
+    filter = other.filter;
     // fixtures = other.fixtures;
 
     return *this;
@@ -207,6 +211,68 @@ void Physics::Collider2D::setIsSensor(bool isSensor)
     }
 }
 
+void Physics::Collider2D::setCollisionCategory(uint16_t category)
+{
+    filter.category = category;
+
+    updateCollisionFilter();
+}
+
+uint16_t Physics::Collider2D::getCollisionCategory() const
+{
+    return filter.category;
+}
+
+void Physics::Collider2D::setCollisionMask(uint16_t mask)
+{
+    filter.mask = mask;
+
+    updateCollisionFilter();
+}
+
+uint16_t Physics::Collider2D::getCollisionMask() const
+{
+    return filter.mask;
+}
+
+void Physics::Collider2D::setCollisionGroup(int16_t group)
+{
+    filter.group = group;
+
+    updateCollisionFilter();
+}
+
+int16_t Physics::Collider2D::getCollisionGroup() const
+{
+    return filter.group;
+}
+
+void Physics::Collider2D::setCollisionFilter(uint16_t category, uint16_t mask, int16_t group)
+{
+    filter.category = category;
+    filter.mask = mask;
+    filter.group = group;
+
+    updateCollisionFilter();
+}
+
+void Physics::Collider2D::setCollisionFilter(CollisionFilter filter)
+{
+    this->filter = filter;
+
+    updateCollisionFilter();
+}
+
+Physics::CollisionFilter &Physics::Collider2D::getCollisionFilter()
+{
+    return filter;
+}
+
+const Physics::CollisionFilter &Physics::Collider2D::getCollisionFilter() const
+{
+    return filter;
+}
+
 std::vector<b2Fixture *> *Physics::Collider2D::getFixtures()
 {
     return fixtures;
@@ -215,4 +281,20 @@ std::vector<b2Fixture *> *Physics::Collider2D::getFixtures()
 void Physics::Collider2D::setFixtures(std::vector<b2Fixture *> *fixtures)
 {
     this->fixtures = fixtures;
+}
+
+void Physics::Collider2D::updateCollisionFilter()
+{
+    if (fixtures != nullptr)
+    {
+        for (b2Fixture *fixture : *fixtures)
+        {
+            b2Filter f = fixture->GetFilterData();
+            f.categoryBits = filter.category;
+            f.maskBits = filter.mask;
+            f.groupIndex = filter.group;
+
+            fixture->SetFilterData(f);
+        }
+    }
 }
