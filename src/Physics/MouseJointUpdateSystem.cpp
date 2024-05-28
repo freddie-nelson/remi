@@ -14,8 +14,10 @@ Physics::MouseJointUpdateSystem::MouseJointUpdateSystem(Input::Mouse *mouse, Cor
     }
 }
 
-void Physics::MouseJointUpdateSystem::update(World::World &world, const Core::Timestep &timestep)
+void Physics::MouseJointUpdateSystem::update(const ECS::System::SystemUpdateData &data)
 {
+    auto &world = data.world;
+
     auto mouse = this->mouse->getPosition(true);
     auto mouseWorld = this->spaceTransformer->transform(mouse, Core::SpaceTransformer::Space::SCREEN, Core::SpaceTransformer::Space::WORLD);
 

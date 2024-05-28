@@ -59,8 +59,9 @@ Rendering::Renderer::~Renderer()
 {
 }
 
-void Rendering::Renderer::update(World::World &world, const Core::Timestep &timestep)
+void Rendering::Renderer::update(const ECS::System::SystemUpdateData &data)
 {
+    auto &world = data.world;
     auto &registry = world.getRegistry();
 
     // resize renderer to match window size

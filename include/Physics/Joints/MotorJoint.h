@@ -1,3 +1,5 @@
+#pragma once
+
 #include "./Joint.h"
 
 #include <box2d/b2_motor_joint.h>

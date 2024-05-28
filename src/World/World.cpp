@@ -10,7 +10,7 @@ World::World::~World()
 {
 }
 
-void World::World::update(const Core::Timestep &timestep)
+void World::World::update(const ECS::System::SystemUpdateData &data)
 {
     // create a copy of the systems vector to avoid issues with systems being added or removed during the loop
     auto systemsCopy = systems;
@@ -23,13 +23,13 @@ void World::World::update(const Core::Timestep &timestep)
             continue;
         }
 
-        system->update(*this, timestep);
+        system->update(data);
     }
 
     sceneGraph.updateModelMatrices();
 }
 
-void World::World::fixedUpdate(const Core::Timestep &timestep)
+void World::World::fixedUpdate(const ECS::System::SystemUpdateData &data)
 {
     // create a copy of the systems vector to avoid issues with systems being added or removed during the loop
     auto systemsCopy = systems;
@@ -42,18 +42,18 @@ void World::World::fixedUpdate(const Core::Timestep &timestep)
             continue;
         }
 
-        system->fixedUpdate(*this, timestep);
+        system->fixedUpdate(data);
     }
 
     sceneGraph.updateModelMatrices();
 }
 
-const std::vector<World::System *> &World::World::getSystems()
+const std::vector<ECS::System *> &World::World::getSystems()
 {
     return systems;
 }
 
-bool World::World::addSystem(System *system)
+bool World::World::addSystem(ECS::System *system)
 {
     if (hasSystem(system))
     {
@@ -70,7 +70,7 @@ bool World::World::addSystem(System *system)
     return true;
 }
 
-bool World::World::removeSystem(System *system)
+bool World::World::removeSystem(ECS::System *system)
 {
     if (!hasSystem(system))
     {
@@ -90,7 +90,7 @@ bool World::World::removeSystem(System *system)
     return false;
 }
 
-bool World::World::hasSystem(System *system)
+bool World::World::hasSystem(ECS::System *system)
 {
     return systemsSet.contains(system);
 }

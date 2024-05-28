@@ -8,8 +8,9 @@
 #include <remi/Rendering/Font/Font.h>
 #include <remi/Config.h>
 #include <remi/Engine.h>
+#include <remi/ECS/System.h>
 
-class Fps : public World::System
+class Fps : public ECS::System
 {
 public:
     Fps(remi::Engine *engine) : engine(engine)
@@ -45,8 +46,11 @@ public:
         world.addSystem(this);
     }
 
-    void update(World::World &world, const Core::Timestep &timestep) override
+    void update(const ECS::System::SystemUpdateData &data) override
     {
+        auto &world = data.world;
+        auto &timestep = data.timestep;
+
         auto &registry = world.getRegistry();
 
         int fps = 1.0f / timestep.getSeconds();

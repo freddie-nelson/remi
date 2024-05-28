@@ -9,8 +9,11 @@ Rendering::AnimationSystem::~AnimationSystem()
 {
 }
 
-void Rendering::AnimationSystem::update(World::World &world, const Core::Timestep &timestep)
+void Rendering::AnimationSystem::update(const ECS::System::SystemUpdateData &data)
 {
+    auto &world = data.world;
+    auto &timestep = data.timestep;
+
     auto &registry = world.getRegistry();
 
     auto &entities = registry.view<AnimatedMaterial>();

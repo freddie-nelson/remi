@@ -1,3 +1,5 @@
+#pragma once
+
 #include "./Joint.h"
 
 #include <box2d/b2_friction_joint.h>

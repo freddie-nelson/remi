@@ -3,10 +3,10 @@
 #include "../ECS/Registry.h"
 #include "../Scene/SceneGraph.h"
 #include "../Core/Timestep.h"
+#include "../ECS/System.h"
 
 namespace World
 {
-    class System;
 
     /**
      * Represents the world.
@@ -49,21 +49,21 @@ namespace World
          *
          * @param timestep The timestep since the last update.
          */
-        void update(const Core::Timestep &timestep);
+        void update(const ECS::System::SystemUpdateData &data);
 
         /**
          * Runs all fixed updates.
          *
          * @param timestep The timestep since the last update.
          */
-        void fixedUpdate(const Core::Timestep &timestep);
+        void fixedUpdate(const ECS::System::SystemUpdateData &data);
 
         /**
          * Gets the world's systems.
          *
          * @returns The world's systems.
          */
-        const std::vector<System *> &getSystems();
+        const std::vector<ECS::System *> &getSystems();
 
         /**
          * Adds a system to the world.
@@ -74,7 +74,7 @@ namespace World
          *
          * @throws std::invalid_argument If the system is nullptr.
          */
-        bool addSystem(System *system);
+        bool addSystem(ECS::System *system);
 
         /**
          * Removes a system from the world.
@@ -83,7 +83,7 @@ namespace World
          *
          * @returns True if the system was removed, false otherwise.
          */
-        bool removeSystem(System *system);
+        bool removeSystem(ECS::System *system);
 
         /**
          * Checks if the world has the given system.
@@ -92,7 +92,7 @@ namespace World
          *
          * @returns True if the world has the system, false otherwise.
          */
-        bool hasSystem(System *system);
+        bool hasSystem(ECS::System *system);
 
         /**
          * Gets the registry.
@@ -126,34 +126,7 @@ namespace World
         ECS::Registry registry;
         Scene::SceneGraph sceneGraph;
 
-        std::unordered_set<System *> systemsSet;
-        std::vector<System *> systems;
-    };
-
-    /**
-     * Represents a system that can be updated.
-     *
-     * A system is used to update the world.
-     */
-    class System
-    {
-    public:
-        virtual ~System() = default;
-
-        /**
-         * Updates the system.
-         *
-         * @param world The world to use.
-         * @param timestep The timestep since the last update.
-         */
-        virtual void update(World &world, const Core::Timestep &timestep){};
-
-        /**
-         * Updates the system at a fixed rate.
-         *
-         * @param world The world to use.
-         * @param timestep The timestep since the last update.
-         */
-        virtual void fixedUpdate(World &world, const Core::Timestep &timestep){};
+        std::unordered_set<ECS::System *> systemsSet;
+        std::vector<ECS::System *> systems;
     };
 }

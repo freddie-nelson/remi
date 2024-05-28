@@ -632,10 +632,10 @@ void Application::init()
     b21Collider.setCollisionMask(0x0001);
 
     auto &physicsWorld = *engine->getPhysicsWorld();
-    physicsWorld.setGlobalCollisionFilter([&](const World::World &world, ECS::Entity a, ECS::Entity b) -> bool
-                                          {
-                                    // std::cout << "global collision filter: " << a << ", " << b << std::endl;
-                                      return true; });
+    // physicsWorld.setGlobalCollisionFilter([&](const World::World &world, ECS::Entity a, ECS::Entity b) -> bool
+    //                                       {
+    //                                 // std::cout << "global collision filter: " << a << ", " << b << std::endl;
+    //                                   return true; });
     // physicsWorld.removeGlobalCollisionFilter();
 }
 
@@ -650,8 +650,11 @@ unsigned long long averageFps = 0;
 float timeSinceStart = 0;
 float textAlpha = 1.0f;
 
-void Application::update(World::World &world, const Core::Timestep &timestep)
+void Application::update(const ECS::System::SystemUpdateData &data)
 {
+    auto &world = data.world;
+    auto &timestep = data.timestep;
+
     auto &registry = world.getRegistry();
 
     auto spaceTransformer = engine->getSpaceTransformer();
@@ -798,8 +801,11 @@ bool deleted = false;
 bool holding = false;
 ECS::Entity mouseEntity;
 
-void Application::fixedUpdate(World::World &world, const Core::Timestep &timestep)
+void Application::fixedUpdate(const ECS::System::SystemUpdateData &data)
 {
+    auto &world = data.world;
+    auto &timestep = data.timestep;
+
     auto &registry = world.getRegistry();
     auto &sceneGraph = world.getSceneGraph();
     auto &physicsWorld = *engine->getPhysicsWorld();

@@ -3,8 +3,9 @@
 #include <remi/Engine.h>
 #include <remi/Rendering/Camera/Camera.h>
 #include <remi/Rendering/Camera/ActiveCamera.h>
+#include <remi/ECS/System.h>
 
-class BasicCamera : public World::System
+class BasicCamera : public ECS::System
 {
 public:
     BasicCamera(remi::Engine *engine) : engine(engine)
@@ -20,8 +21,11 @@ public:
         world.addSystem(this);
     }
 
-    void update(World::World &world, const Core::Timestep &timestep) override
+    void update(const ECS::System::SystemUpdateData &data) override
     {
+        auto &world = data.world;
+        auto &timestep = data.timestep;
+
         auto &keyboard = *engine->getKeyboard();
         auto &registry = world.getRegistry();
 

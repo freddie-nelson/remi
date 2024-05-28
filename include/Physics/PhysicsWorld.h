@@ -7,6 +7,7 @@
 #include "BodyUserData.h"
 #include "ContactFilter.h"
 #include "./Joints/Joint.h"
+#include "../ECS/System.h"
 
 #include <unordered_map>
 #include <vector>
@@ -52,7 +53,7 @@ namespace Physics
      *
      * Stores and updates the physics world.
      */
-    class PhysicsWorld : public World::System
+    class PhysicsWorld : public ECS::System
     {
     public:
         /**
@@ -74,7 +75,7 @@ namespace Physics
          * @param world The world to use.
          * @param timestep The timestep since the last update.
          */
-        void fixedUpdate(World::World &world, const Core::Timestep &timestep) override;
+        void fixedUpdate(const ECS::System::SystemUpdateData &data) override;
 
         // ! TODO: support filtering for raycasts (by entity? by collision filter? etc)
 

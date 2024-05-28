@@ -4,13 +4,14 @@
 #include "Joints/MouseJoint.h"
 #include "../Input/Mouse.h"
 #include "../Core/SpaceTransformer.h"
+#include "../ECS/System.h"
 
 namespace Physics
 {
     /**
      * A system that updates mouse joints.
      */
-    class MouseJointUpdateSystem : public World::System
+    class MouseJointUpdateSystem : public ECS::System
     {
     public:
         /**
@@ -24,10 +25,9 @@ namespace Physics
         /**
          * Updates the mouse joints.
          *
-         * @param world The world.
-         * @param timestep The timestep.
+         * @param data The system update data.
          */
-        void update(World::World &world, const Core::Timestep &timestep) override;
+        void update(const ECS::System::SystemUpdateData &data) override;
 
     private:
         Input::Mouse *mouse;

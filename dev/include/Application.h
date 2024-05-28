@@ -2,9 +2,10 @@
 
 #include <remi/Rendering/Renderer.h>
 #include <remi/World/World.h>
+#include <remi/ECS/System.h>
 #include <remi/Engine.h>
 
-class Application : public World::System
+class Application : public ECS::System
 {
 public:
     Application();
@@ -18,7 +19,7 @@ private:
     void init();
     void destroy();
 
-    void update(World::World &world, const Core::Timestep &timestep);
+    void update(const ECS::System::SystemUpdateData &data) override;
 
-    void fixedUpdate(World::World &world, const Core::Timestep &timestep);
+    void fixedUpdate(const ECS::System::SystemUpdateData &data) override;
 };

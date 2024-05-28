@@ -103,7 +103,12 @@ void remi::Engine::run()
 
     // pre update physics world
     // this will make sure that the physics world is in sync with the world before the first update
-    physicsWorld->fixedUpdate(*world, Core::Timestep(0));
+    physicsWorld->fixedUpdate({*world,
+                               *physicsWorld,
+                               *spaceTransformer,
+                               Core::Timestep(0),
+                               *mouse,
+                               *keyboard});
 
 #ifdef __EMSCRIPTEN__
     std::function<void()> mainLoopWrapper = std::bind(&Engine::mainLoop, this, args);
@@ -191,9 +196,16 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
         Core::Timestep fixedTimestep(0);
         fixedTimestep.update(timeBetweenFixedUpdates);
 
-        world->fixedUpdate(fixedTimestep);
+        ECS::System::SystemUpdateData data{*world,
+                                           *physicsWorld,
+                                           *spaceTransformer,
+                                           fixedTimestep,
+                                           *mouse,
+                                           *keyboard};
 
-        physicsWorld->fixedUpdate(*world, fixedTimestep);
+        world->fixedUpdate(data);
+
+        physicsWorld->fixedUpdate(data);
 
         timeSinceLastFixedUpdate = 0;
 
@@ -217,14 +229,21 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
 
         bool isMinimized = window->isMinimized();
 
+        ECS::System::SystemUpdateData data{*world,
+                                           *physicsWorld,
+                                           *spaceTransformer,
+                                           timestep,
+                                           *mouse,
+                                           *keyboard};
+
         // only update renderer if window is not minimized
         // otherwise resizing render target will cause a crash
         if (!isMinimized)
         {
-            renderer->update(*world, timestep);
+            renderer->update(data);
         }
 
-        world->update(timestep);
+        world->update(data);
 
         // no need to render if window is minimized
         if (!isMinimized)

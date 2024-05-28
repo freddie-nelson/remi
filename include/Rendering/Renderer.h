@@ -12,6 +12,7 @@
 #include "../Core/AABB/AABBTree.h"
 #include "../Core/Window.h"
 #include "./RenderTarget.h"
+#include "../ECS/System.h"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -71,7 +72,7 @@ namespace Rendering
      *
      * By default the renderer will not unbind unused textures. This can be toggled with `setUnbindUnusedTextures`. It most likely is not needed, unless you have a lot of textures.
      */
-    class Renderer : public World::System
+    class Renderer : public ECS::System
     {
     public:
         /**
@@ -101,10 +102,9 @@ namespace Rendering
          *
          * This will also update the renderer's render target to match the renderer's size if the render target is not null.
          *
-         * @param world The world to update from.
-         * @param timestep The timestep since the last update.
+         * @param data The update data for the system.
          */
-        void update(World::World &world, const Core::Timestep &timestep) override;
+        void update(const ECS::System::SystemUpdateData &data) override;
 
         /**
          * Clears the screen framebuffer and render target framebuffer.

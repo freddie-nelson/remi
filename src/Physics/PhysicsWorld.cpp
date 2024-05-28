@@ -43,8 +43,10 @@ Physics::PhysicsWorld::~PhysicsWorld()
     // TODO: implement
 }
 
-void Physics::PhysicsWorld::fixedUpdate(World::World &world, const Core::Timestep &timestep)
+void Physics::PhysicsWorld::fixedUpdate(const ECS::System::SystemUpdateData &data)
 {
+    auto &[world, physicsWorld, spaceTransformer, timestep] = data;
+
     // update contact listener world
     contactListener.setWorld(&world);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../World/World.h"
+#include "../../ECS/System.h"
 
 namespace Rendering
 {
@@ -9,7 +10,7 @@ namespace Rendering
      *
      * Steps all AnimatedTextures in the registry every frame.
      */
-    class AnimationSystem : public World::System
+    class AnimationSystem : public ECS::System
     {
     public:
         /**
@@ -25,9 +26,8 @@ namespace Rendering
         /**
          * Updates the system.
          *
-         * @param world The world to use.
-         * @param timestep The timestep since the last update.
+         * @param data The system update data, holds references to the world, physics world, space transformer, and timestep.
          */
-        virtual void update(World::World &world, const Core::Timestep &timestep);
+        virtual void update(const ECS::System::SystemUpdateData &data) override;
     };
 }
