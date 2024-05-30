@@ -82,8 +82,6 @@ Input::MouseMode Input::Mouse::getMode() const
 
 void Input::Mouse::updateObserver(std::string event, const std::vector<SDL_Event> &data)
 {
-    std::cout << "Mouse::updateObserver" << std::endl;
-
     for (auto &event : data)
     {
         switch (event.type)

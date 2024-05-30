@@ -62,8 +62,6 @@ const std::vector<SDL_Event> &Core::Window::pollEvents()
         event = SDL_Event();
     }
 
-    std::cout << "Window::pollEvents: " << events.size() << " events." << std::endl;
-
     notifyObservers(Core::WindowPollEventName, events);
 
     return events;

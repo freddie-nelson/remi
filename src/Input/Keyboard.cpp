@@ -73,7 +73,7 @@ void Input::Keyboard::updateObserver(std::string event, const std::vector<SDL_Ev
         {
         case SDL_KEYDOWN:
         {
-            auto key = static_cast<Key>(event.key.keysym.sym);
+            auto key = static_cast<Key>(event.key.keysym.scancode);
 
             keys[key] = true;
             mods[key] = event.key.keysym.mod;
@@ -82,7 +82,7 @@ void Input::Keyboard::updateObserver(std::string event, const std::vector<SDL_Ev
         }
         case SDL_KEYUP:
         {
-            auto key = static_cast<Key>(event.key.keysym.sym);
+            auto key = static_cast<Key>(event.key.keysym.scancode);
 
             keys[key] = false;
             mods[key] = 0;

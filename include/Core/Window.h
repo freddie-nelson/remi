@@ -12,6 +12,11 @@
 
 namespace Core
 {
+    /**
+     * The type of the window.
+     *
+     * This determines wether the window is in windowed, fullscreen or windowed fullscreen mode.
+     */
     enum WindowType
     {
         WINDOWED,

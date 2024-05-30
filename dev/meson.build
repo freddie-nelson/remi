@@ -39,12 +39,12 @@ if cross_target == 'native'
     name_suffix = 'exe'
 
     if host_machine.system() == 'windows' 
-        dependencies += dependency('sdl2main', required : true)
+        dependencies += dependency('sdl2main', required : true, static : true)
     endif
 
-    if get_option('buildtype') == 'release'
-        link_args += ['-mwindows']
-    endif
+    # if get_option('buildtype') == 'release'
+    #     link_args += ['-mwindows']
+    # endif
 endif
 
 # wasm build

@@ -13,13 +13,13 @@ namespace Input
      */
     enum MouseButton
     {
-        LEFT,
-        RIGHT,
-        MIDDLE,
-        BACK,
-        FORWARD,
+        LEFT = SDL_BUTTON_LEFT,
+        MIDDLE = SDL_BUTTON_MIDDLE,
+        RIGHT = SDL_BUTTON_RIGHT,
+        BACK = SDL_BUTTON_X1,
+        FORWARD = SDL_BUTTON_X2,
 
-        __LAST_MOUSE_BUTTON__ = MouseButton::FORWARD
+        __LAST_MOUSE_BUTTON__ = 255,
     };
 
     /**
@@ -137,6 +137,6 @@ namespace Input
          *
          * This maps directly to the MouseButton enum.
          */
-        bool buttons[5];
+        bool buttons[MouseButton::__LAST_MOUSE_BUTTON__];
     };
 }

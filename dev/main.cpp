@@ -1,6 +1,8 @@
 #include "./include/Application.h"
 
-int main(int argv, char **args)
+#include <iostream>
+
+int main(int argc, char *argv[])
 {
     Application app;
     app.run();
