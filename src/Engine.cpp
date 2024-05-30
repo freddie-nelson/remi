@@ -188,8 +188,6 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
     timeSinceLastFixedUpdate += tick.getMicroseconds();
     timeSinceLastUpdate += tick.getMicroseconds();
 
-    std::cout << "main loop" << std::endl;
-
     // run fixed updates
     if (timeSinceLastFixedUpdate >= timeBetweenFixedUpdates)
     {

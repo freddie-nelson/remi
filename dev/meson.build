@@ -75,4 +75,9 @@ endif
 
 src = ['main.cpp', 'src/Application.cpp', 'src/Globals.cpp']
 
-executable('dev', src, dependencies : dependencies, link_args : link_args, cpp_args : cpp_args, link_with : link_with, name_suffix : name_suffix, include_directories : inc_dirs, win_subsystem : 'windows',)
+win_subsystem = 'console'
+if get_option('buildtype') == 'release'
+    win_subsystem = 'windows'
+endif
+
+executable('dev', src, dependencies : dependencies, link_args : link_args, cpp_args : cpp_args, link_with : link_with, name_suffix : name_suffix, include_directories : inc_dirs, win_subsystem : win_subsystem,)
