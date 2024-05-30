@@ -4,32 +4,27 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <thread>
 
-Core::Window::Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, bool fullscreen)
+Core::Window::Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, WindowType type)
     : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight)
 {
-    if (!glfwInit())
+    if (!SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        throw std::runtime_error("Failed to initialize GLFW.");
+        throw std::runtime_error("Failed to initialize SDL2. Error: " + std::string(SDL_GetError()));
     }
 
-    GLFWmonitor *monitor = nullptr;
-    if (fullscreen)
+    internalWindow = createWindow(openglMajorVersion, openglMinorVersion, true, type);
+    if (!internalWindow)
     {
-        monitor = glfwGetPrimaryMonitor();
-    }
-
-    glfwWindow = createGLFWWindow(openglMajorVersion, openglMinorVersion, true, monitor);
-    if (!glfwWindow)
-    {
-        throw std::runtime_error("Failed to create GLFW window.");
+        throw std::runtime_error("Failed to create SDL2 window.");
     }
 
     // std::cout << "Window created." << std::endl;
 
     // create opengl context
-    auto context = createOpenGLContext(glfwWindow);
+    auto context = createOpenGLContext(internalWindow);
 
     // Output the opengl version
     // std::cout << "OpenGL version: " << context->versionString << std::endl;
@@ -47,34 +42,61 @@ void Core::Window::update(const Core::Timestep &timestep)
 
 void Core::Window::destroy()
 {
-    glfwDestroyWindow(glfwWindow);
-    glfwTerminate();
+    SDL_DestroyWindow(internalWindow);
+    SDL_Quit();
 }
 
 void Core::Window::swapBuffers()
 {
-    glfwSwapBuffers(glfwWindow);
+    SDL_GL_SwapWindow(internalWindow);
 }
 
-void Core::Window::pollEvents()
+const std::vector<SDL_Event> &Core::Window::pollEvents()
 {
-    glfwPollEvents();
+    events.clear();
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        events.push_back(std::move(event));
+        event = SDL_Event();
+    }
+
+    std::cout << "Window::pollEvents: " << events.size() << " events." << std::endl;
+
+    notifyObservers(Core::WindowPollEventName, events);
+
+    return events;
+}
+
+const std::vector<SDL_Event> &Core::Window::getEvents() const
+{
+    return events;
 }
 
 void Core::Window::show()
 {
     showWindow = true;
 
-    if (glfwWindow)
-        glfwShowWindow(glfwWindow);
+    if (internalWindow != nullptr)
+    {
+        SDL_ShowWindow(internalWindow);
+    }
 }
 
 void Core::Window::hide()
 {
     showWindow = false;
 
-    if (glfwWindow)
-        glfwHideWindow(glfwWindow);
+    if (internalWindow != nullptr)
+    {
+        SDL_HideWindow(internalWindow);
+    }
+}
+
+bool Core::Window::isShown() const
+{
+    return showWindow;
 }
 
 glm::uvec2 Core::Window::getSize() const
@@ -99,7 +121,7 @@ void Core::Window::setSize(const glm::uvec2 &size)
 unsigned int Core::Window::getWidth() const
 {
     int width, height;
-    glfwGetFramebufferSize(glfwWindow, &width, &height);
+    SDL_GetWindowSize(internalWindow, &width, &height);
 
     return width;
 }
@@ -111,13 +133,13 @@ void Core::Window::setWidth(unsigned int width)
         throw std::invalid_argument("width must be greater than 0.");
     }
 
-    glfwSetWindowSize(glfwWindow, width, getHeight());
+    SDL_SetWindowSize(internalWindow, width, getHeight());
 }
 
 unsigned int Core::Window::getHeight() const
 {
     int width, height;
-    glfwGetFramebufferSize(glfwWindow, &width, &height);
+    SDL_GetWindowSize(internalWindow, &width, &height);
 
     return height;
 }
@@ -129,13 +151,13 @@ void Core::Window::setHeight(unsigned int height)
         throw std::invalid_argument("height must be greater than 0.");
     }
 
-    glfwSetWindowSize(glfwWindow, getWidth(), height);
+    SDL_SetWindowSize(internalWindow, getWidth(), height);
 }
 
 glm::ivec2 Core::Window::getPosition() const
 {
     int x, y;
-    glfwGetWindowPos(glfwWindow, &x, &y);
+    SDL_GetWindowPosition(internalWindow, &x, &y);
 
     return glm::ivec2(x, y);
 }
@@ -147,102 +169,149 @@ void Core::Window::setPosition(int x, int y)
         throw std::invalid_argument("x and y must be greater than or equal to 0.");
     }
 
-    glfwSetWindowPos(glfwWindow, x, y);
+    SDL_SetWindowPosition(internalWindow, x, y);
 }
 
-void Core::Window::toggleFullscreen(bool fullscreen)
+Core::WindowType Core::Window::getType() const
 {
-    if (fullscreen)
+    return type;
+}
+
+void Core::Window::setType(WindowType type)
+{
+    int code = 0;
+
+    if (type == WindowType::FULLSCREEN)
     {
-        glfwSetWindowMonitor(glfwWindow, glfwGetPrimaryMonitor(), 0, 0, initialWindowWidth, initialWindowHeight, GLFW_DONT_CARE);
+        code = SDL_SetWindowFullscreen(internalWindow, SDL_WINDOW_FULLSCREEN);
+    }
+    else if (type == WindowType::WINDOWED_FULLSCREEN)
+    {
+        code = SDL_SetWindowFullscreen(internalWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    }
+    else if (type == WindowType::WINDOWED)
+    {
+        code = SDL_SetWindowFullscreen(internalWindow, 0);
     }
     else
     {
-        glfwSetWindowMonitor(glfwWindow, nullptr, 0, 0, initialWindowWidth, initialWindowHeight, GLFW_DONT_CARE);
+        throw std::invalid_argument("Window (setType): WindowType not implemented.");
     }
-}
 
-bool Core::Window::isFullscreen() const
-{
-    return glfwGetWindowMonitor(glfwWindow) != nullptr;
+    if (code < 0)
+    {
+        std::cout << "Failed to set window type. Error: " << SDL_GetError() << std::endl;
+    }
 }
 
 void Core::Window::toggleResizeable(bool resizeable)
 {
-    glfwSetWindowAttrib(glfwWindow, GLFW_RESIZABLE, resizeable);
+    this->resizeable = resizeable;
+    SDL_SetWindowResizable(internalWindow, resizeable ? SDL_TRUE : SDL_FALSE);
 }
 
 bool Core::Window::isResizeable() const
 {
-    return glfwGetWindowAttrib(glfwWindow, GLFW_RESIZABLE);
+    return SDL_GetWindowFlags(internalWindow) & SDL_WINDOW_RESIZABLE;
 }
 
 void Core::Window::toggleVsync(bool enable)
 {
-    glfwSwapInterval(enable ? 1 : 0);
+    // SDL_SetHint(SDL_HINT_RENDER_VSYNC, enable ? "1" : "0");
+
+    if (SDL_GL_SetSwapInterval(enable ? 1 : 0) < 0)
+    {
+        std::cout << "Failed to set vsync. Error: " << SDL_GetError() << std::endl;
+    }
 }
 
-GLFWwindow *Core::Window::getGLFWWindow() const
+SDL_Window *Core::Window::getInternalWindow()
 {
-    return glfwWindow;
+    return internalWindow;
 }
 
 bool Core::Window::getWindowShouldClose() const
 {
-    return glfwWindowShouldClose(glfwWindow);
+    for (const auto &event : events)
+    {
+        if (event.type == SDL_QUIT)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool Core::Window::isMinimized() const
 {
-    return glfwGetWindowAttrib(glfwWindow, GLFW_ICONIFIED);
+    return SDL_GetWindowFlags(internalWindow) & SDL_WINDOW_MINIMIZED;
 }
 
 bool Core::Window::isMaximized() const
 {
-    return glfwGetWindowAttrib(glfwWindow, GLFW_MAXIMIZED);
+    return SDL_GetWindowFlags(internalWindow) & SDL_WINDOW_MAXIMIZED;
 }
 
-GLFWwindow *Core::Window::createGLFWWindow(int openglMajorVersion, int openglMinorVersion, bool debugContext, GLFWmonitor *monitor)
+SDL_Window *Core::Window::createWindow(int openglMajorVersion, int openglMinorVersion, bool debugContext, WindowType type)
 {
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, openglMajorVersion);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, openglMinorVersion);
-    glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, openglMajorVersion);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, openglMinorVersion);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_NO_ERROR, SDL_TRUE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 
     // enable debug context if opengl version is greater than or equal to 4.3
     if (openglMajorVersion >= 4 && openglMinorVersion >= 3)
     {
-        glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_FALSE);
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, debugContext);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_NO_ERROR, SDL_FALSE);
+
+        if (debugContext)
+        {
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+        }
     }
 
-    glfwWindow = glfwCreateWindow(initialWindowWidth, initialWindowHeight, windowTitle.c_str(), monitor, NULL);
-    if (!glfwWindow)
+    internalWindow = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, initialWindowWidth, initialWindowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    if (internalWindow == nullptr)
     {
 #ifdef __EMSCRIPTEN__
         const char *msg = "Cannot get exact error on wasm.";
         const char **error = &msg;
 #else
-        const char **error = nullptr;
-        glfwGetError(error);
+        const char *error = SDL_GetError();
 #endif
 
-        std::cout << "Failed to create glfw window. Error: " << *error << std::endl;
+        std::cout << "Failed to create sdl2 window. Error: " << error << std::endl;
 
-        glfwTerminate();
         return nullptr;
     }
 
-    return glfwWindow;
+    setType(type);
+
+    if (!showWindow)
+    {
+        hide();
+    }
+
+    if (isResizeable())
+    {
+        toggleResizeable(false);
+    }
+
+    return internalWindow;
 }
 
-Core::Window::OpenGLContext *Core::Window::createOpenGLContext(GLFWwindow *window)
+Core::Window::OpenGLContext *Core::Window::createOpenGLContext(SDL_Window *window)
 {
-    glfwMakeContextCurrent(window);
+    SDL_GLContext context = SDL_GL_CreateContext(window);
+    if (context == nullptr)
+    {
+        std::cout << "Failed to create OpenGL context. Error: " << SDL_GetError() << std::endl;
+        return nullptr;
+    }
 
 #ifndef __EMSCRIPTEN__
-    int version = gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress);
+    int version = gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
     if (version == 0)
     {
         std::cout << "Failed to initialize OpenGL context." << std::endl;
@@ -275,35 +344,4 @@ Core::Window::OpenGLContext *Core::Window::createOpenGLContext(GLFWwindow *windo
     glGetIntegerv(GL_MINOR_VERSION, &minor);
 
     return new OpenGLContext{major, minor, std::string((const char *)glGetString(GL_VERSION)), std::string((const char *)glGetString(GL_VENDOR)), false};
-}
-
-std::vector<std::pair<Core::Window::OpenGLContext *, GLFWmonitor *>> Core::Window::getAllSupportedOpenGLContexts(int openglMajorVersion, int openglMinorVersion, bool debugContext)
-{
-    std::vector<std::pair<OpenGLContext *, GLFWmonitor *>> contexts;
-
-    int monitorCount;
-    auto monitors = glfwGetMonitors(&monitorCount);
-
-    for (int i = 0; i < monitorCount; i++)
-    {
-        auto m = monitors[i];
-
-        auto window = createGLFWWindow(openglMajorVersion, openglMinorVersion, debugContext, m);
-        if (!window)
-        {
-            continue;
-        }
-
-        auto context = createOpenGLContext(window);
-        if (!context)
-        {
-            continue;
-        }
-
-        glfwDestroyWindow(window);
-
-        contexts.push_back(std::make_pair(context, m));
-    }
-
-    return contexts;
 }

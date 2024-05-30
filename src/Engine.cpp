@@ -19,7 +19,7 @@ remi::Engine::Engine(EngineConfig config)
     this->config = config;
     Config::MAX_Z_INDEX = config.maxZIndex;
 
-    window = new Core::Window(config.windowTitle, config.windowWidth, config.windowHeight, config.windowFullscreen);
+    window = new Core::Window(config.windowTitle, config.windowWidth, config.windowHeight, config.windowType);
     renderer = new Rendering::Renderer(window, config.windowWidth, config.windowHeight, config.pixelsPerMeter);
 
     auto cullingPass = new Rendering::CullingPass();
@@ -55,8 +55,8 @@ remi::Engine::Engine(EngineConfig config)
     animationSystem = new Rendering::AnimationSystem();
     world->addSystem(animationSystem);
 
-    mouse = new Input::Mouse(window->getGLFWWindow());
-    keyboard = new Input::Keyboard(window->getGLFWWindow());
+    mouse = new Input::Mouse(*window);
+    keyboard = new Input::Keyboard(*window);
 
     mouseJointUpdateSystem = new Physics::MouseJointUpdateSystem(mouse, spaceTransformer);
     world->addSystem(mouseJointUpdateSystem);
@@ -95,7 +95,7 @@ void remi::Engine::run()
     args->tick = Core::Timestep();
 
     // poll for events before first update
-    glfwPollEvents();
+    window->pollEvents();
 
     // pre update scene graph
     auto &sceneGraph = world->getSceneGraph();
@@ -187,6 +187,8 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
 
     timeSinceLastFixedUpdate += tick.getMicroseconds();
     timeSinceLastUpdate += tick.getMicroseconds();
+
+    std::cout << "main loop" << std::endl;
 
     // run fixed updates
     if (timeSinceLastFixedUpdate >= timeBetweenFixedUpdates)

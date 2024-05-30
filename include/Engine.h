@@ -48,11 +48,11 @@ namespace remi
         unsigned int windowHeight = 720;
 
         /**
-         * Whether to create the window in fullscreen mode.
+         * The type of window to create.
          *
-         * Changing this after engine creation will not change the fullscreen mode of the window.
+         * Changing this after engine creation will not change the type of the window.
          */
-        bool windowFullscreen = false;
+        Core::WindowType windowType = Core::WindowType::WINDOWED;
 
         /**
          * The major version of OpenGL to use.

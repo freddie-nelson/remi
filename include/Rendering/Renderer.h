@@ -14,9 +14,6 @@
 #include "./RenderTarget.h"
 #include "../ECS/System.h"
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-
 #include <glm/vec2.hpp>
 #include <string>
 #include <vector>

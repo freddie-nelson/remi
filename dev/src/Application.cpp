@@ -688,19 +688,19 @@ void Application::update(const ECS::System::SystemUpdateData &data)
     auto &t = registry.get<Core::Transform>(camera);
 
     // rotate camera
-    float camRotSpeed = 1.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
+    float camRotSpeed = 1.0f * (keyboard->isPressed(Input::Key::KEY_LSHIFT) ? 2.0f : 1.0f);
 
-    if (keyboard->isPressed(Input::Key::ARROW_LEFT))
+    if (keyboard->isPressed(Input::Key::KEY_LEFT))
         t.rotate(camRotSpeed * timestep.getSeconds());
-    if (keyboard->isPressed(Input::Key::ARROW_RIGHT))
+    if (keyboard->isPressed(Input::Key::KEY_RIGHT))
         t.rotate(-camRotSpeed * timestep.getSeconds());
 
     // zoom camera
-    float camZoomSpeed = 1.0f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
+    float camZoomSpeed = 1.0f * (keyboard->isPressed(Input::Key::KEY_LSHIFT) ? 2.0f : 1.0f);
 
-    if (keyboard->isPressed(Input::Key::ARROW_UP))
+    if (keyboard->isPressed(Input::Key::KEY_UP))
         t.scale(1.0f - camZoomSpeed * timestep.getSeconds());
-    if (keyboard->isPressed(Input::Key::ARROW_DOWN))
+    if (keyboard->isPressed(Input::Key::KEY_DOWN))
         t.scale(1.0f + camZoomSpeed * timestep.getSeconds());
 
     // update fps text
@@ -718,7 +718,7 @@ void Application::update(const ECS::System::SystemUpdateData &data)
     m.uniform(new Rendering::Uniform("uColorAlpha", textAlpha));
 
     // toggle color blend pass
-    if (keyboard->isPressed(Input::Key::C))
+    if (keyboard->isPressed(Input::Key::KEY_C))
     {
         if (pipeline->has(4100))
         {
@@ -733,7 +733,7 @@ void Application::update(const ECS::System::SystemUpdateData &data)
     }
 
     // toggle blur pass
-    if (keyboard->isPressed(Input::Key::B))
+    if (keyboard->isPressed(Input::Key::KEY_B))
     {
         if (pipeline->has(4200))
         {
@@ -748,7 +748,7 @@ void Application::update(const ECS::System::SystemUpdateData &data)
     }
 
     // toggle brightness pass
-    if (keyboard->isPressed(Input::Key::V))
+    if (keyboard->isPressed(Input::Key::KEY_V))
     {
         if (pipeline->has(4300))
         {
@@ -763,7 +763,7 @@ void Application::update(const ECS::System::SystemUpdateData &data)
     }
 
     // toggle posterize pass
-    if (keyboard->isPressed(Input::Key::P))
+    if (keyboard->isPressed(Input::Key::KEY_P))
     {
         if (pipeline->has(4400))
         {
@@ -822,22 +822,22 @@ void Application::fixedUpdate(const ECS::System::SystemUpdateData &data)
 
     // playerBody.applyLinearImpulse(glm::vec2(1.0f, 0.0f));
 
-    float speed = 2.5f * (keyboard->isPressed(Input::Key::LEFT_SHIFT) ? 2.0f : 1.0f);
+    float speed = 2.5f * (keyboard->isPressed(Input::Key::KEY_LSHIFT) ? 2.0f : 1.0f);
     float jumpSpeed = 5.0f;
 
     glm::vec2 charVel(0.0f);
 
-    if (keyboard->isPressed(Input::Key::SPACE))
+    if (keyboard->isPressed(Input::Key::KEY_SPACE))
     {
         charVel.y = jumpSpeed;
     }
 
-    if (keyboard->isPressed(Input::Key::A))
+    if (keyboard->isPressed(Input::Key::KEY_A))
     {
         charVel.x -= speed;
         characterTransform.setScale(glm::vec2(-3, 3));
     }
-    if (keyboard->isPressed(Input::Key::D))
+    if (keyboard->isPressed(Input::Key::KEY_D))
     {
         charVel.x += speed;
         characterTransform.setScale(glm::vec2(3, 3));

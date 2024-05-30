@@ -9,44 +9,38 @@ Input::KeyModifier::KeyModifier(int mods)
 
 bool Input::KeyModifier::shift()
 {
-    return mods & GLFW_MOD_SHIFT;
+    return mods & Modifier::MOD_SHIFT;
 }
 
 bool Input::KeyModifier::control()
 {
-    return mods & GLFW_MOD_CONTROL;
+    return mods & Modifier::MOD_CONTROL;
 }
 
 bool Input::KeyModifier::alt()
 {
-    return mods & GLFW_MOD_ALT;
+    return mods & Modifier::MOD_ALT;
 }
 
 bool Input::KeyModifier::super()
 {
-    return mods & GLFW_MOD_SUPER;
+    return mods & Modifier::MOD_SUPER;
 }
 
 bool Input::KeyModifier::capsLock()
 {
-    return mods & GLFW_MOD_CAPS_LOCK;
+    return mods & Modifier::MOD_CAPS_LOCK;
 }
 
 bool Input::KeyModifier::numLock()
 {
-    return mods & GLFW_MOD_NUM_LOCK;
+    return mods & Modifier::MOD_NUM_LOCK;
 }
 
-Input::Keyboard::Keyboard(GLFWwindow *window)
+Input::Keyboard::Keyboard(Core::Window &window)
     : window(window)
 {
-    // set callbacks
-    if (instances.size() == 0)
-    {
-        glfwSetKeyCallback(window, Input::Keyboard::keyCallback);
-    }
-
-    Input::Keyboard::instances.push_back(this);
+    window.attachObserver(Core::WindowPollEventName, this);
 
     // set initial values
     for (int i = 0; i < Key::__LAST_KEY__; i++)
@@ -58,36 +52,43 @@ Input::Keyboard::Keyboard(GLFWwindow *window)
 
 Input::Keyboard::~Keyboard()
 {
-    // remove this instance from the list of instances
-    for (auto it = Input::Keyboard::instances.begin(); it != Input::Keyboard::instances.end(); it++)
-    {
-        if (*it == this)
-        {
-            Input::Keyboard::instances.erase(it);
-            break;
-        }
-    }
+    window.detachObserver(Core::WindowPollEventName, this);
 }
 
-bool Input::Keyboard::isPressed(Key key)
+bool Input::Keyboard::isPressed(Key key) const
 {
     return keys[key];
 }
 
-Input::KeyModifier Input::Keyboard::getModifiers(Key key)
+Input::KeyModifier Input::Keyboard::getModifiers(Key key) const
 {
     return KeyModifier(mods[key]);
 }
 
-std::vector<Input::Keyboard *> Input::Keyboard::instances;
-
-void Input::Keyboard::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+void Input::Keyboard::updateObserver(std::string event, const std::vector<SDL_Event> &data)
 {
-    // std::cout << "key: " << key << std::endl;
-
-    for (auto instance : Input::Keyboard::instances)
+    for (auto &event : data)
     {
-        instance->keys[key] = action != GLFW_RELEASE;
-        instance->mods[key] = mods;
+        switch (event.type)
+        {
+        case SDL_KEYDOWN:
+        {
+            auto key = static_cast<Key>(event.key.keysym.sym);
+
+            keys[key] = true;
+            mods[key] = event.key.keysym.mod;
+
+            break;
+        }
+        case SDL_KEYUP:
+        {
+            auto key = static_cast<Key>(event.key.keysym.sym);
+
+            keys[key] = false;
+            mods[key] = 0;
+
+            break;
+        }
+        }
     }
 }

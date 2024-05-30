@@ -2,119 +2,110 @@
 
 #include <iostream>
 
-Input::Mouse::Mouse(GLFWwindow *window)
+Input::Mouse::Mouse(Core::Window &window)
     : window(window)
 {
-    // set callbacks
-    if (instances.size() == 0)
-    {
-        glfwSetCursorPosCallback(window, Input::Mouse::mousePositionCallback);
-        glfwSetMouseButtonCallback(window, Input::Mouse::mouseButtonCallback);
-        glfwSetScrollCallback(window, Input::Mouse::mouseScrollCallback);
-    }
-
-    Input::Mouse::instances.push_back(this);
+    window.attachObserver(Core::WindowPollEventName, this);
 
     // set initial values
     for (int i = 0; i < MouseButton::__LAST_MOUSE_BUTTON__; i++)
     {
         buttons[i] = false;
     }
+
+    setMode(MouseMode::NORMAL);
 }
 
 Input::Mouse::~Mouse()
 {
-    // remove this instance from the list of instances
-    for (auto it = Input::Mouse::instances.begin(); it != Input::Mouse::instances.end(); it++)
-    {
-        if (*it == this)
-        {
-            Input::Mouse::instances.erase(it);
-            break;
-        }
-    }
+    window.detachObserver(Core::WindowPollEventName, this);
 }
 
-glm::vec2 Input::Mouse::getPosition(bool flipY)
+glm::vec2 Input::Mouse::getPosition(bool flipY) const
 {
     if (flipY)
     {
-        int width, height;
-        glfwGetWindowSize(window, &width, &height);
+        auto size = window.getSize();
 
-        return glm::vec2(position.x, height - position.y);
+        return glm::vec2(position.x, size.y - position.y);
     }
 
     return position;
 }
 
-glm::vec2 Input::Mouse::getScroll()
+const glm::vec2 &Input::Mouse::getScroll() const
 {
     return scroll;
 }
 
-bool Input::Mouse::isPressed(MouseButton button)
+bool Input::Mouse::isPressed(MouseButton button) const
 {
     return buttons[button];
 }
 
 void Input::Mouse::setMode(MouseMode mode)
 {
+    auto sdlWindow = window.getInternalWindow();
+
     switch (mode)
     {
     case MouseMode::NORMAL:
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+        SDL_ShowCursor(SDL_ENABLE);
         break;
     case MouseMode::HIDDEN:
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+        SDL_ShowCursor(SDL_DISABLE);
         break;
     case MouseMode::DISABLED:
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        SDL_SetRelativeMouseMode(SDL_TRUE);
         break;
     }
 }
 
-void Input::Mouse::enableRawMotion()
+Input::MouseMode Input::Mouse::getMode() const
 {
-    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-}
-
-void Input::Mouse::disableRawMotion()
-{
-    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
-}
-
-std::vector<Input::Mouse *> Input::Mouse::instances;
-
-void Input::Mouse::mousePositionCallback(GLFWwindow *window, double x, double y)
-{
-    // std::cout << "Mouse position: " << x << ", " << y << std::endl;
-
-    for (auto instance : instances)
+    auto sdlMode = SDL_GetRelativeMouseMode();
+    if (sdlMode == SDL_TRUE)
     {
-        instance->position.x = static_cast<float>(x);
-        instance->position.y = static_cast<float>(y);
+        return MouseMode::DISABLED;
     }
+
+    auto sdlCursor = SDL_ShowCursor(SDL_QUERY);
+    if (sdlCursor == SDL_ENABLE)
+    {
+        return MouseMode::NORMAL;
+    }
+
+    return MouseMode::HIDDEN;
 }
 
-void Input::Mouse::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+void Input::Mouse::updateObserver(std::string event, const std::vector<SDL_Event> &data)
 {
-    // std::cout << "Mouse button: " << button << ", " << action << ", " << mods << std::endl;
+    std::cout << "Mouse::updateObserver" << std::endl;
 
-    for (auto instance : instances)
+    for (auto &event : data)
     {
-        if (button >= 0 && button < 5)
+        switch (event.type)
         {
-            instance->buttons[button] = action != GLFW_RELEASE;
+        case SDL_MOUSEMOTION:
+            position = glm::vec2(event.motion.x, event.motion.y);
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            if (event.button.button <= MouseButton::__LAST_MOUSE_BUTTON__)
+            {
+                buttons[event.button.button] = true;
+            }
+            break;
+        case SDL_MOUSEBUTTONUP:
+            if (event.button.button <= MouseButton::__LAST_MOUSE_BUTTON__)
+            {
+                buttons[event.button.button] = false;
+            }
+            break;
+        case SDL_MOUSEWHEEL:
+            scroll = glm::vec2(event.wheel.x, event.wheel.y);
+            break;
         }
-    }
-}
-
-void Input::Mouse::mouseScrollCallback(GLFWwindow *window, double x, double y)
-{
-    for (auto instance : instances)
-    {
-        instance->scroll.x = static_cast<float>(x);
-        instance->scroll.y = static_cast<float>(y);
     }
 }

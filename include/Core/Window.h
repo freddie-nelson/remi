@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../Core/Timestep.h"
+#include "Timestep.h"
+#include "Subject.h"
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#include <SDL2/SDL.h>
 
 #include <glm/vec2.hpp>
 
@@ -12,25 +12,34 @@
 
 namespace Core
 {
+    enum WindowType
+    {
+        WINDOWED,
+        FULLSCREEN,
+        WINDOWED_FULLSCREEN
+    };
+
+    const std::string WindowPollEventName = "poll";
+
     /**
      * The window is responsible for creating and managing the window.
      *
      * The window must be initialized before it can be used.
      */
-    class Window
+    class Window : public Subject<const std::vector<SDL_Event> &>
     {
     public:
         /**
          * Creates a new window with the given title and dimensions.
          *
-         * Initializes glfw.
+         * Initializes SDL2.
          *
          * @param windowTitle The title of the window.
          * @param windowWidth The width of the window.
          * @param windowHeight The height of the window.
-         * @param fullscreen Whether to create the window in fullscreen mode.
+         * @param type The type of window to create.
          */
-        Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, bool fullscreen = false);
+        Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, WindowType type = WINDOWED);
 
         /**
          * Destroys the window.
@@ -60,8 +69,17 @@ namespace Core
 
         /**
          * Polls for window events.
+         *
+         * @returns The events that were polled.
          */
-        void pollEvents();
+        const std::vector<SDL_Event> &pollEvents();
+
+        /**
+         * Returns the events that were last polled.
+         *
+         * @returns The events that were last polled.
+         */
+        const std::vector<SDL_Event> &getEvents() const;
 
         /**
          * Shows the window.
@@ -72,6 +90,13 @@ namespace Core
          * Hides the window.
          */
         void hide();
+
+        /**
+         * Gets whether the window is shown.
+         *
+         * @returns Whether the window is shown.
+         */
+        bool isShown() const;
 
         /**
          * Returns the width and height of the window.
@@ -141,18 +166,18 @@ namespace Core
         void setPosition(int x, int y);
 
         /**
-         * Toggles fullscreen mode.
+         * Gets the type of the window.
          *
-         * @param fullscreen Whether to enable or disable fullscreen mode.
+         * @returns The type of the window.
          */
-        void toggleFullscreen(bool fullscreen);
+        WindowType getType() const;
 
         /**
-         * Returns whether the window is in fullscreen mode.
+         * Sets the type of the window.
          *
-         * @returns Whether the window is in fullscreen mode.
+         * @param type The type of the window.
          */
-        bool isFullscreen() const;
+        void setType(WindowType type);
 
         /**
          * Toggles whether the window is resizable.
@@ -180,11 +205,13 @@ namespace Core
         void toggleVsync(bool enable);
 
         /**
-         * Returns the GLFW window.
+         * Returns the internal window.
          *
-         * @returns The GLFW window.
+         * @warning Only use this if you know what you are doing.
+         *
+         * @returns The internal window.
          */
-        GLFWwindow *getGLFWWindow() const;
+        SDL_Window *getInternalWindow();
 
         /**
          * Gets whether or not the window should close.
@@ -211,7 +238,9 @@ namespace Core
         std::string windowTitle;
         unsigned int initialWindowWidth;
         unsigned int initialWindowHeight;
-        bool isWindowFullscreen;
+        WindowType type;
+
+        std::vector<SDL_Event> events;
 
         /**
          * OpenGL ES 3.0 for webgl 2.0 matching.
@@ -221,18 +250,19 @@ namespace Core
         const unsigned int openglMinorVersion = 0;
 
         bool showWindow = true;
+        bool resizeable = true;
 
-        GLFWwindow *glfwWindow;
+        SDL_Window *internalWindow = nullptr;
 
         /**
-         * Creates a GLFW window.
+         * Creates a window.
          *
          * @param openglMajorVersion The major version of OpenGL to use.
          * @param openglMinorVersion The minor version of OpenGL to use.
          * @param debugContext Whether to create a debug context on opengl versions >= 4.3.
-         * @param monitor The monitor to create the window on, or null for windowed mode.
+         * @param type The type of window to create.
          */
-        GLFWwindow *createGLFWWindow(int openglMajorVersion, int openglMinorVersion, bool debugContext, GLFWmonitor *monitor = nullptr);
+        SDL_Window *createWindow(int openglMajorVersion, int openglMinorVersion, bool debugContext, WindowType type);
 
         struct OpenGLContext
         {
@@ -251,22 +281,6 @@ namespace Core
          *
          * @returns The OpenGL context or nullptr if failed to create context.
          */
-        OpenGLContext *createOpenGLContext(GLFWwindow *window);
-
-        /**
-         * Returns all OpenGL contexts that support the given parameters.
-         *
-         *
-         * It does this by creating a window for each monitor and then destroying it.
-         *
-         * @param openglMajorVersion The major version of OpenGL to use.
-         * @param openglMinorVersion The minor version of OpenGL to use.
-         * @param debugContext Whether to create a debug context on opengl versions >= 4.3.
-         *
-         * @returns A vector of all supported OpenGL contexts and the monitor they were created on.
-         *
-         * @warning Doesn't really work, it will return the same context for each monitor.
-         */
-        std::vector<std::pair<OpenGLContext *, GLFWmonitor *>> getAllSupportedOpenGLContexts(int openglMajorVersion, int openglMinorVersion, bool debugContext);
+        OpenGLContext *createOpenGLContext(SDL_Window *window);
     };
 }

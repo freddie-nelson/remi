@@ -1,7 +1,7 @@
 #pragma once
 
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
+#include "../Core/Window.h"
+#include "../Core/Observer.h"
 
 #include <glm/vec2.hpp>
 #include <vector>
@@ -40,7 +40,7 @@ namespace Input
     /**
      * Represents the mouse.
      */
-    class Mouse
+    class Mouse : public Core::Observer<const std::vector<SDL_Event> &>
     {
     public:
         /**
@@ -48,7 +48,7 @@ namespace Input
          *
          * @param window The window to get the mouse state from.
          */
-        Mouse(GLFWwindow *window);
+        Mouse(Core::Window &window);
 
         /**
          * Destroys the mouse object.
@@ -64,14 +64,14 @@ namespace Input
          *
          * @return The mouse position in pixels and (potentially) subpixels.
          */
-        glm::vec2 getPosition(bool flipY = false);
+        glm::vec2 getPosition(bool flipY = false) const;
 
         /**
          * Get the mouse scroll offset.
          *
          * @return The mouse scroll offset in pixels.
          */
-        glm::vec2 getScroll();
+        const glm::vec2 &getScroll() const;
 
         /**
          * Check if a mouse button is pressed.
@@ -80,7 +80,7 @@ namespace Input
          *
          * @return True if the mouse button is pressed, false otherwise.
          */
-        bool isPressed(MouseButton button);
+        bool isPressed(MouseButton button) const;
 
         /**
          * Sets the mouse mode.
@@ -92,20 +92,27 @@ namespace Input
         void setMode(MouseMode mode);
 
         /**
-         * Enables raw mouse motion if it is available.
+         * Get the current mouse mode.
+         *
+         * @return The current mouse mode.
          */
-        void enableRawMotion();
+        MouseMode getMode() const;
 
         /**
-         * Disables raw mouse motion if it is available.
+         * Update the mouse with new events.
+         *
+         * This will be attached to the "poll" event of the window.
+         *
+         * @param event The event that occurred.
+         * @param data The list of events from the window.
          */
-        void disableRawMotion();
+        void updateObserver(std::string event, const std::vector<SDL_Event> &data) override;
 
     private:
         /**
-         * The GLFW window to get the mouse state from.
+         * The window to get the mouse state from.
          */
-        GLFWwindow *window;
+        Core::Window &window;
 
         /**
          * The mouse position relative to the window.
@@ -131,18 +138,5 @@ namespace Input
          * This maps directly to the MouseButton enum.
          */
         bool buttons[5];
-
-        /**
-         * The list of mouse instances created.
-         *
-         * Used in callbacks to update each instances state.
-         */
-        static std::vector<Mouse *> instances;
-
-        static void mousePositionCallback(GLFWwindow *window, double x, double y);
-
-        static void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
-
-        static void mouseScrollCallback(GLFWwindow *window, double x, double y);
     };
 }

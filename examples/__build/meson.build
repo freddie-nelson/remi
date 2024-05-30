@@ -47,7 +47,7 @@ endif
 
 # wasm build
 if cross_target == 'wasm'
-    link_args += ['-sUSE_GLFW=3', '--use-port=contrib.glfw3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=4096MB']
+    link_args += ['-sUSE_SDL=2', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=4096MB']
     
     if get_option('buildtype') == 'debug'
         link_args += ['-sASSERTIONS=2', '-sNO_DISABLE_EXCEPTION_CATCHING', '-gsource-map', '-g3', '-O0', '-sDEMANGLE_SUPPORT=1']

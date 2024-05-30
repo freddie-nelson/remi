@@ -91,12 +91,12 @@ link_args = []
 link_with = []
 
 if cross_target == 'native'
-    dependencies += [dependency('glfw3', required : true, static : true), dependency('boost', required: true, static : true)]
+    dependencies += [dependency('sdl2', required : true, static : true), dependency('boost', required: true, static : true)]
     link_with += [glad, ttf2mesh, box2d_lib]
 endif
 
 if cross_target == 'wasm'
-    link_args += ['-sUSE_GLFW=3', '--use-port=contrib.glfw3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2'] + wasm_link_args
+    link_args += ['-sUSE_SDL=2', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2'] + wasm_link_args
 
     if get_option('buildtype') == 'debug'
         link_args += ['-sASSERTIONS=1', '-sNO_DISABLE_EXCEPTION_CATCHING']
@@ -164,7 +164,7 @@ rendering_src += ['src/Rendering/Utility/OpenGLHelpers.cpp']
 scene_src = ['src/Scene/SceneGraph.cpp']
 
 # utility
-utility_src = ['src/Utility/FileHandling.cpp', 'src/Utility/glfwSetCallbacks.cpp', 'src/Utility/TypeHelpers.cpp']
+utility_src = ['src/Utility/FileHandling.cpp', 'src/Utility/TypeHelpers.cpp']
 
 # world
 world_src = ['src/World/World.cpp']

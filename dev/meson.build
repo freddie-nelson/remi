@@ -38,6 +38,10 @@ cpp_args += includes
 if cross_target == 'native'
     name_suffix = 'exe'
 
+    if host_machine.system() == 'windows' 
+        dependencies += dependency('sdl2main', required : true)
+    endif
+
     if get_option('buildtype') == 'release'
         link_args += ['-mwindows']
     endif
@@ -45,7 +49,7 @@ endif
 
 # wasm build
 if cross_target == 'wasm'
-    link_args += ['-sUSE_GLFW=3', '--use-port=contrib.glfw3', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=4096MB']
+    link_args += ['-sUSE_SDL=2', '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=4096MB']
     
     if get_option('buildtype') == 'debug'
         link_args += ['-sASSERTIONS=2', '-sNO_DISABLE_EXCEPTION_CATCHING', '-gsource-map', '-g3', '-O0', '-sDEMANGLE_SUPPORT=1']
@@ -70,4 +74,5 @@ if cross_target == 'wasm'
 endif
 
 src = ['main.cpp', 'src/Application.cpp', 'src/Globals.cpp']
-executable('dev', src, dependencies : dependencies, link_args : link_args, cpp_args : cpp_args, link_with : link_with, name_suffix : name_suffix, include_directories : inc_dirs)
+
+executable('dev', src, dependencies : dependencies, link_args : link_args, cpp_args : cpp_args, link_with : link_with, name_suffix : name_suffix, include_directories : inc_dirs, win_subsystem : 'windows',)
