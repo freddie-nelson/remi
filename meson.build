@@ -91,7 +91,7 @@ link_args = []
 link_with = []
 
 if cross_target == 'native'
-    dependencies += [dependency('sdl2', required : true, static : true), dependency('boost', required: true, static : true)]
+    dependencies += [dependency('sdl2', required : true, static : true), dependency('sdl2_mixer', required : true, static : true) dependency('boost', required: true, static : true)]
     link_with += [glad, ttf2mesh, box2d_lib]
 endif
 
@@ -164,7 +164,7 @@ rendering_src += ['src/Rendering/Utility/OpenGLHelpers.cpp']
 scene_src = ['src/Scene/SceneGraph.cpp']
 
 # utility
-utility_src = ['src/Utility/FileHandling.cpp', 'src/Utility/TypeHelpers.cpp']
+utility_src = ['src/Utility/FileHandling.cpp', 'src/Utility/TypeHelpers.cpp', 'src/Utility/SDLHelpers.cpp']
 
 # world
 world_src = ['src/World/World.cpp']

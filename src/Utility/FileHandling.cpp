@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 
-std::string Rendering::loadFile(std::string path)
+std::string remi::loadFile(std::string path)
 {
     try
     {

@@ -7,6 +7,7 @@
 #include "../include/Rendering/Passes/OutputPass.h"
 #include "../include/Rendering/Passes/PhysicsDebugPass.h"
 #include "../include/Rendering/Passes/DebugRenderTreePass.h"
+#include "../include/Utility/SDLHelpers.h"
 
 #include <iostream>
 
@@ -16,6 +17,8 @@
 
 remi::Engine::Engine(EngineConfig config)
 {
+    initSDL();
+
     this->config = config;
     Config::MAX_Z_INDEX = config.maxZIndex;
 

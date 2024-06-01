@@ -1,4 +1,8 @@
+#pragma once
+
 #include <string>
+
+#include <SDL2/SDL_mixer.h>
 
 namespace Audio
 {
@@ -9,7 +13,6 @@ namespace Audio
      *
      * Supported audio formats are:
      *  - WAV
-     *  - MP3
      */
     class Audio
     {
@@ -33,9 +36,21 @@ namespace Audio
          */
         void fromFile(std::string path);
 
+        /**
+         * Gets the path of the audio.
+         *
+         * @returns The path of the audio.
+         */
+        const std::string &getPath() const;
+
     private:
         static AudioId nextId;
 
         const AudioId id = nextId++;
+
+        Mix_Chunk *chunk = nullptr;
+        std::string path;
+
+        void destroy();
     };
 }

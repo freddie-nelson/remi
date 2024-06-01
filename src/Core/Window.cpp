@@ -2,6 +2,8 @@
 #include "../../include/Rendering/Utility/OpenGLHelpers.h"
 #include "../../include/gl.h"
 
+#include <SDL2/SDL_mixer.h>
+
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -10,11 +12,6 @@
 Core::Window::Window(std::string windowTitle, unsigned int windowWidth, unsigned int windowHeight, WindowType type)
     : windowTitle(windowTitle), initialWindowWidth(windowWidth), initialWindowHeight(windowHeight)
 {
-    if (!SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        throw std::runtime_error("Failed to initialize SDL2. Error: " + std::string(SDL_GetError()));
-    }
-
     internalWindow = createWindow(openglMajorVersion, openglMinorVersion, true, type);
     if (!internalWindow)
     {

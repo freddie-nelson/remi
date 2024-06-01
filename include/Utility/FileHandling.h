@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace Rendering
+namespace remi
 {
     /**
      * Loads the file as a string.
