@@ -91,7 +91,7 @@ link_args = []
 link_with = []
 
 if cross_target == 'native'
-    dependencies += [dependency('sdl2', required : true, static : true), dependency('sdl2_mixer', required : true, static : true) dependency('boost', required: true, static : true)]
+    dependencies += [dependency('sdl2', required : true, static : true), dependency('sdl2_mixer', required : true, static : true), dependency('boost', required: true, static : true)]
     link_with += [glad, ttf2mesh, box2d_lib]
 endif
 
@@ -106,6 +106,9 @@ endif
 #
 # remi
 #
+
+# audio
+audio_src = ['src/Audio/Audio.cpp', 'src/Audio/AudioManager.cpp']
 
 # core
 core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/Timestep.cpp', 'src/Core/Window.cpp', 'src/Core/SpaceTransformer.cpp']
@@ -172,7 +175,7 @@ world_src = ['src/World/World.cpp']
 # engine
 engine_src = ['src/Engine.cpp', 'src/emscriptenHelpers.cpp']
 
-all_src = core_src + ecs_src + input_src + physics_src + rendering_src + scene_src + utility_src + world_src + engine_src
+all_src = audio_src + core_src + ecs_src + input_src + physics_src + rendering_src + scene_src + utility_src + world_src + engine_src
 
 # add lib objects for wasm
 lib_objects = []

@@ -4,12 +4,25 @@
 #include <SDL2/SDL_mixer.h>
 
 #include <stdexcept>
+#include <cstdlib>
+#include <iostream>
+
+bool sdlInitialized = false;
+bool remi::isSDLInitialized()
+{
+    return sdlInitialized;
+}
+
+bool sdlMixInitialized = false;
+bool remi::isSDLMixInitialized()
+{
+    return sdlMixInitialized;
+}
 
 void remi::initSDL()
 {
-    if (SDL_WasInit(SDL_INIT_EVERYTHING) != 0)
+    if (sdlInitialized)
     {
-        // sdl is already initialized
         return;
     }
 
@@ -19,8 +32,44 @@ void remi::initSDL()
     }
 
     // initialize SDL_mixer
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    initSDLMix();
+
+    sdlInitialized = true;
+    std::cout << "Remi: SDL initialized." << std::endl;
+}
+
+void remi::quitSDL()
+{
+    quitSDLMix();
+    SDL_Quit();
+
+    sdlInitialized = false;
+}
+
+void remi::initSDLMix()
+{
+    if (sdlMixInitialized)
+    {
+        return;
+    }
+
+    if (Mix_Init(MIX_INIT_OGG | MIX_INIT_MP3 | MIX_INIT_MOD | MIX_INIT_FLAC | MIX_INIT_OPUS | MIX_INIT_MID) == 0)
     {
         throw std::runtime_error("Failed to initialize SDL_mixer. SDL_mixer Error: " + std::string(Mix_GetError()));
     }
+
+    if (Mix_OpenAudio(48000, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    {
+        throw std::runtime_error("Failed to initialize SDL_mixer. SDL_mixer Error: " + std::string(Mix_GetError()));
+    }
+
+    sdlMixInitialized = true;
+}
+
+void remi::quitSDLMix()
+{
+    Mix_CloseAudio();
+    Mix_Quit();
+
+    sdlMixInitialized = false;
 }

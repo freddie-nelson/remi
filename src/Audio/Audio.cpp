@@ -1,4 +1,5 @@
 #include "../../include/Audio/Audio.h"
+#include "../../include/Utility/SDLHelpers.h"
 
 #include <stdexcept>
 #include <iostream>
@@ -7,6 +8,9 @@ Audio::AudioId Audio::Audio::nextId = 0;
 
 Audio::Audio::Audio(std::string path)
 {
+    // initialize SDL in case it is not initialized
+    remi::initSDL();
+
     fromFile(path);
 }
 
@@ -35,6 +39,16 @@ void Audio::Audio::fromFile(std::string path)
     }
 
     this->path = path;
+}
+
+const std::string &Audio::Audio::getPath() const
+{
+    return path;
+}
+
+Mix_Chunk *Audio::Audio::getChunk() const
+{
+    return chunk;
 }
 
 void Audio::Audio::destroy()

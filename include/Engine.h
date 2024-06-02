@@ -12,6 +12,7 @@
 #include "Physics/PhysicsWorld.h"
 #include "World/World.h"
 #include "Physics/MouseJointUpdateSystem.h"
+#include "Audio/AudioManager.h"
 
 // ! TODO: give all internal components copy and move constructors and assignment operators
 
@@ -152,7 +153,7 @@ namespace remi
      * The physics world is updated in the fixed update, and will receive a fixed timestep. It is updated after the world has been updated.
      *
      * NOTE:
-     * Model matrices are only recalculated after all world systems have been update. Unless force updated.
+     * Model matrices are only recalculated after all world systems have been updated. Unless force updated.
      */
     class Engine
     {
@@ -288,6 +289,26 @@ namespace remi
          */
         Physics::MouseJointUpdateSystem *const getMouseJointUpdateSystem();
 
+        /**
+         * Gets the audio manager of the engine.
+         *
+         * This is used to manage audio playback.
+         *
+         * @returns The audio manager of the engine.
+         */
+        Audio::AudioManager *const getAudioManager();
+
+        /**
+         * Creates the system update data for the engine.
+         *
+         * This is the data that will be passed to the systems when they are updated.
+         *
+         * @param timestep The timestep of the update.
+         *
+         * @returns The system update data.
+         */
+        ECS::System::SystemUpdateData createSystemUpdateData(const Core::Timestep &timestep);
+
     private:
         EngineConfig config;
 
@@ -307,6 +328,8 @@ namespace remi
         Core::SpaceTransformer *spaceTransformer = nullptr;
 
         Physics::MouseJointUpdateSystem *mouseJointUpdateSystem = nullptr;
+
+        Audio::AudioManager *audioManager = nullptr;
 
         /**
          * The data that is passed to the main loop.

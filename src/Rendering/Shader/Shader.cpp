@@ -19,8 +19,8 @@ bool Rendering::Shader::loadFromFile(const std::string &vertex, const std::strin
 {
     try
     {
-        std::string vertexSource = loadFile(vertex);
-        std::string fragmentSource = loadFile(fragment);
+        std::string vertexSource = remi::loadFile(vertex);
+        std::string fragmentSource = remi::loadFile(fragment);
 
         return loadFromSource(vertexSource, fragmentSource);
     }

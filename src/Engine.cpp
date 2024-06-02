@@ -63,6 +63,8 @@ remi::Engine::Engine(EngineConfig config)
 
     mouseJointUpdateSystem = new Physics::MouseJointUpdateSystem(mouse, spaceTransformer);
     world->addSystem(mouseJointUpdateSystem);
+
+    audioManager = new Audio::AudioManager();
 }
 
 remi::Engine::~Engine()
@@ -106,12 +108,8 @@ void remi::Engine::run()
 
     // pre update physics world
     // this will make sure that the physics world is in sync with the world before the first update
-    physicsWorld->fixedUpdate({*world,
-                               *physicsWorld,
-                               *spaceTransformer,
-                               Core::Timestep(0),
-                               *mouse,
-                               *keyboard});
+    auto timestep = Core::Timestep(0);
+    physicsWorld->fixedUpdate(createSystemUpdateData(timestep));
 
 #ifdef __EMSCRIPTEN__
     std::function<void()> mainLoopWrapper = std::bind(&Engine::mainLoop, this, args);
@@ -184,6 +182,22 @@ Physics::MouseJointUpdateSystem *const remi::Engine::getMouseJointUpdateSystem()
     return mouseJointUpdateSystem;
 }
 
+Audio::AudioManager *const remi::Engine::getAudioManager()
+{
+    return audioManager;
+}
+
+ECS::System::SystemUpdateData remi::Engine::createSystemUpdateData(const Core::Timestep &timestep)
+{
+    return ECS::System::SystemUpdateData{*world,
+                                         *physicsWorld,
+                                         *spaceTransformer,
+                                         timestep,
+                                         *mouse,
+                                         *keyboard,
+                                         *audioManager};
+}
+
 void remi::Engine::mainLoop(MainLoopArgs *args)
 {
     auto &[timeBetweenFixedUpdatesSeconds, timeBetweenFixedUpdates, timeSinceLastFixedUpdate, timeBetweenUpdatesSeconds, timeBetweenUpdates, timeSinceLastUpdate, tick] = *args;
@@ -199,15 +213,9 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
         Core::Timestep fixedTimestep(0);
         fixedTimestep.update(timeBetweenFixedUpdates);
 
-        ECS::System::SystemUpdateData data{*world,
-                                           *physicsWorld,
-                                           *spaceTransformer,
-                                           fixedTimestep,
-                                           *mouse,
-                                           *keyboard};
+        auto data = createSystemUpdateData(fixedTimestep);
 
         world->fixedUpdate(data);
-
         physicsWorld->fixedUpdate(data);
 
         timeSinceLastFixedUpdate = 0;
@@ -224,6 +232,8 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
         Core::Timestep timestep(0);
         timestep.update(timeSinceLastUpdate);
 
+        auto data = createSystemUpdateData(timestep);
+
         // clear renderer
         renderer->clear();
 
@@ -231,13 +241,6 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
         window->update(timestep);
 
         bool isMinimized = window->isMinimized();
-
-        ECS::System::SystemUpdateData data{*world,
-                                           *physicsWorld,
-                                           *spaceTransformer,
-                                           timestep,
-                                           *mouse,
-                                           *keyboard};
 
         // only update renderer if window is not minimized
         // otherwise resizing render target will cause a crash
@@ -264,6 +267,8 @@ void remi::Engine::mainLoop(MainLoopArgs *args)
         // check if window should close
         if (window->getWindowShouldClose())
         {
+            quitSDL();
+
 #ifdef __EMSCRIPTEN__
             emscripten_cancel_main_loop();
             return;

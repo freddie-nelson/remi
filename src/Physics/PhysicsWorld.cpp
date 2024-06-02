@@ -45,7 +45,8 @@ Physics::PhysicsWorld::~PhysicsWorld()
 
 void Physics::PhysicsWorld::fixedUpdate(const ECS::System::SystemUpdateData &data)
 {
-    auto &[world, physicsWorld, spaceTransformer, timestep, mouse, keyboard] = data;
+    auto &world = data.world;
+    auto &timestep = data.timestep;
 
     // update contact listener world
     contactListener.setWorld(&world);

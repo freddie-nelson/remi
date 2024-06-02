@@ -36,6 +36,7 @@
 #include <remi/Physics/Joints/WeldJoint.h>
 #include <remi/Physics/Joints/MotorJoint.h>
 #include <remi/Physics/Joints/FrictionJoint.h>
+#include <remi/Audio/Audio.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -75,6 +76,8 @@ ECS::Entity camera;
 ECS::Entity fpsEntity;
 ECS::Entity deletable;
 ECS::Entity wheel;
+
+Audio::Audio gunShotAudio("assets/gun-shot.wav");
 
 void Application::init()
 {
@@ -309,334 +312,336 @@ void Application::init()
         collider.setFriction(1.0f);
     }
 
-    // create concave collider
-    auto concave = registry.create();
-    registry.add(concave, Core::Transform());
-    auto &concaveMesh = registry.add(concave, Rendering::Mesh2D({{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}, {0.5f, 0.5f}}));
-    registry.add(concave, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
-    registry.add(concave, Rendering::Renderable(true, false));
-    registry.add(concave, Physics::RigidBody2D());
-    registry.add(concave, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(concaveMesh)));
-
-    // create bodies joined by distance joint
-    auto b1 = registry.create();
-    registry.add(b1, Core::Transform());
-    registry.add(b1, Rendering::Mesh2D(0.5f, 32u));
-    registry.add(b1, Rendering::Material());
-    registry.add(b1, Rendering::Renderable(true, false));
-    registry.add(b1, Physics::RigidBody2D());
-    registry.add(b1, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
-
-    auto b2 = registry.create();
-    registry.add(b2, Core::Transform(glm::vec2(1.5f, 0.0f)));
-    registry.add(b2, Rendering::Mesh2D(0.5f, 32u));
-    registry.add(b2, Rendering::Material());
-    registry.add(b2, Rendering::Renderable(true, false));
-    registry.add(b2, Physics::RigidBody2D());
-    registry.add(b2, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
-
-    // add joint
-    registry.add(b1, Physics::DistanceJoint(b2));
-
-    // deleting joint
-    auto deletableJoint = registry.create();
-    registry.add(deletableJoint, Core::Transform(glm::vec2(0.0f, 0.0f)));
-    registry.add(deletableJoint, Rendering::Mesh2D(0.5f, 32u));
-    registry.add(deletableJoint, Rendering::Material());
-    registry.add(deletableJoint, Rendering::Renderable(true, false));
-    registry.add(deletableJoint, Physics::RigidBody2D());
-    registry.add(deletableJoint, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
-
-    deletable = registry.create();
-    registry.add(deletable, Core::Transform());
-    registry.add(deletable, Rendering::Mesh2D(2.0f, 32u));
-    registry.add(deletable, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
-    registry.add(deletable, Rendering::Renderable(true, false));
-    registry.add(deletable, Physics::RigidBody2D());
-    registry.add(deletable, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
-
-    registry.add(deletableJoint, Physics::DistanceJoint(deletable));
-
-    auto test = registry.create();
-    registry.add(test, Core::Transform());
-    registry.add(test, Rendering::Mesh2D(2.0f, 32u));
-    registry.add(test, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
-    registry.add(test, Rendering::Renderable(true, false));
-    registry.add(test, Physics::RigidBody2D());
-    registry.add(test, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
-
-    // revolute joint
-    auto b3 = registry.create();
-    registry.add(b3, Core::Transform(glm::vec2(3.0f, 3.0f)));
-    registry.add(b3, Rendering::Mesh2D(0.2f, 32u));
-    registry.add(b3, Rendering::Material());
-    registry.add(b3, Rendering::Renderable(true, false));
-
-    auto &b3Body = registry.add(b3, Physics::RigidBody2D());
-    registry.add(b3, Physics::Collider2D(new Physics::CircleColliderShape2D(0.2f)));
-
-    b3Body.setType(Physics::RigidBodyType::STATIC);
-
-    auto b4 = registry.create();
-    registry.add(b4, Core::Transform(glm::vec2(3.0f, 3.0f)));
-    registry.add(b4, Rendering::Mesh2D(2.5f, 1.0f));
-    registry.add(b4, Rendering::Material());
-    registry.add(b4, Rendering::Renderable(true, false));
-    registry.add(b4, Physics::RigidBody2D());
-    registry.add(b4, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b4))));
-
-    auto &revoluteJoint = registry.add(b3, Physics::RevoluteJoint(b4, glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f)));
-    revoluteJoint.enableMotor(true);
-    revoluteJoint.setMotorSpeed(1.0f);
-    revoluteJoint.setMaxMotorTorque(100.0f);
-
-    // prismatic joint
-    auto b5 = registry.create();
-    registry.add(b5, Core::Transform(glm::vec2(-7.0f, 4.0f)));
-    registry.add(b5, Rendering::Mesh2D(2.0f, 2.0f));
-    registry.add(b5, Rendering::Material());
-    registry.add(b5, Rendering::Renderable(true, false));
-
-    auto &b5Body = registry.add(b5, Physics::RigidBody2D());
-    registry.add(b5, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b5))));
-
-    b5Body.setType(Physics::RigidBodyType::STATIC);
-
-    auto b6 = registry.create();
-    registry.add(b6, Core::Transform(glm::vec2(-5.0f, 1.0f)));
-    registry.add(b6, Rendering::Mesh2D(0.5f, 0.5f));
-    registry.add(b6, Rendering::Material());
-    registry.add(b6, Rendering::Renderable(true, false));
-    registry.add(b6, Physics::RigidBody2D());
-    registry.add(b6, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b6))));
-
-    auto &prismaticJoint = registry.add(b5, Physics::PrismaticJoint(b6, glm::vec2(-2.5f, 0.0f), glm::vec2(0.0f, 1.0f)));
-    prismaticJoint.enableLimit(true);
-    prismaticJoint.setLowerTranslation(-3.0f);
-    prismaticJoint.setUpperTranslation(3.0f);
-    prismaticJoint.enableMotor(true);
-    prismaticJoint.setMotorSpeed(2.0f);
-    prismaticJoint.setMaxMotorForce(30.0f);
+    {
+        // create concave collider
+        auto concave = registry.create();
+        registry.add(concave, Core::Transform());
+        auto &concaveMesh = registry.add(concave, Rendering::Mesh2D({{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}, {0.5f, 0.5f}}));
+        registry.add(concave, Rendering::Material(Rendering::Color(1.0f, 1.0f, 1.0f, 1.0f)));
+        registry.add(concave, Rendering::Renderable(true, false));
+        registry.add(concave, Physics::RigidBody2D());
+        registry.add(concave, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(concaveMesh)));
+
+        // create bodies joined by distance joint
+        auto b1 = registry.create();
+        registry.add(b1, Core::Transform());
+        registry.add(b1, Rendering::Mesh2D(0.5f, 32u));
+        registry.add(b1, Rendering::Material());
+        registry.add(b1, Rendering::Renderable(true, false));
+        registry.add(b1, Physics::RigidBody2D());
+        registry.add(b1, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
+        auto b2 = registry.create();
+        registry.add(b2, Core::Transform(glm::vec2(1.5f, 0.0f)));
+        registry.add(b2, Rendering::Mesh2D(0.5f, 32u));
+        registry.add(b2, Rendering::Material());
+        registry.add(b2, Rendering::Renderable(true, false));
+        registry.add(b2, Physics::RigidBody2D());
+        registry.add(b2, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
+        // add joint
+        registry.add(b1, Physics::DistanceJoint(b2));
+
+        // deleting joint
+        auto deletableJoint = registry.create();
+        registry.add(deletableJoint, Core::Transform(glm::vec2(0.0f, 0.0f)));
+        registry.add(deletableJoint, Rendering::Mesh2D(0.5f, 32u));
+        registry.add(deletableJoint, Rendering::Material());
+        registry.add(deletableJoint, Rendering::Renderable(true, false));
+        registry.add(deletableJoint, Physics::RigidBody2D());
+        registry.add(deletableJoint, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
+        deletable = registry.create();
+        registry.add(deletable, Core::Transform());
+        registry.add(deletable, Rendering::Mesh2D(2.0f, 32u));
+        registry.add(deletable, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
+        registry.add(deletable, Rendering::Renderable(true, false));
+        registry.add(deletable, Physics::RigidBody2D());
+        registry.add(deletable, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
+
+        registry.add(deletableJoint, Physics::DistanceJoint(deletable));
+
+        auto test = registry.create();
+        registry.add(test, Core::Transform());
+        registry.add(test, Rendering::Mesh2D(2.0f, 32u));
+        registry.add(test, Rendering::Material(Rendering::Color(1.0f, 1.0f, 0.0f, 1.0f)));
+        registry.add(test, Rendering::Renderable(true, false));
+        registry.add(test, Physics::RigidBody2D());
+        registry.add(test, Physics::Collider2D(new Physics::CircleColliderShape2D(2.0f)));
+
+        // revolute joint
+        auto b3 = registry.create();
+        registry.add(b3, Core::Transform(glm::vec2(3.0f, 3.0f)));
+        registry.add(b3, Rendering::Mesh2D(0.2f, 32u));
+        registry.add(b3, Rendering::Material());
+        registry.add(b3, Rendering::Renderable(true, false));
+
+        auto &b3Body = registry.add(b3, Physics::RigidBody2D());
+        registry.add(b3, Physics::Collider2D(new Physics::CircleColliderShape2D(0.2f)));
+
+        b3Body.setType(Physics::RigidBodyType::STATIC);
+
+        auto b4 = registry.create();
+        registry.add(b4, Core::Transform(glm::vec2(3.0f, 3.0f)));
+        registry.add(b4, Rendering::Mesh2D(2.5f, 1.0f));
+        registry.add(b4, Rendering::Material());
+        registry.add(b4, Rendering::Renderable(true, false));
+        registry.add(b4, Physics::RigidBody2D());
+        registry.add(b4, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b4))));
+
+        auto &revoluteJoint = registry.add(b3, Physics::RevoluteJoint(b4, glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f)));
+        revoluteJoint.enableMotor(true);
+        revoluteJoint.setMotorSpeed(1.0f);
+        revoluteJoint.setMaxMotorTorque(100.0f);
+
+        // prismatic joint
+        auto b5 = registry.create();
+        registry.add(b5, Core::Transform(glm::vec2(-7.0f, 4.0f)));
+        registry.add(b5, Rendering::Mesh2D(2.0f, 2.0f));
+        registry.add(b5, Rendering::Material());
+        registry.add(b5, Rendering::Renderable(true, false));
+
+        auto &b5Body = registry.add(b5, Physics::RigidBody2D());
+        registry.add(b5, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b5))));
+
+        b5Body.setType(Physics::RigidBodyType::STATIC);
+
+        auto b6 = registry.create();
+        registry.add(b6, Core::Transform(glm::vec2(-5.0f, 1.0f)));
+        registry.add(b6, Rendering::Mesh2D(0.5f, 0.5f));
+        registry.add(b6, Rendering::Material());
+        registry.add(b6, Rendering::Renderable(true, false));
+        registry.add(b6, Physics::RigidBody2D());
+        registry.add(b6, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b6))));
 
-    // pulley joint
-    auto b7 = registry.create();
-    registry.add(b7, Core::Transform(glm::vec2(13.0f, 6.0f)));
-    registry.add(b7, Rendering::Mesh2D(1.0f, 1.0f));
-    registry.add(b7, Rendering::Material());
-    registry.add(b7, Rendering::Renderable(true, false));
+        auto &prismaticJoint = registry.add(b5, Physics::PrismaticJoint(b6, glm::vec2(-2.5f, 0.0f), glm::vec2(0.0f, 1.0f)));
+        prismaticJoint.enableLimit(true);
+        prismaticJoint.setLowerTranslation(-3.0f);
+        prismaticJoint.setUpperTranslation(3.0f);
+        prismaticJoint.enableMotor(true);
+        prismaticJoint.setMotorSpeed(2.0f);
+        prismaticJoint.setMaxMotorForce(30.0f);
 
-    auto &b7Body = registry.add(b7, Physics::RigidBody2D());
-    registry.add(b7, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b7))));
+        // pulley joint
+        auto b7 = registry.create();
+        registry.add(b7, Core::Transform(glm::vec2(13.0f, 6.0f)));
+        registry.add(b7, Rendering::Mesh2D(1.0f, 1.0f));
+        registry.add(b7, Rendering::Material());
+        registry.add(b7, Rendering::Renderable(true, false));
 
-    auto b8 = registry.create();
-    registry.add(b8, Core::Transform(glm::vec2(16.0f, 5.0f)));
-    registry.add(b8, Rendering::Mesh2D(0.7f, 5u));
-    registry.add(b8, Rendering::Material());
-    registry.add(b8, Rendering::Renderable(true, false));
+        auto &b7Body = registry.add(b7, Physics::RigidBody2D());
+        registry.add(b7, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b7))));
 
-    auto &b8Body = registry.add(b8, Physics::RigidBody2D());
-    registry.add(b8, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b8))));
+        auto b8 = registry.create();
+        registry.add(b8, Core::Transform(glm::vec2(16.0f, 5.0f)));
+        registry.add(b8, Rendering::Mesh2D(0.7f, 5u));
+        registry.add(b8, Rendering::Material());
+        registry.add(b8, Rendering::Renderable(true, false));
 
-    auto &pulleyJoint = registry.add(b7, Physics::PulleyJoint(b8, glm::vec2(13.0f, 8.0f), glm::vec2(16.0f, 8.0f)));
+        auto &b8Body = registry.add(b8, Physics::RigidBody2D());
+        registry.add(b8, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b8))));
 
-    auto holder = registry.create();
-    registry.add(holder, Core::Transform(glm::vec2(13.0f, 8.0f)));
-    registry.add(holder, Rendering::Mesh2D(0.5f, 32u));
-    registry.add(holder, Rendering::Material(Rendering::Color(0.0f, 0.0f, 1.0f, 1.0f)));
-    registry.add(holder, Rendering::Renderable(true, false));
+        auto &pulleyJoint = registry.add(b7, Physics::PulleyJoint(b8, glm::vec2(13.0f, 8.0f), glm::vec2(16.0f, 8.0f)));
 
-    auto &holderBody = registry.add(holder, Physics::RigidBody2D());
-    holderBody.setType(Physics::RigidBodyType::STATIC);
+        auto holder = registry.create();
+        registry.add(holder, Core::Transform(glm::vec2(13.0f, 8.0f)));
+        registry.add(holder, Rendering::Mesh2D(0.5f, 32u));
+        registry.add(holder, Rendering::Material(Rendering::Color(0.0f, 0.0f, 1.0f, 1.0f)));
+        registry.add(holder, Rendering::Renderable(true, false));
 
-    registry.add(holder, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+        auto &holderBody = registry.add(holder, Physics::RigidBody2D());
+        holderBody.setType(Physics::RigidBodyType::STATIC);
 
-    auto &holderJoint = registry.add(holder, Physics::PrismaticJoint(b7, glm::vec2(0.0f, 1.0f)));
-    holderJoint.setCollideConnected(true);
+        registry.add(holder, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
+        auto &holderJoint = registry.add(holder, Physics::PrismaticJoint(b7, glm::vec2(0.0f, 1.0f)));
+        holderJoint.setCollideConnected(true);
 
-    auto holder2 = registry.create();
-    registry.add(holder2, Core::Transform(glm::vec2(16.0f, 8.0f)));
-    registry.add(holder2, Rendering::Mesh2D(0.5f, 32u));
-    registry.add(holder2, Rendering::Material(Rendering::Color(0.0f, 0.0f, 1.0f, 1.0f)));
-    registry.add(holder2, Rendering::Renderable(true, false));
-
-    auto &holder2Body = registry.add(holder2, Physics::RigidBody2D());
-    holder2Body.setType(Physics::RigidBodyType::STATIC);
-
-    registry.add(holder2, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
-
-    auto &holder2Joint = registry.add(holder2, Physics::PrismaticJoint(b8, glm::vec2(0.0f, 1.0f)));
-    holder2Joint.setCollideConnected(true);
-
-    // gear joint
-    auto b9 = registry.create();
-    registry.add(b9, Core::Transform(glm::vec2(20.0f, 6.0f)));
-
-    auto &b9Body = registry.add(b9, Physics::RigidBody2D());
-    b9Body.setType(Physics::RigidBodyType::STATIC);
-
-    auto b10 = registry.create();
-    registry.add(b10, Core::Transform(glm::vec2(20.0f, 6.0f)));
-    registry.add(b10, Rendering::Mesh2D(0.75f, 12u));
-    registry.add(b10, Rendering::Material());
-    registry.add(b10, Rendering::Renderable(true, false));
-    registry.add(b10, Physics::RigidBody2D());
-    registry.add(b10, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b10))));
-
-    registry.add(b9, Physics::RevoluteJoint(b10, glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f)));
-
-    auto b11 = registry.create();
-    registry.add(b11, Core::Transform(glm::vec2(21.5f, 6.0f)));
-
-    auto &b11Body = registry.add(b11, Physics::RigidBody2D());
-    b11Body.setType(Physics::RigidBodyType::STATIC);
-
-    auto b12 = registry.create();
-    registry.add(b12, Core::Transform(glm::vec2(21.5f, 6.0f)));
-    registry.add(b12, Rendering::Mesh2D(1.0f, 3.0f));
-    registry.add(b12, Rendering::Material());
-    registry.add(b12, Rendering::Renderable(true, false));
-
-    auto &b12Body = registry.add(b12, Physics::RigidBody2D());
-    registry.add(b12, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b12))));
-
-    b12Body.setGravityScale(0.0f);
-
-    registry.add(b11, Physics::PrismaticJoint(b12, glm::vec2(0.0f, 1.0f)));
-
-    auto &distanceJoint = registry.add(b11, Physics::DistanceJoint(b12));
-    distanceJoint.setStiffness(0.0f);
-    distanceJoint.setMinLength(0.0f);
-    distanceJoint.setMaxLength(3.0f);
-
-    registry.add(b9, Physics::GearJoint(b11, &registry.get<Physics::RevoluteJoint>(b9), &registry.get<Physics::PrismaticJoint>(b11), -1.0f));
-
-    // wheel joint
-    auto b13 = registry.create();
-    registry.add(b13, Core::Transform(glm::vec2(-20.0f, 2.0f)));
-    registry.add(b13, Rendering::Mesh2D(3.0f, 1.0f));
-    registry.add(b13, Rendering::Material(Rendering::Color(0.0f, 1.0f, 0.0f, 1.0f)));
-    registry.add(b13, Rendering::Renderable(true, false));
-
-    auto b13Body = registry.add(b13, Physics::RigidBody2D());
-    b13Body.setFixedRotation(true);
-
-    registry.add(b13, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b13))));
-
-    auto b14 = registry.create();
-    registry.add(b14, Core::Transform(glm::vec2(-21.5f, 0.5f)));
-    registry.add(b14, Rendering::Mesh2D(0.25f, 32u));
-    registry.add(b14, Rendering::Material(Rendering::Color(0.0f, 1.0f, 0.0f, 1.0f)));
-    registry.add(b14, Rendering::Renderable(true, false));
-
-    auto &b14Body = registry.add(b14, Physics::RigidBody2D());
-    auto &b14Collider = registry.add(b14, Physics::Collider2D(new Physics::CircleColliderShape2D(0.25f)));
-    b14Collider.setFriction(0.5f);
-
-    auto &b14Wheel = registry.add(b14, Physics::WheelJoint(b13, glm::vec2(-21.0f, 0.5f), glm::vec2(0, 1)));
-    b14Wheel.setStiffness(0.5f);
-    b14Wheel.setDamping(1.0f);
-    b14Wheel.enableLimit(true);
-
-    auto b15 = registry.create();
-    registry.add(b15, Core::Transform(glm::vec2(-18.5f, 0.5f)));
-    registry.add(b15, Rendering::Mesh2D(0.25f, 32u));
-    registry.add(b15, Rendering::Material(Rendering::Color(0.0f, 1.0f, 0.0f, 1.0f)));
-    registry.add(b15, Rendering::Renderable(true, false));
-
-    auto &b15Body = registry.add(b15, Physics::RigidBody2D());
-    auto &b15Collider = registry.add(b15, Physics::Collider2D(new Physics::CircleColliderShape2D(0.25f)));
-    b15Collider.setFriction(0.5f);
-
-    auto &b15Wheel = registry.add(b15, Physics::WheelJoint(b13, glm::vec2(-19.0f, 0.5f), glm::vec2(0, 1)));
-    b15Wheel.setStiffness(0.5f);
-    b15Wheel.setDamping(1.0f);
-    b15Wheel.enableLimit(true);
-
-    wheel = b15;
-
-    // weld joint
-    auto b16 = registry.create();
-    registry.add(b16, Core::Transform(glm::vec2(14.0f, 2.0f)));
-    registry.add(b16, Rendering::Mesh2D(2.0f, 2.0f));
-    registry.add(b16, Rendering::Material(Rendering::Color(0.0f, 1.0f, 1.0f, 1.0f)));
-    registry.add(b16, Rendering::Renderable(true, false));
-
-    auto b16Body = registry.add(b16, Physics::RigidBody2D());
-    auto b16Collider = registry.add(b16, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b16))));
-
-    auto b17 = registry.create();
-    registry.add(b17, Core::Transform(glm::vec2(16.0f, 2.0f)));
-    registry.add(b17, Rendering::Mesh2D(2.0f, 12u));
-    registry.add(b17, Rendering::Material(Rendering::Color(0.0f, 1.0f, 1.0f, 1.0f)));
-    registry.add(b17, Rendering::Renderable(true, false));
-
-    auto &b17Body = registry.add(b17, Physics::RigidBody2D());
-    auto &b17Collider = registry.add(b17, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b17))));
-
-    auto &weldJoint = registry.add(b16, Physics::WeldJoint(b17, glm::vec2(15.0f, 2.0f)));
-
-    // motor joint
-    auto b18 = registry.create();
-    registry.add(b18, Core::Transform(glm::vec2(-15.0f, 1.0f)));
-    registry.add(b18, Rendering::Mesh2D(1.0f, 12u));
-    registry.add(b18, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
-    registry.add(b18, Rendering::Renderable(true, false));
-
-    auto &b18Body = registry.add(b18, Physics::RigidBody2D());
-    auto &b18Collider = registry.add(b18, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b18))));
-
-    auto &motorJoint = registry.add(b18, Physics::MotorJoint(floor));
-    motorJoint.setLinearOffset(glm::vec2(10.0f, 0.0f));
-    motorJoint.setAngularOffset(1.0f);
-    motorJoint.setCollideConnected(true);
-    motorJoint.setMaxForce(3.0f);
-
-    // friction joint
-    auto b19 = registry.create();
-    registry.add(b19, Core::Transform(glm::vec2(0.0f, 5.0f)));
-    registry.add(b19, Rendering::Mesh2D(2.0f, 2.0f));
-    registry.add(b19, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
-    registry.add(b19, Rendering::Renderable(true, false));
-
-    auto &b19Body = registry.add(b19, Physics::RigidBody2D());
-    b19Body.setGravityScale(0.0f);
-
-    auto &b19Collider = registry.add(b19, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b19))));
-
-    auto &frictionJoint = registry.add(b19, Physics::FrictionJoint(floor));
-    frictionJoint.setMaxForce(1000.0f);
-    frictionJoint.setMaxTorque(1000.0f);
-    frictionJoint.setCollideConnected(true);
-
-    // collision filter
-    auto b20 = registry.create();
-    registry.add(b20, Core::Transform(glm::vec2(-18.0f, 5.0f)));
-    registry.add(b20, Rendering::Mesh2D(1.0f, 3u));
-    registry.add(b20, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
-    registry.add(b20, Rendering::Renderable(true, false));
-
-    auto &b20Body = registry.add(b20, Physics::RigidBody2D());
-    auto &b20Collider = registry.add(b20, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b20))));
-    b20Collider.setCollisionCategory(0x0002);
-    b20Collider.setCollisionMask(0x0001);
-
-    auto b21 = registry.create();
-    registry.add(b21, Core::Transform(glm::vec2(-20.0f, 5.0f)));
-    registry.add(b21, Rendering::Mesh2D(1.0f, 3u));
-    registry.add(b21, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
-    registry.add(b21, Rendering::Renderable(true, false));
-
-    auto &b21Body = registry.add(b21, Physics::RigidBody2D());
-    auto &b21Collider = registry.add(b21, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b21))));
-    b21Collider.setCollisionCategory(0x0002);
-    b21Collider.setCollisionMask(0x0001);
-
-    auto &physicsWorld = *engine->getPhysicsWorld();
-    // physicsWorld.setGlobalCollisionFilter([&](const World::World &world, ECS::Entity a, ECS::Entity b) -> bool
-    //                                       {
-    //                                 // std::cout << "global collision filter: " << a << ", " << b << std::endl;
-    //                                   return true; });
-    // physicsWorld.removeGlobalCollisionFilter();
+        auto holder2 = registry.create();
+        registry.add(holder2, Core::Transform(glm::vec2(16.0f, 8.0f)));
+        registry.add(holder2, Rendering::Mesh2D(0.5f, 32u));
+        registry.add(holder2, Rendering::Material(Rendering::Color(0.0f, 0.0f, 1.0f, 1.0f)));
+        registry.add(holder2, Rendering::Renderable(true, false));
+
+        auto &holder2Body = registry.add(holder2, Physics::RigidBody2D());
+        holder2Body.setType(Physics::RigidBodyType::STATIC);
+
+        registry.add(holder2, Physics::Collider2D(new Physics::CircleColliderShape2D(0.5f)));
+
+        auto &holder2Joint = registry.add(holder2, Physics::PrismaticJoint(b8, glm::vec2(0.0f, 1.0f)));
+        holder2Joint.setCollideConnected(true);
+
+        // gear joint
+        auto b9 = registry.create();
+        registry.add(b9, Core::Transform(glm::vec2(20.0f, 6.0f)));
+
+        auto &b9Body = registry.add(b9, Physics::RigidBody2D());
+        b9Body.setType(Physics::RigidBodyType::STATIC);
+
+        auto b10 = registry.create();
+        registry.add(b10, Core::Transform(glm::vec2(20.0f, 6.0f)));
+        registry.add(b10, Rendering::Mesh2D(0.75f, 12u));
+        registry.add(b10, Rendering::Material());
+        registry.add(b10, Rendering::Renderable(true, false));
+        registry.add(b10, Physics::RigidBody2D());
+        registry.add(b10, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b10))));
+
+        registry.add(b9, Physics::RevoluteJoint(b10, glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f)));
+
+        auto b11 = registry.create();
+        registry.add(b11, Core::Transform(glm::vec2(21.5f, 6.0f)));
+
+        auto &b11Body = registry.add(b11, Physics::RigidBody2D());
+        b11Body.setType(Physics::RigidBodyType::STATIC);
+
+        auto b12 = registry.create();
+        registry.add(b12, Core::Transform(glm::vec2(21.5f, 6.0f)));
+        registry.add(b12, Rendering::Mesh2D(1.0f, 3.0f));
+        registry.add(b12, Rendering::Material());
+        registry.add(b12, Rendering::Renderable(true, false));
+
+        auto &b12Body = registry.add(b12, Physics::RigidBody2D());
+        registry.add(b12, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b12))));
+
+        b12Body.setGravityScale(0.0f);
+
+        registry.add(b11, Physics::PrismaticJoint(b12, glm::vec2(0.0f, 1.0f)));
+
+        auto &distanceJoint = registry.add(b11, Physics::DistanceJoint(b12));
+        distanceJoint.setStiffness(0.0f);
+        distanceJoint.setMinLength(0.0f);
+        distanceJoint.setMaxLength(3.0f);
+
+        registry.add(b9, Physics::GearJoint(b11, &registry.get<Physics::RevoluteJoint>(b9), &registry.get<Physics::PrismaticJoint>(b11), -1.0f));
+
+        // wheel joint
+        auto b13 = registry.create();
+        registry.add(b13, Core::Transform(glm::vec2(-20.0f, 2.0f)));
+        registry.add(b13, Rendering::Mesh2D(3.0f, 1.0f));
+        registry.add(b13, Rendering::Material(Rendering::Color(0.0f, 1.0f, 0.0f, 1.0f)));
+        registry.add(b13, Rendering::Renderable(true, false));
+
+        auto b13Body = registry.add(b13, Physics::RigidBody2D());
+        b13Body.setFixedRotation(true);
+
+        registry.add(b13, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b13))));
+
+        auto b14 = registry.create();
+        registry.add(b14, Core::Transform(glm::vec2(-21.5f, 0.5f)));
+        registry.add(b14, Rendering::Mesh2D(0.25f, 32u));
+        registry.add(b14, Rendering::Material(Rendering::Color(0.0f, 1.0f, 0.0f, 1.0f)));
+        registry.add(b14, Rendering::Renderable(true, false));
+
+        auto &b14Body = registry.add(b14, Physics::RigidBody2D());
+        auto &b14Collider = registry.add(b14, Physics::Collider2D(new Physics::CircleColliderShape2D(0.25f)));
+        b14Collider.setFriction(0.5f);
+
+        auto &b14Wheel = registry.add(b14, Physics::WheelJoint(b13, glm::vec2(-21.0f, 0.5f), glm::vec2(0, 1)));
+        b14Wheel.setStiffness(0.5f);
+        b14Wheel.setDamping(1.0f);
+        b14Wheel.enableLimit(true);
+
+        auto b15 = registry.create();
+        registry.add(b15, Core::Transform(glm::vec2(-18.5f, 0.5f)));
+        registry.add(b15, Rendering::Mesh2D(0.25f, 32u));
+        registry.add(b15, Rendering::Material(Rendering::Color(0.0f, 1.0f, 0.0f, 1.0f)));
+        registry.add(b15, Rendering::Renderable(true, false));
+
+        auto &b15Body = registry.add(b15, Physics::RigidBody2D());
+        auto &b15Collider = registry.add(b15, Physics::Collider2D(new Physics::CircleColliderShape2D(0.25f)));
+        b15Collider.setFriction(0.5f);
+
+        auto &b15Wheel = registry.add(b15, Physics::WheelJoint(b13, glm::vec2(-19.0f, 0.5f), glm::vec2(0, 1)));
+        b15Wheel.setStiffness(0.5f);
+        b15Wheel.setDamping(1.0f);
+        b15Wheel.enableLimit(true);
+
+        wheel = b15;
+
+        // weld joint
+        auto b16 = registry.create();
+        registry.add(b16, Core::Transform(glm::vec2(14.0f, 2.0f)));
+        registry.add(b16, Rendering::Mesh2D(2.0f, 2.0f));
+        registry.add(b16, Rendering::Material(Rendering::Color(0.0f, 1.0f, 1.0f, 1.0f)));
+        registry.add(b16, Rendering::Renderable(true, false));
+
+        auto b16Body = registry.add(b16, Physics::RigidBody2D());
+        auto b16Collider = registry.add(b16, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b16))));
+
+        auto b17 = registry.create();
+        registry.add(b17, Core::Transform(glm::vec2(16.0f, 2.0f)));
+        registry.add(b17, Rendering::Mesh2D(2.0f, 12u));
+        registry.add(b17, Rendering::Material(Rendering::Color(0.0f, 1.0f, 1.0f, 1.0f)));
+        registry.add(b17, Rendering::Renderable(true, false));
+
+        auto &b17Body = registry.add(b17, Physics::RigidBody2D());
+        auto &b17Collider = registry.add(b17, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b17))));
+
+        auto &weldJoint = registry.add(b16, Physics::WeldJoint(b17, glm::vec2(15.0f, 2.0f)));
+
+        // motor joint
+        auto b18 = registry.create();
+        registry.add(b18, Core::Transform(glm::vec2(-15.0f, 1.0f)));
+        registry.add(b18, Rendering::Mesh2D(1.0f, 12u));
+        registry.add(b18, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
+        registry.add(b18, Rendering::Renderable(true, false));
+
+        auto &b18Body = registry.add(b18, Physics::RigidBody2D());
+        auto &b18Collider = registry.add(b18, Physics::Collider2D(new Physics::CompoundPolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b18))));
+
+        auto &motorJoint = registry.add(b18, Physics::MotorJoint(floor));
+        motorJoint.setLinearOffset(glm::vec2(10.0f, 0.0f));
+        motorJoint.setAngularOffset(1.0f);
+        motorJoint.setCollideConnected(true);
+        motorJoint.setMaxForce(3.0f);
+
+        // friction joint
+        auto b19 = registry.create();
+        registry.add(b19, Core::Transform(glm::vec2(0.0f, 5.0f)));
+        registry.add(b19, Rendering::Mesh2D(2.0f, 2.0f));
+        registry.add(b19, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
+        registry.add(b19, Rendering::Renderable(true, false));
+
+        auto &b19Body = registry.add(b19, Physics::RigidBody2D());
+        b19Body.setGravityScale(0.0f);
+
+        auto &b19Collider = registry.add(b19, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b19))));
+
+        auto &frictionJoint = registry.add(b19, Physics::FrictionJoint(floor));
+        frictionJoint.setMaxForce(1000.0f);
+        frictionJoint.setMaxTorque(1000.0f);
+        frictionJoint.setCollideConnected(true);
+
+        // collision filter
+        auto b20 = registry.create();
+        registry.add(b20, Core::Transform(glm::vec2(-18.0f, 5.0f)));
+        registry.add(b20, Rendering::Mesh2D(1.0f, 3u));
+        registry.add(b20, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
+        registry.add(b20, Rendering::Renderable(true, false));
+
+        auto &b20Body = registry.add(b20, Physics::RigidBody2D());
+        auto &b20Collider = registry.add(b20, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b20))));
+        b20Collider.setCollisionCategory(0x0002);
+        b20Collider.setCollisionMask(0x0001);
+
+        auto b21 = registry.create();
+        registry.add(b21, Core::Transform(glm::vec2(-20.0f, 5.0f)));
+        registry.add(b21, Rendering::Mesh2D(1.0f, 3u));
+        registry.add(b21, Rendering::Material(Rendering::Color(1.0f, 0.0f, 1.0f, 1.0f)));
+        registry.add(b21, Rendering::Renderable(true, false));
+
+        auto &b21Body = registry.add(b21, Physics::RigidBody2D());
+        auto &b21Collider = registry.add(b21, Physics::Collider2D(new Physics::PolygonColliderShape2D(registry.get<Rendering::Mesh2D>(b21))));
+        b21Collider.setCollisionCategory(0x0002);
+        b21Collider.setCollisionMask(0x0001);
+
+        auto &physicsWorld = *engine->getPhysicsWorld();
+        // physicsWorld.setGlobalCollisionFilter([&](const World::World &world, ECS::Entity a, ECS::Entity b) -> bool
+        //                                       {
+        //                                 // std::cout << "global collision filter: " << a << ", " << b << std::endl;
+        //                                   return true; });
+        // physicsWorld.removeGlobalCollisionFilter();
+    }
 }
 
 void Application::destroy()
@@ -649,6 +654,7 @@ unsigned long long frames = 0;
 unsigned long long averageFps = 0;
 float timeSinceStart = 0;
 float textAlpha = 1.0f;
+bool gunshotPlaying = false;
 
 void Application::update(const ECS::System::SystemUpdateData &data)
 {
@@ -775,6 +781,15 @@ void Application::update(const ECS::System::SystemUpdateData &data)
             pipeline->add(posterizePass, 4400);
             std::cout << "added posterize pass" << std::endl;
         }
+    }
+
+    // play gun shot sound
+    if (keyboard->isPressed(Input::Key::KEY_M) && !gunshotPlaying)
+    {
+        auto &audioManager = data.audioManager;
+        audioManager.play(gunShotAudio, 0.5f, 0, [&](Audio::PlayingId id)
+                          { gunshotPlaying = false; });
+        gunshotPlaying = true;
     }
 
     // rotate all entities with a transform component except camera

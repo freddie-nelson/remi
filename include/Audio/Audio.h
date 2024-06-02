@@ -13,6 +13,9 @@ namespace Audio
      *
      * Supported audio formats are:
      *  - WAV
+     *  - MP3
+     *  - OGG
+     *  - FLAC
      */
     class Audio
     {
@@ -42,6 +45,15 @@ namespace Audio
          * @returns The path of the audio.
          */
         const std::string &getPath() const;
+
+        /**
+         * Gets the chunk of the audio.
+         *
+         * @note This is intended for internal use by the engine. Only use this if you know what you are doing.
+         *
+         * @returns The chunk of the audio.
+         */
+        Mix_Chunk *getChunk() const;
 
     private:
         static AudioId nextId;
