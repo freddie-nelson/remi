@@ -172,14 +172,15 @@ void Audio::AudioManager::audioFinishedCallback(int channel)
 
     auto id = instance->channels[channel];
 
+    // cleanup audio inside instance
+    instance->playing.erase(id);
+    instance->channels.erase(channel);
+
     // call finish callback if it exists
     if (instance->finishCallbacks.contains(id))
     {
         instance->finishCallbacks[id](id);
     }
 
-    // cleanup audio inside instance
-    instance->playing.erase(id);
-    instance->channels.erase(channel);
     instance->finishCallbacks.erase(id);
 }
