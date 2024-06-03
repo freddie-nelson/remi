@@ -2,6 +2,9 @@
 
 #include "Music.h"
 
+#include <functional>
+#include <vector>
+
 namespace Audio
 {
     /**
@@ -12,6 +15,8 @@ namespace Audio
     class MusicManager
     {
     public:
+        using FinishCallback = std::function<void()>;
+
         /**
          * Creates a new music manager.
          */
@@ -36,8 +41,9 @@ namespace Audio
          * @param music The music track to play.
          * @param volume The volume to play the music track at. This is in the range [0, 1].
          * @param loops The number of times to loop the music track. 0 means play once, -1 means loop forever.
+         * @param finishCallback The callback to call when the music track finishes playing.
          */
-        void play(const Music &music, float volume = 1.0f, int loops = -1) const;
+        void play(const Music &music, float volume = 1.0f, int loops = -1, FinishCallback finishCallback = nullptr) const;
 
         /**
          * Pauses the currently playing music track.
@@ -84,5 +90,12 @@ namespace Audio
          * @returns True if a music track is playing, false otherwise.
          */
         bool isPlaying() const;
+
+    private:
+        mutable FinishCallback finishCallback;
+
+        static std::vector<MusicManager *> instances;
+
+        static void handleMusicFinished();
     };
 }

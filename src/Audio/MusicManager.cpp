@@ -2,19 +2,37 @@
 #include "../../include/Utility/SDLHelpers.h"
 
 #include <stdexcept>
+#include <iostream>
 
 Audio::MusicManager::MusicManager()
 {
+    if (instances.size() > 0)
+    {
+        std::cout << "MusicManager (constructor): Multiple instances of MusicManager detected. This may lead to unexpected behavior." << std::endl;
+    }
+
     // initialize SDL in case it is not initialized
     remi::initSDL();
+
+    // add this instance to instances
+    instances.push_back(this);
+
+    Mix_HookMusicFinished(handleMusicFinished);
 }
 
 Audio::MusicManager::~MusicManager()
 {
     stop();
+
+    // remove this instance from instances
+    auto it = std::find(instances.begin(), instances.end(), this);
+    if (it != instances.end())
+    {
+        instances.erase(it);
+    }
 }
 
-void Audio::MusicManager::play(const Music &music, float volume, int loops) const
+void Audio::MusicManager::play(const Music &music, float volume, int loops, FinishCallback finishCallback) const
 {
     stop();
 
@@ -24,6 +42,11 @@ void Audio::MusicManager::play(const Music &music, float volume, int loops) cons
     }
 
     setVolume(volume);
+
+    if (finishCallback != nullptr)
+    {
+        this->finishCallback = finishCallback;
+    }
 }
 
 void Audio::MusicManager::pause() const
@@ -54,6 +77,8 @@ void Audio::MusicManager::stop() const
     }
 
     Mix_HaltMusic();
+
+    finishCallback = nullptr;
 }
 
 void Audio::MusicManager::setVolume(float volume) const
@@ -74,4 +99,16 @@ float Audio::MusicManager::getVolume() const
 bool Audio::MusicManager::isPlaying() const
 {
     return Mix_PlayingMusic() == 1;
+}
+
+void Audio::MusicManager::handleMusicFinished()
+{
+    for (auto instance : instances)
+    {
+        if (instance->finishCallback != nullptr)
+        {
+            instance->finishCallback();
+            instance->finishCallback = nullptr;
+        }
+    }
 }
