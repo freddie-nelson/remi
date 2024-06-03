@@ -101,6 +101,8 @@ bool Audio::MusicManager::isPlaying() const
     return Mix_PlayingMusic() == 1;
 }
 
+std::vector<Audio::MusicManager *> Audio::MusicManager::instances = {};
+
 void Audio::MusicManager::handleMusicFinished()
 {
     for (auto instance : instances)
