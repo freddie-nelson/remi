@@ -12,7 +12,7 @@
 #include "Physics/PhysicsWorld.h"
 #include "World/World.h"
 #include "Physics/MouseJointUpdateSystem.h"
-#include "Audio/AudioManager.h"
+#include "Audio/SoundEffectManager.h"
 
 // ! TODO: give all internal components copy and move constructors and assignment operators
 
@@ -290,13 +290,13 @@ namespace remi
         Physics::MouseJointUpdateSystem *const getMouseJointUpdateSystem();
 
         /**
-         * Gets the audio manager of the engine.
+         * Gets the sound effect manager of the engine.
          *
-         * This is used to manage audio playback.
+         * This is used to manage the playback of sound effects playback.
          *
-         * @returns The audio manager of the engine.
+         * @returns The sound effect manager of the engine.
          */
-        Audio::AudioManager *const getAudioManager();
+        Audio::SoundEffectManager *const getSoundEffectManager();
 
         /**
          * Creates the system update data for the engine.
@@ -329,7 +329,7 @@ namespace remi
 
         Physics::MouseJointUpdateSystem *mouseJointUpdateSystem = nullptr;
 
-        Audio::AudioManager *audioManager = nullptr;
+        Audio::SoundEffectManager *soundEffectManager = nullptr;
 
         /**
          * The data that is passed to the main loop.

@@ -1,11 +1,11 @@
-#include "../../include/Audio/AudioManager.h"
+#include "../../include/Audio/SoundEffectManager.h"
 #include "../../include/Utility/SDLHelpers.h"
 
 #include <SDL2/SDL_mixer.h>
 
 #include <stdexcept>
 
-Audio::AudioManager::AudioManager()
+Audio::SoundEffectManager::SoundEffectManager()
 {
     // initialize SDL in case it is not initialized
     remi::initSDL();
@@ -14,10 +14,10 @@ Audio::AudioManager::AudioManager()
     instances.push_back(this);
 
     // set audio finished callback
-    Mix_ChannelFinished(audioFinishedCallback);
+    Mix_ChannelFinished(handleSoundEffectFinished);
 }
 
-Audio::AudioManager::~AudioManager()
+Audio::SoundEffectManager::~SoundEffectManager()
 {
     stopAll();
 
@@ -29,7 +29,7 @@ Audio::AudioManager::~AudioManager()
     }
 }
 
-Audio::PlayingId Audio::AudioManager::play(const Audio &audio, float volume, int loops, AudioFinishCallback finishCallback) const
+Audio::SoundEffectManager::PlayingId Audio::SoundEffectManager::play(const SoundEffect &audio, float volume, int loops, FinishCallback finishCallback) const
 {
     auto id = nextId++;
 
@@ -62,7 +62,7 @@ Audio::PlayingId Audio::AudioManager::play(const Audio &audio, float volume, int
     return id;
 }
 
-void Audio::AudioManager::pause(PlayingId id) const
+void Audio::SoundEffectManager::pause(PlayingId id) const
 {
     if (!playing.contains(id))
     {
@@ -73,7 +73,7 @@ void Audio::AudioManager::pause(PlayingId id) const
     Mix_Pause(channel);
 }
 
-void Audio::AudioManager::unpause(PlayingId id) const
+void Audio::SoundEffectManager::unpause(PlayingId id) const
 {
     if (!playing.contains(id))
     {
@@ -84,7 +84,7 @@ void Audio::AudioManager::unpause(PlayingId id) const
     Mix_Resume(channel);
 }
 
-void Audio::AudioManager::stop(PlayingId id) const
+void Audio::SoundEffectManager::stop(PlayingId id) const
 {
     if (!playing.contains(id))
     {
@@ -98,7 +98,7 @@ void Audio::AudioManager::stop(PlayingId id) const
     channels.erase(channel);
 }
 
-bool Audio::AudioManager::isPlaying(PlayingId id) const
+bool Audio::SoundEffectManager::isPlaying(PlayingId id) const
 {
     if (!playing.contains(id))
     {
@@ -109,7 +109,7 @@ bool Audio::AudioManager::isPlaying(PlayingId id) const
     return Mix_Playing(channel) == 1;
 }
 
-void Audio::AudioManager::setVolume(PlayingId id, float volume) const
+void Audio::SoundEffectManager::setVolume(PlayingId id, float volume) const
 {
     if (volume < 0.0f || volume > 1.0f)
     {
@@ -125,7 +125,7 @@ void Audio::AudioManager::setVolume(PlayingId id, float volume) const
     Mix_Volume(channel, static_cast<int>(volume * MIX_MAX_VOLUME));
 }
 
-float Audio::AudioManager::getVolume(PlayingId id) const
+float Audio::SoundEffectManager::getVolume(PlayingId id) const
 {
     if (!playing.contains(id))
     {
@@ -136,7 +136,7 @@ float Audio::AudioManager::getVolume(PlayingId id) const
     return static_cast<float>(Mix_Volume(channel, -1)) / MIX_MAX_VOLUME;
 }
 
-void Audio::AudioManager::stopAll() const
+void Audio::SoundEffectManager::stopAll() const
 {
     // using this method to stop all audio instead of Mix_HaltChannel(-1) so
     // only the audio played by this manager is stopped
@@ -149,12 +149,12 @@ void Audio::AudioManager::stopAll() const
     channels.clear();
 }
 
-std::vector<Audio::AudioManager *> Audio::AudioManager::instances = {};
+std::vector<Audio::SoundEffectManager *> Audio::SoundEffectManager::instances = {};
 
-void Audio::AudioManager::audioFinishedCallback(int channel)
+void Audio::SoundEffectManager::handleSoundEffectFinished(int channel)
 {
     // find instance that was using this channel
-    AudioManager *instance = nullptr;
+    SoundEffectManager *instance = nullptr;
 
     for (auto &i : instances)
     {

@@ -3,7 +3,7 @@
 #include "../Input/Mouse.h"
 #include "../Input/Keyboard.h"
 #include "../Core/Timestep.h"
-#include "../Audio/AudioManager.h"
+#include "../Audio/SoundEffectManager.h"
 
 namespace World
 {
@@ -40,7 +40,7 @@ namespace ECS
             const Input::Mouse &mouse;
             const Input::Keyboard &keyboard;
 
-            const Audio::AudioManager &audioManager;
+            const Audio::SoundEffectManager &soundEffectManager;
         };
 
         virtual ~System() = default;

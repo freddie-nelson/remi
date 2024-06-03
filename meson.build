@@ -108,7 +108,7 @@ endif
 #
 
 # audio
-audio_src = ['src/Audio/Audio.cpp', 'src/Audio/AudioManager.cpp']
+audio_src = ['src/Audio/SoundEffect.cpp', 'src/Audio/SoundEffectManager.cpp']
 
 # core
 core_src = ['src/Core/BoundingCircle.cpp', 'src/Core/Transform.cpp', 'src/Core/Timestep.cpp', 'src/Core/Window.cpp', 'src/Core/SpaceTransformer.cpp']

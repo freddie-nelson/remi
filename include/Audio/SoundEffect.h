@@ -6,10 +6,10 @@
 
 namespace Audio
 {
-    using AudioId = size_t;
+    using SoundEffectId = size_t;
 
     /**
-     * Represents an audio file.
+     * Represents a sound effect.
      *
      * Supported audio formats are:
      *  - WAV
@@ -17,48 +17,48 @@ namespace Audio
      *  - OGG
      *  - FLAC
      */
-    class Audio
+    class SoundEffect
     {
     public:
         /**
-         * Creates a new audio instance.
+         * Creates a new sound effect.
          *
-         * @param path The path to the audio file.
+         * @param path The path to the sound effect's audio file.
          */
-        Audio(std::string path);
+        SoundEffect(std::string path);
 
         /**
-         * Destroys the audio instance.
+         * Destroys the sound effect instance.
          */
-        ~Audio();
+        ~SoundEffect();
 
         /**
-         * Loads the audio from the given file.
+         * Loads the sound effect from the given file.
          *
-         * @param path The path to the audio file.
+         * @param path The path to the sound effect's audio file.
          */
         void fromFile(std::string path);
 
         /**
-         * Gets the path of the audio.
+         * Gets the path of the sound effect's audio file.
          *
-         * @returns The path of the audio.
+         * @returns The path of the sound effect's audio file.
          */
         const std::string &getPath() const;
 
         /**
-         * Gets the chunk of the audio.
+         * Gets the sdl mixer chunk of the sound effect.
          *
          * @note This is intended for internal use by the engine. Only use this if you know what you are doing.
          *
-         * @returns The chunk of the audio.
+         * @returns The chunk of the sound effect.
          */
         Mix_Chunk *getChunk() const;
 
     private:
-        static AudioId nextId;
+        static SoundEffectId nextId;
 
-        const AudioId id = nextId++;
+        const SoundEffectId id = nextId++;
 
         Mix_Chunk *chunk = nullptr;
         std::string path;

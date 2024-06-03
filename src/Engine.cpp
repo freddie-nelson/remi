@@ -64,7 +64,7 @@ remi::Engine::Engine(EngineConfig config)
     mouseJointUpdateSystem = new Physics::MouseJointUpdateSystem(mouse, spaceTransformer);
     world->addSystem(mouseJointUpdateSystem);
 
-    audioManager = new Audio::AudioManager();
+    soundEffectManager = new Audio::SoundEffectManager();
 }
 
 remi::Engine::~Engine()
@@ -182,9 +182,9 @@ Physics::MouseJointUpdateSystem *const remi::Engine::getMouseJointUpdateSystem()
     return mouseJointUpdateSystem;
 }
 
-Audio::AudioManager *const remi::Engine::getAudioManager()
+Audio::SoundEffectManager *const remi::Engine::getSoundEffectManager()
 {
-    return audioManager;
+    return soundEffectManager;
 }
 
 ECS::System::SystemUpdateData remi::Engine::createSystemUpdateData(const Core::Timestep &timestep)
@@ -195,7 +195,7 @@ ECS::System::SystemUpdateData remi::Engine::createSystemUpdateData(const Core::T
                                          timestep,
                                          *mouse,
                                          *keyboard,
-                                         *audioManager};
+                                         *soundEffectManager};
 }
 
 void remi::Engine::mainLoop(MainLoopArgs *args)

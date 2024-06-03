@@ -36,7 +36,7 @@
 #include <remi/Physics/Joints/WeldJoint.h>
 #include <remi/Physics/Joints/MotorJoint.h>
 #include <remi/Physics/Joints/FrictionJoint.h>
-#include <remi/Audio/Audio.h>
+#include <remi/Audio/SoundEffect.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -77,7 +77,7 @@ ECS::Entity fpsEntity;
 ECS::Entity deletable;
 ECS::Entity wheel;
 
-Audio::Audio gunShotAudio("assets/gun-shot.wav");
+Audio::SoundEffect gunShotAudio("assets/gun-shot.wav");
 
 void Application::init()
 {
@@ -786,9 +786,9 @@ void Application::update(const ECS::System::SystemUpdateData &data)
     // play gun shot sound
     if (keyboard->isPressed(Input::Key::KEY_M) && !gunshotPlaying)
     {
-        auto &audioManager = data.audioManager;
-        audioManager.play(gunShotAudio, 0.5f, 0, [&](Audio::PlayingId id)
-                          { gunshotPlaying = false; });
+        auto &soundEffectManager = data.soundEffectManager;
+        soundEffectManager.play(gunShotAudio, 0.5f, 0, [&](Audio::SoundEffectManager::PlayingId id)
+                                { gunshotPlaying = false; });
         gunshotPlaying = true;
     }
 
