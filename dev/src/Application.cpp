@@ -37,6 +37,7 @@
 #include <remi/Physics/Joints/MotorJoint.h>
 #include <remi/Physics/Joints/FrictionJoint.h>
 #include <remi/Audio/SoundEffect.h>
+#include <remi/Audio/Music.h>
 
 #include <glm/gtx/string_cast.hpp>
 #include <math.h>
@@ -78,6 +79,7 @@ ECS::Entity deletable;
 ECS::Entity wheel;
 
 Audio::SoundEffect gunShotAudio("assets/gun-shot.wav");
+Audio::Music aggrocultureMusic("assets/aggroculture.ogg");
 
 void Application::init()
 {
@@ -99,6 +101,9 @@ void Application::init()
     auto world = engine->getWorld();
     auto &registry = world->getRegistry();
     auto &sceneGraph = world->getSceneGraph();
+
+    auto &musicManager = *engine->getMusicManager();
+    musicManager.play(aggrocultureMusic, 0.1f, -1);
 
     // add this system to the world
     world->addSystem(this);

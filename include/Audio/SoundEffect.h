@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
-
 #include <SDL2/SDL_mixer.h>
+
+#include <string>
 
 namespace Audio
 {
@@ -10,6 +10,10 @@ namespace Audio
 
     /**
      * Represents a sound effect.
+     *
+     * A sound effect is a short audio clip that can be played in response to a game event.
+     *
+     * Sound effects are not movable or copyable.
      *
      * Supported audio formats are:
      *  - WAV
@@ -31,6 +35,10 @@ namespace Audio
          * Destroys the sound effect instance.
          */
         ~SoundEffect();
+
+        SoundEffect(const SoundEffect &) = delete;
+
+        SoundEffect(SoundEffect &&) = delete;
 
         /**
          * Loads the sound effect from the given file.
@@ -60,8 +68,8 @@ namespace Audio
 
         const SoundEffectId id = nextId++;
 
-        Mix_Chunk *chunk = nullptr;
         std::string path;
+        Mix_Chunk *chunk = nullptr;
 
         void destroy();
     };

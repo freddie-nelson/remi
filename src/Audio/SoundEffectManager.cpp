@@ -36,7 +36,7 @@ Audio::SoundEffectManager::PlayingId Audio::SoundEffectManager::play(const Sound
     auto channel = Mix_PlayChannel(-1, audio.getChunk(), loops);
     if (channel == -1)
     {
-        throw std::runtime_error("AudioManager (play): Failed to play audio '" + audio.getPath() + "': " + std::string(Mix_GetError()));
+        throw std::runtime_error("SoundEffectManager (play): Failed to play sound effect '" + audio.getPath() + "': " + std::string(Mix_GetError()));
     }
 
     // remove old playing data
@@ -66,7 +66,7 @@ void Audio::SoundEffectManager::pause(PlayingId id) const
 {
     if (!playing.contains(id))
     {
-        throw std::invalid_argument("AudioManager (pause): Audio with playing id " + std::to_string(id) + " does not exist.");
+        throw std::invalid_argument("SoundEffectManager (pause): Sound effect with playing id " + std::to_string(id) + " does not exist.");
     }
 
     auto channel = playing[id];
@@ -77,7 +77,7 @@ void Audio::SoundEffectManager::unpause(PlayingId id) const
 {
     if (!playing.contains(id))
     {
-        throw std::invalid_argument("AudioManager (unpause): Audio with playing id " + std::to_string(id) + " does not exist.");
+        throw std::invalid_argument("SoundEffectManager (unpause): Sound effect with playing id " + std::to_string(id) + " does not exist.");
     }
 
     auto channel = playing[id];
@@ -88,7 +88,7 @@ void Audio::SoundEffectManager::stop(PlayingId id) const
 {
     if (!playing.contains(id))
     {
-        throw std::invalid_argument("AudioManager (stop): Audio with playing id " + std::to_string(id) + " does not exist.");
+        throw std::invalid_argument("SoundEffectManager (stop): Sound effect with playing id " + std::to_string(id) + " does not exist.");
     }
 
     auto channel = playing[id];
@@ -113,12 +113,12 @@ void Audio::SoundEffectManager::setVolume(PlayingId id, float volume) const
 {
     if (volume < 0.0f || volume > 1.0f)
     {
-        throw std::invalid_argument("AudioManager (setVolume): Volume must be in the range [0, 1].");
+        throw std::invalid_argument("SoundEffectManager (setVolume): Volume must be in the range [0, 1].");
     }
 
     if (!playing.contains(id))
     {
-        throw std::invalid_argument("AudioManager (setVolume): Audio with playing id " + std::to_string(id) + " does not exist.");
+        throw std::invalid_argument("SoundEffectManager (setVolume): Sound effect with playing id " + std::to_string(id) + " does not exist.");
     }
 
     auto channel = playing[id];
@@ -129,7 +129,7 @@ float Audio::SoundEffectManager::getVolume(PlayingId id) const
 {
     if (!playing.contains(id))
     {
-        throw std::runtime_error("AudioManager (getVolume): Audio with playing id " + std::to_string(id) + " does not exist.");
+        throw std::runtime_error("SoundEffectManager (getVolume): Sound effect with playing id " + std::to_string(id) + " does not exist.");
     }
 
     auto channel = playing[id];

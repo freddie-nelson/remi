@@ -4,6 +4,7 @@
 #include "../Input/Keyboard.h"
 #include "../Core/Timestep.h"
 #include "../Audio/SoundEffectManager.h"
+#include "../Audio/MusicManager.h"
 
 namespace World
 {
@@ -41,6 +42,7 @@ namespace ECS
             const Input::Keyboard &keyboard;
 
             const Audio::SoundEffectManager &soundEffectManager;
+            const Audio::MusicManager &musicManager;
         };
 
         virtual ~System() = default;

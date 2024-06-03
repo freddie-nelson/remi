@@ -287,11 +287,12 @@ SDL_Window *Core::Window::createWindow(int openglMajorVersion, int openglMinorVe
     {
         hide();
     }
-
-    if (isResizeable())
+    else
     {
-        toggleResizeable(false);
+        show();
     }
+
+    toggleResizeable(resizeable);
 
     return internalWindow;
 }

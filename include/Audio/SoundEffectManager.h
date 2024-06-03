@@ -27,8 +27,14 @@ namespace Audio
 
         /**
          * Destroys the sound effect manager.
+         *
+         * This stops all playing sound effects.
          */
         ~SoundEffectManager();
+
+        SoundEffectManager(const SoundEffectManager &) = delete;
+
+        SoundEffectManager(SoundEffectManager &&) = delete;
 
         /**
          * Plays the given sound effect.

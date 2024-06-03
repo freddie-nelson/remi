@@ -33,13 +33,13 @@ void Audio::SoundEffect::fromFile(std::string path)
 
     if (!isWav && !isOgg && !isMp3 && !isFlac)
     {
-        throw std::invalid_argument("Audio (fromFile): Unsupported audio format. Make sure your audio is a supported format and ends with the correct file extension.");
+        throw std::invalid_argument("SoundEffect (fromFile): Unsupported audio format. Make sure your audio is a supported format and ends with the correct file extension.");
     }
 
     chunk = Mix_LoadWAV(path.c_str());
     if (chunk == nullptr)
     {
-        throw std::runtime_error("Audio (fromFile): Failed to load audio file from '" + path + "'. SDL_mixer Error: " + std::string(Mix_GetError()));
+        throw std::runtime_error("SoundEffect (fromFile): Failed to load audio file from '" + path + "'. SDL_mixer Error: " + std::string(Mix_GetError()));
     }
 
     this->path = path;

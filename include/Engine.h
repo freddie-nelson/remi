@@ -13,6 +13,7 @@
 #include "World/World.h"
 #include "Physics/MouseJointUpdateSystem.h"
 #include "Audio/SoundEffectManager.h"
+#include "Audio/MusicManager.h"
 
 // ! TODO: give all internal components copy and move constructors and assignment operators
 
@@ -299,6 +300,15 @@ namespace remi
         Audio::SoundEffectManager *const getSoundEffectManager();
 
         /**
+         * Gets the music manager of the engine.
+         *
+         * This is used to manage the playback of music.
+         *
+         * @returns The music manager of the engine.
+         */
+        Audio::MusicManager *const getMusicManager();
+
+        /**
          * Creates the system update data for the engine.
          *
          * This is the data that will be passed to the systems when they are updated.
@@ -330,6 +340,7 @@ namespace remi
         Physics::MouseJointUpdateSystem *mouseJointUpdateSystem = nullptr;
 
         Audio::SoundEffectManager *soundEffectManager = nullptr;
+        Audio::MusicManager *musicManager = nullptr;
 
         /**
          * The data that is passed to the main loop.

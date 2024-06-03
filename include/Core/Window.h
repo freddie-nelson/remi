@@ -30,6 +30,10 @@ namespace Core
      * The window is responsible for creating and managing the window.
      *
      * The window must be initialized before it can be used.
+     *
+     * @note By default the window is shown.
+     *
+     * @note By default the window is resizable.
      */
     class Window : public Subject<const std::vector<SDL_Event> &>
     {
