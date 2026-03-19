@@ -78,6 +78,8 @@ void Input::Keyboard::updateObserver(std::string event, const std::vector<SDL_Ev
             keys[key] = true;
             mods[key] = event.key.keysym.mod;
 
+            this->notifyObservers(Keyboard::KeyDownEvent, key);
+
             break;
         }
         case SDL_KEYUP:
@@ -86,6 +88,8 @@ void Input::Keyboard::updateObserver(std::string event, const std::vector<SDL_Ev
 
             keys[key] = false;
             mods[key] = 0;
+
+            this->notifyObservers(Keyboard::KeyUpEvent, key);
 
             break;
         }

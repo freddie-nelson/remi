@@ -479,10 +479,17 @@ namespace Input
 
     /**
      * Represents the keyboard.
+     *
+     * The keyboard notifies observers of the following events:
+     *  - Keyboard::KeyDownEvent
+     *  - Keyboard::KeyUpEvent
      */
-    class Keyboard : public Core::Observer<const std::vector<SDL_Event> &>
+    class Keyboard : public Core::Observer<const std::vector<SDL_Event> &>, public Core::Subject<Key>
     {
     public:
+        static constexpr std::string KeyDownEvent = "keydown";
+        static constexpr std::string KeyUpEvent = "keyup";
+
         /**
          * Creates a new keyboard object.
          *

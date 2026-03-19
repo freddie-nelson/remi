@@ -22,6 +22,7 @@
 #include <remi/Rendering/Passes/GaussianBlurPass.h>
 #include <remi/Rendering/Passes/BrightnessPass.h>
 #include <remi/Rendering/Passes/PosterizePass.h>
+#include <remi/Rendering/Passes/PhysicsDebugPass.h>
 #include <remi/Rendering/Texture/AnimatedTexture.h>
 #include <remi/Physics/RigidBody2D.h>
 #include <remi/Physics/Collider2D.h>
@@ -65,6 +66,7 @@ Rendering::ColorBlendPass *colorBlendPass;
 Rendering::GaussianBlurPass *blurPass;
 Rendering::BrightnessPass *brightnessPass;
 Rendering::PosterizePass *posterizePass;
+Rendering::PhysicsDebugPass *physicsDebugPass;
 
 Rendering::Font *font;
 
@@ -112,6 +114,7 @@ void Application::init()
     blurPass = new Rendering::GaussianBlurPass();
     brightnessPass = new Rendering::BrightnessPass(0.5f);
     posterizePass = new Rendering::PosterizePass(8.0f);
+    physicsDebugPass = new Rendering::PhysicsDebugPass(engine->getPhysicsWorld());
     // pipeline->add(colorBlendPass, 4500);
 
     // renderer->setProjectionMode(Rendering::RendererProjectionMode::MATCH);
@@ -124,7 +127,7 @@ void Application::init()
     renderer->enableAlphaBlending(true);
 
     // create texture
-    Rendering::Texture *texture = new Rendering::Texture("assets/liv.jpg");
+    Rendering::Texture *texture = new Rendering::Texture("assets/piggy.jpg");
     Rendering::Texture *gradient = new Rendering::Texture("assets/gradient.png");
 
     // create font
@@ -169,7 +172,7 @@ void Application::init()
     }
 
     // create text
-    auto text = Rendering::Text("LIV SMELLS", *font);
+    auto text = Rendering::Text("HELLO WORLD", *font);
 
     ECS::Entity textEntity = registry.create();
     registry.add(textEntity, text.mesh(Rendering::Text::TextAlignment::CENTRE));
@@ -647,6 +650,86 @@ void Application::init()
         //                                   return true; });
         // physicsWorld.removeGlobalCollisionFilter();
     }
+
+    auto keyboard = engine->getKeyboard();
+    keyboard->attachObserver(Input::Keyboard::KeyUpEvent, [&](Input::Key key) {
+        auto pipeline = engine->getPipeline();
+
+        // toggle color blend pass
+        if (key == Input::Key::KEY_C)
+        {
+            if (pipeline->has(4100))
+            {
+                pipeline->remove(colorBlendPass);
+                std::cout << "removed color blend pass" << std::endl;
+            }
+            else
+            {
+                pipeline->add(colorBlendPass, 4100);
+                std::cout << "added color blend pass" << std::endl;
+            }
+        }
+
+        // toggle blur pass
+        if (key == Input::Key::KEY_B)
+        {
+            if (pipeline->has(4200))
+            {
+                pipeline->remove(blurPass);
+                std::cout << "removed blur pass" << std::endl;
+            }
+            else
+            {
+                pipeline->add(blurPass, 4200);
+                std::cout << "added blur pass" << std::endl;
+            }
+        }
+
+        // toggle brightness pass
+        if (key == Input::Key::KEY_V)
+        {
+            if (pipeline->has(4300))
+            {
+                pipeline->remove(brightnessPass);
+                std::cout << "removed brightness pass" << std::endl;
+            }
+            else
+            {
+                pipeline->add(brightnessPass, 4300);
+                std::cout << "added brightness pass" << std::endl;
+            }
+        }
+
+        // toggle posterize pass
+        if (key == Input::Key::KEY_N)
+        {
+            if (pipeline->has(4400))
+            {
+                pipeline->remove(posterizePass);
+                std::cout << "removed posterize pass" << std::endl;
+            }
+            else
+            {
+                pipeline->add(posterizePass, 4400);
+                std::cout << "added posterize pass" << std::endl;
+            }
+        }
+
+        // toggle physics debug pass
+        if (key == Input::Key::KEY_M)
+        {
+            if (pipeline->has(4500))
+            {
+                pipeline->remove(physicsDebugPass);
+                std::cout << "removed physics debug pass" << std::endl;
+            }
+            else
+            {
+                pipeline->add(physicsDebugPass, 4500);
+                std::cout << "added physics debug pass" << std::endl;
+            }
+        }
+    });
 }
 
 void Application::destroy()
@@ -670,7 +753,6 @@ void Application::update(const ECS::System::SystemUpdateData &data)
 
     auto spaceTransformer = engine->getSpaceTransformer();
     auto renderer = engine->getRenderer();
-    auto pipeline = engine->getPipeline();
 
     // print timestep info
     auto fps = 1.0f / timestep.getSeconds();
@@ -726,70 +808,10 @@ void Application::update(const ECS::System::SystemUpdateData &data)
 
     // m.uniform(new Rendering::Uniform("uTime", timeSinceStart));
     textAlpha = sin(timeSinceStart) * 0.5f + 0.5f;
-    m.uniform(new Rendering::Uniform("uColorAlpha", textAlpha));
-
-    // toggle color blend pass
-    if (keyboard->isPressed(Input::Key::KEY_C))
-    {
-        if (pipeline->has(4100))
-        {
-            pipeline->remove(colorBlendPass);
-            std::cout << "removed color blend pass" << std::endl;
-        }
-        else
-        {
-            pipeline->add(colorBlendPass, 4100);
-            std::cout << "added color blend pass" << std::endl;
-        }
-    }
-
-    // toggle blur pass
-    if (keyboard->isPressed(Input::Key::KEY_B))
-    {
-        if (pipeline->has(4200))
-        {
-            pipeline->remove(blurPass);
-            std::cout << "removed blur pass" << std::endl;
-        }
-        else
-        {
-            pipeline->add(blurPass, 4200);
-            std::cout << "added blur pass" << std::endl;
-        }
-    }
-
-    // toggle brightness pass
-    if (keyboard->isPressed(Input::Key::KEY_V))
-    {
-        if (pipeline->has(4300))
-        {
-            pipeline->remove(brightnessPass);
-            std::cout << "removed brightness pass" << std::endl;
-        }
-        else
-        {
-            pipeline->add(brightnessPass, 4300);
-            std::cout << "added brightness pass" << std::endl;
-        }
-    }
-
-    // toggle posterize pass
-    if (keyboard->isPressed(Input::Key::KEY_P))
-    {
-        if (pipeline->has(4400))
-        {
-            pipeline->remove(posterizePass);
-            std::cout << "removed posterize pass" << std::endl;
-        }
-        else
-        {
-            pipeline->add(posterizePass, 4400);
-            std::cout << "added posterize pass" << std::endl;
-        }
-    }
+    m.uniform(new Rendering::Uniform("uColorAlpha", textAlpha)); 
 
     // play gun shot sound
-    if (keyboard->isPressed(Input::Key::KEY_M) && !gunshotPlaying)
+    if (keyboard->isPressed(Input::Key::KEY_G) && !gunshotPlaying)
     {
         auto &soundEffectManager = data.soundEffectManager;
         soundEffectManager.play(gunShotAudio, 0.5f, 0, [&](Audio::SoundEffectManager::PlayingId id)
