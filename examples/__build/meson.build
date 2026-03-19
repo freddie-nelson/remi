@@ -32,7 +32,7 @@ name_suffix = ''
 # add remi to the dependencies
 dependencies += [remi]
 
-includes = ['-I' + join_paths(lib_dir, 'include'), '-I' + helpers_dir, '-I' + externals_dir]
+includes = ['-I' + join_paths(lib_dir, 'include'), '-I' + externals_dir, '-I' + helpers_dir]
 link_args += includes
 cpp_args += includes 
 
@@ -40,9 +40,13 @@ cpp_args += includes
 if cross_target == 'native'
     name_suffix = 'exe'
 
-    if get_option('buildtype') == 'release'
-        link_args += ['-mwindows']
+    if host_machine.system() == 'windows' 
+        # dependencies += dependency('sdl2main', required : true, static : true)
     endif
+
+    # if get_option('buildtype') == 'release'
+    #     link_args += ['-mwindows']
+    # endif
 endif
 
 # wasm build
@@ -71,5 +75,10 @@ if cross_target == 'wasm'
     name_suffix = 'html'
 endif
 
+win_subsystem = 'console'
+if get_option('buildtype') == 'release'
+    win_subsystem = 'windows'
+endif
+
 src = __SRC_FILES__
-executable('example', src, dependencies : dependencies, link_args : link_args, cpp_args : cpp_args, link_with : link_with, name_suffix : name_suffix, include_directories : inc_dirs)
+executable('example', src, dependencies : dependencies, link_args : link_args, cpp_args : cpp_args, link_with : link_with, name_suffix : name_suffix, include_directories : inc_dirs, win_subsystem : win_subsystem)

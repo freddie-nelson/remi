@@ -7,6 +7,7 @@
 #include <remi/Core/Transform.h>
 #include <remi/Physics/RigidBody2D.h>
 #include <remi/Physics/Collider2D.h>
+#include <remi/Physics/ColliderShape.h>
 
 #include <Fps.h>
 #include <BasicCamera.h>
@@ -80,7 +81,7 @@ int main()
         boxBody.setType(Physics::RigidBodyType::DYNAMIC);
 
         // use box mesh to create concave collider
-        auto boxShape = new Physics::ConcavePolygonColliderShape2D(boxMesh);
+        auto boxShape = new Physics::CompoundPolygonColliderShape2D(boxMesh);
         auto &boxCollider = registry.add(box, Physics::Collider2D(boxShape));
 
         // make box non slippery

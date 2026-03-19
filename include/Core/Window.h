@@ -3,6 +3,7 @@
 #include "Timestep.h"
 #include "Subject.h"
 
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
 #include <glm/vec2.hpp>

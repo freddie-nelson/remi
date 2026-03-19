@@ -34,19 +34,19 @@ public:
 
         glm::vec2 translation(0);
 
-        if (keyboard.isPressed(Input::Key::ARROW_UP))
+        if (keyboard.isPressed(Input::Key::KEY_UP))
         {
             translation.y += speed;
         }
-        if (keyboard.isPressed(Input::Key::ARROW_DOWN))
+        if (keyboard.isPressed(Input::Key::KEY_DOWN))
         {
             translation.y -= speed;
         }
-        if (keyboard.isPressed(Input::Key::ARROW_LEFT))
+        if (keyboard.isPressed(Input::Key::KEY_LEFT))
         {
             translation.x -= speed;
         }
-        if (keyboard.isPressed(Input::Key::ARROW_RIGHT))
+        if (keyboard.isPressed(Input::Key::KEY_RIGHT))
         {
             translation.x += speed;
         }
